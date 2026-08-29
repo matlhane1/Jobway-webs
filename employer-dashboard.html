@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobWay - Employer Console</title>
+<style>
+body { margin: 0; font-family: Arial, sans-serif; background: #f4f7f6; color: #333; }
+.navbar { background: #0a192f; padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center; }
+.navbar h1 { margin: 0; font-size: 20px; }
+.logout-btn { background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+.panel-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+input, textarea { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+.post-btn { background: #007a78; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 15px; }
+</style>
+<script src="https://jsdelivr.net"></script>
+</head>
+<body>
+
+<div class="navbar">
+<h1>JobWay Employer Console</h1>
+<button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+</div>
+
+<div class="container">
+<div class="panel-card">
+<h2>Recruiter Workspace 🏢</h2>
+<p>Post open positions and securely discover premium talent profiles matching your criteria.</p>
+</div>
+
+<div class="panel-card">
+<h3>Post a New Position</h3>
+<form onsubmit="alert('Job vacancy submitted to verification pipeline!'); return false;">
+<div class="form-group">
+<label>Job Title</label>
+<input type="text" placeholder="e.g. Senior Data Analyst" required>
+</div>
+<div class="form-group">
+<label>Location Placement</label>
+<input type="text" placeholder="e.g. Pretoria (On-site)" required>
+</div>
+<div class="form-group">
+<label>Role Description & Requirements</label>
+<textarea rows="4" placeholder="Detail the duties and skill expectations..." required></textarea>
+</div>
+<button type="submit" class="post-btn">Publish Job Listing</button>
+</form>
+</div>
+</div>
+
+<script>
+// ⚠️ Replace the link inside the quotation marks with your real Project URL:
+const SUPABASE_URL = "https://supabase.co";
+
+// Your public anon token is perfectly locked in place here:
+const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function handleLogout() {
+await supabase.auth.signOut();
+window.location.href = "login.html";
+}
+</script>
+</body>
+</html>
+
