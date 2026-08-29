@@ -5,137 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobWay - Register</title>
 <style>
-body {
-margin: 0;
-padding: 0;
-font-family: Arial, sans-serif;
-background: linear-gradient(180deg, #0d233a 0%, #1a365d 100%);
-color: white;
-display: flex;
-justify-content: center;
-align-items: center;
-min-height: 100vh;
-}
-.form-container {
-width: 90%;
-max-width: 400px;
-background: rgba(255, 255, 255, 0.05);
-padding: 30px;
-border-radius: 12px;
-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-backdrop-filter: blur(10px);
-border: 1px solid rgba(255, 255, 255, 0.1);
-}
-h2 { text-align: center; margin-bottom: 24px; font-size: 24px; }
-.input-group { margin-bottom: 16px; }
-label { display: block; margin-bottom: 6px; font-size: 14px; opacity: 0.9; }
-input, select {
-width: 100%;
-padding: 12px;
-border-radius: 6px;
-border: 1px solid rgba(255, 255, 255, 0.2);
-background: rgba(0, 0, 0, 0.2);
-color: white;
-box-sizing: border-box;
-font-size: 16px;
-}
-.btn {
-width: 100%;
-padding: 14px;
-background: #007a78;
-color: white;
-border: none;
-border-radius: 6px;
-font-size: 16px;
-font-weight: bold;
-cursor: pointer;
-margin-top: 10px;
-}
-.toggle-field { display: none; }
+body{margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#0d233a 0%,#1a365d 100%);color:white;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+.form-container{width:90%;max-width:400px;background:rgba(255,255,255,0.05);padding:30px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);}
+h2{text-align:center;margin-bottom:24px;}
+.input-group{margin-bottom:16px;}
+label{display:block;margin-bottom:6px;font-size:14px;opacity:0.9;}
+input,select{width:100%;padding:12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.2);color:white;box-sizing:border-box;font-size:16px;}
+.btn{width:100%;padding:14px;background:#FFC400;color:#111;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;}
+.toggle-field{display:none;}
 </style>
-<script src="https://jsdelivr.net"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
 <div class="form-container">
 <h2>Create JobWay Account</h2>
 <form id="registerForm">
-<div class="input-group">
-<label>Full Name</label>
-<input type="text" id="fullName" required placeholder="John Doe">
-</div>
-<div class="input-group">
-<label>Email Address</label>
-<input type="email" id="email" required placeholder="name@example.com">
-</div>
-<div class="input-group">
-<label>Password</label>
-<input type="password" id="password" required placeholder="••••••••">
-</div>
-<div class="input-group">
-<label>I want to join as a:</label>
-<select id="userRole" onchange="toggleCompanyField()" required>
-<option value="job_seeker">Job Seeker (Looking for work)</option>
-<option value="employer">Employer (Hiring Talent)</option>
-</select>
-</div>
-<div class="input-group toggle-field" id="companyGroup">
-<label>Company Name</label>
-<input type="text" id="companyName" placeholder="Your Company Ltd">
-</div>
-<button type="submit" class="btn">Register</button>
+<div class="input-group"><label>Full Name</label><input type="text" id="fullName" required placeholder="John Doe"></div>
+<div class="input-group"><label>Email</label><input type="email" id="email" required placeholder="name@example.com"></div>
+<div class="input-group"><label>Password</label><input type="password" id="password" required placeholder="••••••••"></div>
+<div class="input-group"><label>I want to join as:</label><select id="userRole" onchange="toggleCompanyField()" required><option value="job_seeker">Job Seeker</option><option value="employer">Employer</option></select></div>
+<div class="input-group toggle-field" id="companyGroup"><label>Company Name</label><input type="text" id="companyName" placeholder="Your Company Ltd"></div>
+<button type="submit" id="btnSubmit" class="btn">Register</button>
 </form>
 </div>
-
 <script>
-const SUPABASE_URL = "https://supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
-
+const SUPABASE_URL = "https://dmxumcjeetphwvzvgzzuk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function toggleCompanyField() {
-const role = document.getElementById('userRole').value;
-const companyGroup = document.getElementById('companyGroup');
-if (role === 'employer') {
-companyGroup.style.display = 'block';
-document.getElementById('companyName').required = true;
-} else {
-companyGroup.style.display = 'none';
-document.getElementById('companyName').required = false;
-}
+function toggleCompanyField(){
+  const role = document.getElementById('userRole').value;
+  const g = document.getElementById('companyGroup');
+  const c = document.getElementById('companyName');
+  if(role==='employer'){g.style.display='block';c.required=true;}else{g.style.display='none';c.required=false;}
 }
 
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-e.preventDefault();
+document.getElementById('registerForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn=document.getElementById('btnSubmit');
+  btn.innerText="Creating..."; btn.disabled=true;
+  
+  const {data,error} = await _supabase.auth.signUp({
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value,
+    options:{data:{
+      full_name: document.getElementById('fullName').value.trim(),
+      role: document.getElementById('userRole').value,
+      company_name: document.getElementById('companyName').value||null
+    }}
+  });
 
-const email = document.getElementById('email').value;
-const password = document.getElementById('password').value;
-const fullName = document.getElementById('fullName').value;
-const role = document.getElementById('userRole').value;
-const companyName = document.getElementById('companyName').value || null;
-
-if (password.length < 6) {
-alert("Password must be at least 6 characters long.");
-return;
-}
-
-const { data, error } = await _supabase.auth.signUp({
-email: email,
-password: password,
-options: {
-data: {
-full_name: fullName,
-role: role,
-company_name: companyName
-}
-}
-});
-
-if (error) {
-alert("Error: " + error.message);
-} else {
-alert("Success! Your user account is now active inside the database.");
-}
+  if(error){ alert("Error: "+error.message); btn.innerText="Register"; btn.disabled=false; }
+  else { alert("Success! Account created."); window.location.href="login.html"; }
 });
 </script>
 </body>
