@@ -1,1 +1,126 @@
-sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3
+const SUPABASE_URL = "https://supabase.co";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobWay - Portal Login</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #0d233a 0%, #1a365d 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 { text-align: center; margin-bottom: 24px; font-size: 24px; }
+        .input-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; opacity: 0.9; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #ffffff;
+            color: #0d233a;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .link-text { text-align: center; margin-top: 16px; font-size: 14px; opacity: 0.7; }
+        .link-text a { color: #007a78; text-decoration: none; font-weight: bold; }
+    </style>
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Portal Login</h2>
+    <form id="loginForm">
+        <div class="input-group">
+            <label>Email Address</label>
+            <input type="email" id="email" required placeholder="name@example.com">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn">Login</button>
+        <div class="link-text">
+            Don't have an account? <a href="register.html">Create Account</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // ⚠️ YOUR PROJECT URL STILL GOES HERE - Swap the link inside the quotation marks:
+    const SUPABASE_URL = "https://YOUR_ACTUAL_PROJECT_URL_HERE.supabase.co";
+    
+    // Your Anon key is locked into place:
+    const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            alert("Login Failed: " + error.message);
+            return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+        if (profileError) {
+            console.error("Profile check error:", profileError.message);
+            alert("Account found, but could not load profile details.");
+            return;
+        }
+
+        if (profile.role === 'employer') {
+            window.location.href = "employer-dashboard.html";
+        } else if (profile.role === 'job_seeker') {
+            window.location.href = "seeker-dashboard.html";
+        } else {
+            alert("Unrecognized user account role.");
+        }
+    });
+</script>
+</body>
+</html>
