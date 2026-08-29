@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobway | Enterprise Pricing & Tokens Suite</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #20576E;       /* 60% Navy Teal Dominance */
+            --secondary: #30BA8F;     /* 30% Mountain Meadow UI Actions */
+            --accent: #01F9C6;        /* 10% Bright Teal High Voltage Conversion Points */
+            --dark-blue: #0F2331;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --bg-light: #F8FAFC;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-main); }
+        
+        /* Master Navigation Bar */
+        .navbar { background-color: var(--primary); padding: 18px 8%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .logo { color: white; font-size: 26px; font-weight: 700; text-decoration: none; }
+        .logo span { color: var(--accent); }
+        .nav-links a { color: #FFFFFF; text-decoration: none; margin-left: 28px; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
+        
+        /* Pricing Header Hero Banner */
+        .pricing-hero { background: linear-gradient(135deg, var(--primary) 0%, var(--dark-blue) 100%); color: white; padding: 60px 8%; text-align: center; }
+        .pricing-hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+        .pricing-hero h1 span { color: var(--accent); }
+        .pricing-hero p { font-size: 16px; color: #94A3B8; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+
+        .wrapper { max-width: 1200px; margin: 0 auto; padding: 50px 5%; }
+        .section-heading { font-size: 22px; font-weight: 700; color: var(--primary); margin: 40px 0 20px 0; border-left: 4px solid var(--primary); padding-left: 12px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Pricing Cards Layout Engine Grid */
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .price-card { background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 30px 24px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.01); transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+        .price-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(32,87,110,0.08); border-color: var(--secondary); }
+        
+        /* Featured Highlight Card State Style */
+        .price-card.featured { border: 2px solid var(--secondary); background: #FAFDFD; }
+        .badge { position: absolute; top: 12px; right: 12px; background: var(--secondary); color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; }
+        
+        .price-card h3 { font-size: 18px; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+        .price-card .sub-title { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+        .price-card .amt { font-size: 34px; font-weight: 700; color: var(--dark-blue); margin-bottom: 6px; }
+        .price-card .duration { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; display: block; }
+        
+        /* Table / List Features Formatting */
+        .feat-list { list-style: none; text-align: left; margin-bottom: 25px; font-size: 13px; color: var(--text-main); border-top: 1px solid #F1F5F9; padding-top: 15px; }
+        .feat-list li { margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .feat-list li::before { content: "✓"; color: var(--secondary); font-weight: bold; }
+        
+        /* Buy Links Action Conversion Buttons */
+        .buy-btn { display: block; text-align: center; background-color: var(--primary); color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(32,87,110,0.15); }
+        .buy-btn:hover { background-color: var(--secondary); border-bottom: 2px solid var(--accent); box-shadow: 0 4px 12px rgba(48,186,143,0.3); }
+
+        /* CV Database Access Pricing Flex Table UI Elements Row */
+        .cv-row { background: white; border: 1px solid #E2E8F0; padding: 18px 24px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.01); }
+        .cv-row:hover { border-color: var(--secondary); background: #FAFDFD; }
+        .cv-info h4 { font-size: 16px; color: var(--primary); font-weight: 600; }
+        .cv-info p { font-size: 12px; color: var(--text-muted); margin-top: 20px; }
+        .cv-action { display: flex; align-items: center; gap: 25px; }
+        .cv-amt { font-size: 22px; font-weight: 700; color: var(--dark-blue); }
+        .cv-btn { background: var(--dark-blue); color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.2s; }
+        .cv-btn:hover { background: var(--secondary); border-left: 2px solid var(--accent); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">Job<span>Way</span></a>
+        <div class="nav-links">
+            <a href="index.html">Find Jobs</a>
+            <a href="login.html">Employer Hub</a>
+            <a href="#" style="color: var(--accent);">Pricing Suites</a>
+        </div>
+    </nav>
+
+    <header class="pricing-hero">
+        <h1>Corporate Recruitment <span>Pricing Packages</span></h1>
+        <p>Flexible packages built to scale South African recruitment pipelines securely and reliably.</p>
+    </header>
+
+    <main class="wrapper">
+
+        <!-- SECTION 1: PAY AS YOU GO MODEL -->
+        <div class="section-heading"><h2>Tier 1: SMME Pay-As-You-Go</h2></div>
+        <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 400px));">
+            <div class="price-card">
+                <h3>Pay-Per-Post Option</h3>
+                <p class="sub-title">Perfect for direct immediate single requirements</p>
+                <div class="amt">R299</div>
+                <span class="duration">Active for 30 Days</span>
+                <ul class="feat-list">
+                    <li>1 High-Exposure Job Listing Post</li>
+                    <li>Direct candidate dashboard parsing</li>
+                    <li>POPIA secure data tracking pipeline</li>
+                </ul>
+                <a href="https://payfast.co.za" target="_blank" class="buy-btn">Purchase Single Slot</a>
+            </div>
+        </div>
+
+        <!-- SECTION 2: MONTHLY ACTIVE SUBSCRIPTIONS -->
+        <div class="section-heading"><h2>Tier 2: Monthly Recruitment Subscriptions</h2></div>
+        <div class="pricing-grid">
+            <div class="price-card">
+                <h3>Starter Plan</h3>
+                <p class="sub-title">For growing teams</p>
+                <div class="amt">R999</div>
+                <span class="duration">per month (Recurring)</span>
+                <ul class="feat-list">
+                    <li>Continuous ongoing candidate streams</li>
+                    <li>Basic employer dashboard tracking layout</li>
+                </ul>
+                <a href="https://payfast.co.za" target="_blank" class="buy-btn">Subscribe Starter</a>
+            </div>
+            <div class="price-card featured">
+                <span class="badge">Popular</span>
+                <h3>Growth Plan</h3>
+                <p class="sub-title">Accelerated medium scale operations</p>
+                <div class="amt">R2,500</div>
+                <span class="duration">per month (Recurring)</span>
+                <ul class="feat-list">
+                    <li>Priority recruitment tag visibility metrics</li>
+                    <li>Advanced candidate filtering systems matrix</li>
+                </ul>
+                <a href="https://payfast.co.za" target="_blank" class="buy-btn">Subscribe Growth</a>
+            </div>
+            <div class="price-card">
+                <h3>Pro Plan</h3>
+                <p class="sub-title">High volume specialized lines</p>
+                <div class="amt">R3,500</div>
+                <span class="duration">per month (Recurring)</span>
+                <ul class="feat-list">
+                    <li>Full dashboard system control tools access</li>
+                    <li>Multi-user recruiter login tokens allocation</li>
+                </ul>
+                <a href="https://payfast.co.za" target="_blank" class="buy-btn">Subscribe Pro</a>
+            </div>
+            <div class="price-card">
+                <h3>Business Plan</h3>
+                <p class="sub-title">Enterprise staffing dominance</p>
+                <div class="amt">R5,999</div>
+                <span class="duration">per month (Recurring)</span>
+                <ul class="feat-list">
+                    <li>Dedicated server support connection line</li>
+                    <li>Custom invoice and automated reporting layers</li>
+                </ul>
+                <a href="https://payfast.co.za" target="_blank" class="buy-btn">Subscribe Business</a>
+            </div>
+        </div>
+
+        <!-- SECTION 3: BULK JOB CREDIT BLOCKS -->
+        <div class="section-heading"><h2>Tier 3: Bulk Pre-Paid Job Credits</h2></div>
+        <div class="pricing-grid">
+            <div class="price-card">
+                <h3>Starter Bundle</h3>
+                <p class="sub-title">Pre-purchase vacancy allocation slots</p>
+                <div class="amt" style="font-size: 28px;">30 Job Credits</div>
