@@ -81,21 +81,17 @@ margin-top: 10px;
 </div>
 <div class="input-group toggle-field" id="companyGroup">
 <label>Company Name</label>
-
+<input type="text" id="companyName" placeholder="Your Company Ltd">
 </div>
 <button type="submit" class="btn">Register</button>
 </form>
 </div>
 
 <script>
-// ⚠️ YOUR PROJECT URL STILL GOES HERE - Swap the link inside the quotation marks:
-const const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
-
-
-// Your Anon key is now perfectly locked into place:
+const SUPABASE_URL = "https://supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function toggleCompanyField() {
 const role = document.getElementById('userRole').value;
@@ -111,13 +107,19 @@ document.getElementById('companyName').required = false;
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
 e.preventDefault();
+
 const email = document.getElementById('email').value;
 const password = document.getElementById('password').value;
 const fullName = document.getElementById('fullName').value;
 const role = document.getElementById('userRole').value;
 const companyName = document.getElementById('companyName').value || null;
 
-const { data, error } = await supabase.auth.signUp({
+if (password.length < 6) {
+alert("Password must be at least 6 characters long.");
+return;
+}
+
+const { data, error } = await _supabase.auth.signUp({
 email: email,
 password: password,
 options: {
@@ -132,7 +134,7 @@ company_name: companyName
 if (error) {
 alert("Error: " + error.message);
 } else {
-alert("Success! Check your email inbox for your registration verification link.");
+alert("Success! Your user account is now active inside the database.");
 }
 });
 </script>
