@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobWay - Job Seeker Dashboard</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #f4f7f6; color: #333; }
+        .navbar { background: #0d233a; padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { margin: 0; font-size: 20px; }
+        .logout-btn { background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .welcome-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .job-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid #007a78; }
+        .job-card h3 { margin: 0 0 8px 0; color: #0d233a; }
+        .job-card p { margin: 4px 0; font-size: 14px; color: #666; }
+        .apply-btn { background: #007a78; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+    </style>
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body>
+<div class="navbar">
+    <h1>JobWay Candidate Hub</h1>
+    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+</div>
+<div class="container">
+    <div class="welcome-card">
+        <h2>Welcome back, Job Seeker! 👋</h2>
+        <p>Explore premium open vacancies from serious South African companies verified on our secure network.</p>
+    </div>
+    <h2>Available Openings</h2>
+    <div class="job-card">
+        <h3>Junior Web Developer</h3>
+        <p><strong>Company:</strong> TechSolutions SA</p>
+        <p><strong>Location:</strong> Johannesburg (Hybrid)</p>
+        <button class="apply-btn">Quick Apply</button>
+    </div>
+</div>
+<script>
+    // Paste your safe anon keys here just like before!
+    const supabase = supabase.createClient("YOUR_SUPABASE_URL_HERE", "YOUR_SUPABASE_ANON_KEY_HERE");
+    async function handleLogout() {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+    }
+</script>
+</body>
+</html>
