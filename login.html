@@ -2,42 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - JobWay</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>JobWay - Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <style>
-body{margin:0;background:#11283a;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:Arial;color:white}
-.box{background:#1a3446;padding:28px;border-radius:20px;width:90%;max-width:360px}
-h1{text-align:center;margin:0 0 6px} p{text-align:center;color:#9cc2d0;font-size:13px;margin-top:0}
-input{width:100%;padding:12px;margin:10px 0;border-radius:10px;border:1px solid #284a5a;background:#0d1f2d;color:white;box-sizing:border-box}
-button{width:100%;padding:12px;background:white;color:#11283a;border:none;border-radius:12px;font-weight:800;cursor:pointer;margin-top:10px}
-a{color:#01F9C6;text-decoration:none;font-weight:700}
-.showBtn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:#1a3446;border:none;color:#9cc2d0;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px}
+*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+body{margin:0;background:#11283a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.card{background:#1c3445;width:100%;max-width:380px;border-radius:24px;padding:32px 24px;text-align:center}
+h1{color:white;margin:0 0 6px;font-size:30px;font-weight:800}
+.sub{color:#8fb0bf;font-size:14px;margin-bottom:20px}
+label{color:#9cc2d0;text-align:left;display:block;font-size:13px;margin:14px 0 6px 4px}
+.input{width:100%;background:#0f2533;border:1px solid #234355;color:#cde6f0;padding:14px 16px;border-radius:12px;outline:none;font-size:15px}
+.input:focus{border-color:#01F9C6}
+.pass-wrap{position:relative}
+.pass-wrap .input{padding-right:80px}
+.show{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:#1a3446;color:#9cc2d0;border:none;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer}
+.btn{width:100%;background:white;color:#11283a;border:none;padding:14px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:20px}
+.link{color:#8fb0bf;font-size:14px;margin-top:14px}
+.link a{color:#01F9C6;text-decoration:none;font-weight:700}
+.err{color:#ff8a8a;font-size:13px;margin-top:12px;min-height:18px}
 </style>
 </head>
 <body>
-<div class="box">
-<h1>Welcome Back</h1><p>Login to JobWay</p>
-<input id="email" type="email" placeholder="you@email.com">
-<div style="position:relative"><input id="password" type="password" placeholder="Your password"><button class="showBtn" onclick="let p=document.getElementById('password');p.type=p.type==='password'?'text':'password'">SHOW</button></div>
-<button id="loginBtn">Login</button>
-<p style="margin-top:14px">No account? <a href="signup.html">Create one</a></p>
-<p id="msg" style="color:#ff8a8a;text-align:center;font-size:13px"></p>
+<div class="card">
+<h1>Welcome Back</h1>
+<div class="sub">Login to JobWay</div>
+<label>Email</label>
+<input id="email" class="input" placeholder="you@email.com" value="employer.jobway@gmail.com">
+<label>Password</label>
+<div class="pass-wrap">
+<input id="password" class="input" type="password" placeholder="Your password">
+<button class="show" type="button" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'SHOW':'HIDE'">SHOW</button>
+</div>
+<button class="btn" id="loginBtn">Login</button>
+<div class="link">No account? <a href="signup.html">Create one</a></div>
+<div id="msg" class="err"></div>
 </div>
 <script>
 const SUPABASE_URL="https://dmxumcjeetphwzvggzzuk.supabase.co";
-const SUPABASE_KEY="sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRteHVtY2plZXRwaHd6dmdnenp1ayIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU1ODk0OTY2LCJleHAiOjIwNzE0NzA5NjZ9.k3v0L0s2Y9P9Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0"; // placeholder, will use publishable below
+// Use your publishable key - supabase-js UMD version
+const supabaseClient = supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co", "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3");
 
-document.getElementById('loginBtn').onclick=async()=>{
- const email=document.getElementById('email').value.trim();
- const password=document.getElementById('password').value.trim();
- const msg=document.getElementById('msg');
- if(!email||!password){msg.textContent="Fill email and password";return;}
+document.getElementById('loginBtn').onclick = async () => {
+ const email = document.getElementById('email').value.trim();
+ const password = document.getElementById('password').value.trim();
+ const msg = document.getElementById('msg');
+ if(!email||!password){msg.textContent="Enter email and password";return;}
  msg.textContent="Logging in...";
- const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
- if(error){msg.textContent=error.message;return;}
- msg.textContent="Login success!";
- setTimeout(()=>{location.href='employer-dashboard.html?v=202';},500);
+ msg.style.color="#9cc2d0";
+ try{
+   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+   if(error) throw error;
+   msg.style.color="#01F9C6";
+   msg.textContent="Login success! Redirecting...";
+   setTimeout(()=>{ location.href='employer-dashboard.html?v=203'; },600);
+ }catch(e){
+   msg.style.color="#ff8a8a";
+   msg.textContent = e.message.includes('fetch') ? "NetworkError: Check internet or Supabase paused. Go to supabase.com dashboard > resume project." : e.message;
+ }
 };
 </script>
 </body>
