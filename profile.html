@@ -1,38 +1,12 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>JobWay Profile</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial;padding:0}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between}.logo{color:#01F9C6;font-weight:900;font-size:22px}.container{max-width:600px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:20px;padding:20px}.progress{display:flex;gap:6px;margin-bottom:16px}.dot{height:8px;flex:1;background:#0d1f2d;border-radius:10px}.dot.active{background:#01F9C6}.step{display:none}.step.active{display:block}input,select,textarea{width:100%;padding:12px;border-radius:12px;border:none;background:#0f2a3c;color:#fff;margin:8px 0}.btn{background:#01F9C6;color:#11283a;border:none;padding:12px 20px;border-radius:12px;font-weight:800;width:100%;margin-top:10px}.btn2{background:transparent;color:#01F9C6;border:1px solid #01F9C6}.skill{display:inline-block;background:#0f2a3c;padding:6px 12px;border-radius:20px;margin:4px;font-size:13px}</style></head><body>
-<div class="header"><div class="logo">JobWay Profile</div><div><button onclick="location.href='index.html'" style="background:#fff;border:none;padding:8px 14px;border-radius:10px;font-weight:700">Jobs</button></div></div>
-<div class="container"><div class="progress" id="prog"></div><div class="card">
-<div class="step active" id="s1"><h3>1. Personal</h3><input id="p_name" placeholder="Full Name"><input id="p_email" placeholder="Email" value="employer.jobway@gmail.com"><input id="p_phone" placeholder="WhatsApp Number e.g. +27..."><input id="p_id" placeholder="ID Number"><button class="btn" onclick="nextStep()">Next</button></div>
-<div class="step" id="s2"><h3>2. Address</h3><input id="a_street" placeholder="Street"><input id="a_city" placeholder="City e.g. Thohoyandou"><input id="a_province" placeholder="Province"><select id="a_remote"><option>On-site</option><option>Remote</option><option>Hybrid</option></select><button class="btn" onclick="nextStep()">Next</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-<div class="step" id="s3"><h3>3. Professional</h3><input id="pr_title" placeholder="Title e.g. Cashier"><input id="pr_exp" type="number" placeholder="Years Experience"><select id="pr_level"><option>Entry</option><option>Mid</option><option>Senior</option></select><button class="btn" onclick="nextStep()">Next</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-<div class="step" id="s4"><h3>4. Education</h3><input id="e_school" placeholder="School"><input id="e_qual" placeholder="Qualification e.g. Matric"><input id="e_year" placeholder="Year"><button class="btn" onclick="nextStep()">Next</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-<div class="step" id="s5"><h3>5. Experience</h3><textarea id="ex_desc" placeholder="Describe experience"></textarea><input id="ex_company" placeholder="Last Company"><button class="btn" onclick="nextStep()">Next</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-<div class="step" id="s6"><h3>6. Skills</h3><input id="skill_in" placeholder="Type skill + press Enter" onkeydown="if(event.key==='Enter'){addSkill();event.preventDefault()}"><div id="skills"></div><p id="cvTips" style="color:#01F9C6;font-size:12px;margin-top:10px"></p><button class="btn" onclick="nextStep()">Next</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-<div class="step" id="s7"><h3>7. CV Upload</h3><input type="file" id="cvfile"><p style="font-size:12px;color:#8fb3c1">PDF only. We will score your CV vs jobs.</p><div id="cvScore" style="margin-top:10px;font-weight:800;color:#01F9C6"></div><button class="btn" onclick="nextStep()">Next</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-<div class="step" id="s8"><h3>8. Preferences</h3><input id="pref_salary" type="number" placeholder="Min Salary e.g. 4500"><input id="pref_loc" placeholder="Preferred Location"><select id="pref_remote"><option>Any</option><option>Remote only</option><option>On-site only</option></select><input id="pref_whatsapp" placeholder="WhatsApp for alerts"><button class="btn" onclick="saveProfile()">💾 Save & See My Job Matches</button><button class="btn btn2" onclick="prevStep()">Back</button></div>
-</div></div>
-<script>
-const supa=supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-let cur=1;let skills=[];
-for(let i=0;i<8;i++){document.getElementById('prog').innerHTML+='<div class="dot" id="d'+(i+1)+'"></div>'}updateDots();
-function updateDots(){for(let i=1;i<=8;i++)document.getElementById('d'+i).className=i<=cur?'dot active':'dot'}
-function nextStep(){document.getElementById('s'+cur).classList.remove('active');cur++;document.getElementById('s'+cur).classList.add('active');updateDots();if(cur==6)analyzeCV();}
-function prevStep(){document.getElementById('s'+cur).classList.remove('active');cur--;document.getElementById('s'+cur).classList.add('active');updateDots();}
-function addSkill(){let v=document.getElementById('skill_in').value.trim();if(v){skills.push(v);document.getElementById('skill_in').value='';document.getElementById('skills').innerHTML=skills.map(s=>'<span class="skill">'+s+'</span>').join('');}}
-function analyzeCV(){
- let tip="";if(skills.length<3)tip+="⚠️ Add at least 5 skills. ";if(!document.getElementById('pr_exp').value)tip+="⚠️ Add experience years. ";
- if(skills.includes('Cashier')||skills.includes('cashier'))tip+="✅ Good for Retail jobs! ";
- if(tip=="")tip="✅ Strong CV! Add Computer, Customer Service for +15% match";
- document.getElementById('cvTips').innerText=tip+" Missing skills vs Cashier: Customer Service, POS";
-}
-async function saveProfile(){
- const profile={personal:{name:p_name.value,email:p_email.value,phone:p_phone.value},address:{street:a_street.value,city:a_city.value,province:a_province.value,work:a_remote.value},professional:{title:pr_title.value,exp:pr_exp.value,level:pr_level.value},education:{school:e_school.value,qual:e_qual.value,year:e_year.value},experience:{company:ex_company.value,desc:ex_desc.value},skills:skills,preferences:{salary:pref_salary.value,loc:pref_loc.value,remote:pref_remote.value,whatsapp:pref_whatsapp.value}};
- localStorage.setItem('jobway_profile',JSON.stringify(profile));
- await supa.from('profiles').upsert({user_email:p_email.value,personal:profile.personal,address:profile.address,professional:profile.professional,education:profile.education,experience:profile.experience,skills:skills,preferences:profile.preferences,cv_score:80});
- // WhatsApp Alert subscription
- await supa.from('job_alerts').insert({user_email:p_email.value,keywords:profile.professional.title,location:profile.preferences.loc,min_salary:profile.preferences.salary,whatsapp_number:profile.preferences.whatsapp});
- alert('Profile saved! Now you will get WhatsApp alerts + job matches');
- location.href='index.html?match=1';
-}
-</script></body></html>
+<!-- POPIA-COMPLIANT PROFILE -->
+Step 1: Personal
+- Full Name
+- Province (dropdown: Limpopo, Gauteng, etc)
+- City/Town (e.g. Thohoyandou)
+- WhatsApp Number
+
+Step 2: Education
+- School/Institution
+- Highest Qualification (Matric, Diploma, Degree)
+- Year Completed (e.g. 2023)
+- skill/Experience
