@@ -1,14 +1,18 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobWay Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>body{margin:0;background:#11283a;color:white;font-family:Arial;padding:20px}
-.top{display:flex;justify-content:space-between;align-items:center}
-.card{background:#1e3a4f;border-radius:16px;padding:18px;margin-top:18px}
+<style>
+body{margin:0;background:#11283a;color:white;font-family:Inter,Arial;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card{background:#1e3a4f;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.06)}
+.small{color:#9cc2d0;font-size:13px}
 .btn{background:white;color:#11283a;border:none;padding:10px 14px;border-radius:10px;font-weight:900;cursor:pointer}
+.apply{background:#2dd4bf;color:#11283a;border:none;padding:8px 12px;border-radius:8px;font-weight:800;cursor:pointer;margin-top:8px}
 </style></head><body>
-<div class="top"><h2>JobWay</h2><button class="btn" id="logout">Logout</button></div>
-<div class="card"><h3 id="welcome">Loading...</h3><p id="email"></p></div>
-<div class="card"><h3>Jobs for you</h3><p style="color:#9cc2d0">Dashboard working! Next we add real jobs.</p></div>
+<div class="top"><h2 style="margin:0">JobWay</h2><button class="btn" id="logout">Logout</button></div>
+<div class="card"><h3 id="welcome" style="margin:0 0 4px">Loading...</h3><p id="email" class="small" style="margin:0"></p></div>
+<div id="jobs"><div class="card"><p class="small">Loading jobs...</p></div></div>
+
 <script>
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
 (async()=>{
@@ -16,6 +20,11 @@ const {data:{session}}=await supabaseClient.auth.getSession();
 if(!session){location.href='login.html?v=38';return;}
 document.getElementById('welcome').textContent='Welcome, '+(session.user.user_metadata.full_name||'User')+' 👋';
 document.getElementById('email').textContent=session.user.email;
+const {data:jobs,error}=await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false});
+const box=document.getElementById('jobs');
+if(error){box.innerHTML='<div class="card">Error: '+error.message+'</div>';return;}
+if(!jobs.length){box.innerHTML='<div class="card">No jobs yet</div>';return;}
+box.innerHTML=jobs.map(j=>`<div class="card"><h3 style="margin:0 0 6px">${j.title}</h3><p class="small" style="margin:0">${j.company} • ${j.location} • ${j.type}</p><p class="small" style="margin:6px 0"><b>${j.salary}</b></p><p style="margin:8px 0 0;font-size:14px">${j.description}</p><button class="apply" onclick="alert('Applied for ${j.title}! We will email you')">Apply Now</button></div>`).join('');
 })();
 document.getElementById('logout').onclick=async()=>{await supabaseClient.auth.signOut();location.href='login.html?v=38';};
 </script></body></html>
