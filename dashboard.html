@@ -1,85 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobWay - Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
-body{background:#f6f7f9}
-.top{position:sticky;top:0;background:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.08);z-index:10}
-.card{background:white;border-radius:14px;padding:16px;margin:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600}
-.badge.green{background:#dcfce7;color:#166534}
-.badge.blue{background:#dbeafe;color:#1e40af}
-.btn{padding:10px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
-.btn-black{background:#111;color:white}
-.btn-blue{background:#2563eb;color:white}
-</style>
-</head>
-<body>
-<div class="top">
-  <b>JobWay</b>
-  <div style="display:flex;gap:8px">
-    <a href="dashboard.html" class="btn btn-black" style="text-decoration:none">Jobs</a>
-    <a href="post-job.html?v=42" style="background:#111;color:white;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700">+ Post</a>
-  </div>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#11283a;font-family:Inter,Arial,sans-serif}
+.box{text-align:center;color:white}
+.spinner{width:46px;height:46px;border:4px solid rgba(1,249,198,0.2);border-top-color:#01F9C6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+h2{margin:0;font-size:22px;font-weight:800} p{color:#9cc2d0;margin-top:8px;font-size:14px}
+</style></head><body>
+<div class="box">
+<div class="spinner"></div>
+<h2>Loading your dashboard...</h2>
+<p>Please wait</p>
 </div>
-
-<div id="jobs">Loading jobs...</div>
-
 <script>
-const SUPABASE_URL = "https://xeoivmgwjadoiyxlgqso.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhlb2l2bWd3amFkb2l5eGxncXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNDEzMDYsImV4cCI6MjA3MDgxNzMwNn0.6K5-1dZt2d2vN5w7e8-9a0b1c2d3e4f5g6h7j8k9l0";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-async function load(){
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  const { data: jobs } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false});
-  const { data: apps } = await supabaseClient.from('applications').select('job_id, user_email');
-  
-  // count per job
-  let countMap = {};
-  let appliedSet = new Set();
-  (apps||[]).forEach(a=>{
-    countMap[a.job_id] = (countMap[a.job_id]||0)+1;
-    if(user && a.user_email === user.email) appliedSet.add(a.job_id);
-  });
-
-  document.getElementById('jobs').innerHTML = (jobs||[]).map(job=>{
-    let count = countMap[job.id]||0;
-    let isApplied = appliedSet.has(job.id);
-    return `<div class="card">
-      <div style="display:flex;justify-content:space-between">
-        <b>${job.title}</b>
-        <span class="badge green">${job.job_type||'Full-time'}</span>
-      </div>
-      <p style="color:#666;margin:8px 0">${job.company||''} • ${job.location||''}</p>
-      <div style="display:flex;gap:6px;margin:8px 0">
-        <span class="badge blue">👥 ${count} applied</span>
-        <span class="badge green">Closes: ${job.closing_date||'N/A'}</span>
-      </div>
-      <button onclick="applyJob('${job.id}')" class="btn ${isApplied?'btn-black':'btn-blue'}" style="width:100%">
-        ${isApplied?'✅ Applied':'Apply Now'}
-      </button>
-    </div>`
-  }).join('') || 'No jobs';
-}
-
-async function applyJob(jobId){
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if(!user){ alert('Please login first'); location.href='auth.html'; return; }
-  const { error } = await supabaseClient.from('applications').insert({job_id:jobId, user_id:user.id, user_email:user.email});
-  if(error){
-    if(error.message.includes('duplicate') || error.code==='23505') alert('You already applied for this job!');
-    else alert(error.message);
-  }else{
-    alert('Application sent!');
-    load();
-  }
-}
-load();
-</script>
-</body>
-</html>
+const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3");
+(async()=>{
+const {data:{session}}=await supabaseClient.auth.getSession();
+if(!session){location.href="login.html?v=31";return;}
+const {data:profile,error}=await supabaseClient.from('profiles').select('role').eq('id',session.user.id).single();
+if(error || !profile){console.log(error);location.href="login.html?v=31";return;}
+if(profile.role==='employer'){location.href="employer-dashboard.html?v=31";}
+else{location.href="seeker-dashboard.html?v=31";}
+})();
+</script></body></html>
