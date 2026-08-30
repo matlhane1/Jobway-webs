@@ -1,42 +1,39 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay - Create Account</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#11283a;font-family:Inter,Arial,sans-serif;padding:20px}
-.card{width:100%;max-width:430px;background:linear-gradient(180deg,#1b344a,#132a3c);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:42px 30px 34px;box-shadow:0 20px 50px rgba(0,0,0,0.4)}
-h1{margin:0 0 32px;color:#fff;text-align:center;font-size:34px;font-weight:800;letter-spacing:-0.5px}
-label{display:block;color:#dbe8ef;font-size:15px;margin:18px 0 9px}
-input,select{width:100%;padding:15px 16px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:#fff;font-size:16px;outline:none;box-sizing:border-box}
-input::placeholder{color:#7f9aab} input:focus,select:focus{border-color:#01F9C6;box-shadow:0 0 0 3px rgba(1,249,198,0.15)}
-select{color:#fff;background-color:#0f2332}
-.btn{width:100%;margin-top:28px;padding:15px;border:none;border-radius:14px;background:#fff;color:#11283a;font-size:18px;font-weight:800;cursor:pointer;transition:.2s}
-.btn:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(0,0,0,0.2)}
-.foot{text-align:center;margin-top:22px;color:#b9d0dd;font-size:15px}
-.foot a{color:#2dd4bf;color:#01F9C6;font-weight:700;text-decoration:none}
-.foot a:hover{color:#fff}
-#msg{text-align:center;margin-top:12px;font-weight:700;font-size:14px}
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobWay - Create Account</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#11283a;font-family:Inter,Arial,sans-serif;padding:20px}
+.card{background:linear-gradient(180deg,#1e3a4f,#152c3f);border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:28px 24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+h1{color:white;text-align:center;font-size:28px;font-weight:900;margin:0 0 20px;line-height:1.2}
+label{color:#9cc2d0;font-size:14px;margin:14px 0 6px;display:block}
+input,select{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;font-size:15px;outline:none;box-sizing:border-box}
+input:focus,select:focus{border-color:#01F9C6;box-shadow:0 0 0 3px rgba(1,249,198,0.15)}
+.pw-wrap{position:relative} .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:6px 9px;color:#9cc2d0;font-size:12px;font-weight:700}
+.reg-btn{width:100%;margin-top:22px;background:white;color:#11283a;border:none;padding:14px;border-radius:14px;font-weight:900;font-size:16px;cursor:pointer}
+.reg-btn:hover{background:#01F9C6} .foot{text-align:center;margin-top:16px;color:#7f9aab;font-size:14px} .foot a{color:#01F9C6;text-decoration:none;font-weight:700}
 </style></head><body>
 <div class="card">
-<h1>Create JobWay Account</h1>
-<form id="regForm">
-<label>Full Name</label><input id="fullname" required placeholder="John Doe">
-<label>Email Address</label><input id="email" type="email" required placeholder="name@example.com">
-<label>Password</label><input id="password" type="password" required placeholder="••••••••">
-<label>I want to join as:</label><select id="role"><option value="job_seeker">Job Seeker</option><option value="employer">Employer</option></select>
-<button id="regBtn" class="btn" type="submit">Register</button>
-<div id="msg"></div>
-<div class="foot">Already have an account? <a href="login.html?v=31">Login</a></div>
-</form>
+<h1>Create JobWay<br>Account</h1>
+<label>Full Name</label><input id="fullName" placeholder="Your full name">
+<label>Email Address</label><input id="email" type="email" placeholder="you@example.com">
+<label>Password</label>
+<div class="pw-wrap"><input id="password" type="password" placeholder="Create password">
+<button class="eye" type="button" onclick="togglePw('password',this)">SHOW</button></div>
+<label>I want to join as:</label><select id="role"><option value="seeker">Job Seeker</option><option value="employer">Employer</option></select>
+<button class="reg-btn" id="registerBtn">Register</button>
+<div class="foot">Already have an account? <a href="login.html?v=33">Login</a></div>
 </div>
 <script>
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3");
-document.getElementById('regForm').addEventListener('submit',async(e)=>{
-e.preventDefault();const b=document.getElementById('regBtn'),m=document.getElementById('msg');b.textContent="Creating...";b.disabled=true;m.textContent="";
-const fn=document.getElementById('fullname').value.trim(),em=document.getElementById('email').value.trim(),pw=document.getElementById('password').value,rl=document.getElementById('role').value;
-const {data,error}=await supabaseClient.auth.signUp({email:em,password:pw,options:{data:{full_name:fn,role:rl}}});
-if(error){m.style.color="#ff8a9a";m.textContent=error.message;b.textContent="Register";b.disabled=false;return;}
-if(data.user){await supabaseClient.from('profiles').insert({id:data.user.id,full_name:fn,email:em,role:rl});}
-m.style.color="#01F9C6";m.textContent="Success! Confirm email then Login.";setTimeout(()=>location.href="login.html?v=31",1200);
+function togglePw(id,btn){const i=document.getElementById(id);if(i.type==="password"){i.type="text";btn.textContent="HIDE";}else{i.type="password";btn.textContent="SHOW";}}
+document.getElementById('registerBtn').addEventListener('click',async()=>{
+const fullName=document.getElementById('fullName').value.trim();
+const email=document.getElementById('email').value.trim();
+const password=document.getElementById('password').value;
+const role=document.getElementById('role').value;
+if(!fullName||!email||!password){alert("Fill all fields");return;}
+const btn=document.getElementById('registerBtn');btn.textContent="Creating...";btn.disabled=true;
+const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName,role}}});
+if(error){alert(error.message);btn.textContent="Register";btn.disabled=false;return;}
+await supabaseClient.from('profiles').insert({id:data.user.id,full_name:fullName,role});
+alert("Account created! Please login.");location.href="login.html?v=33";
 });
 </script></body></html>
