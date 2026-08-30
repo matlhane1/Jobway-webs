@@ -1,56 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay - Portal Login</title>
-<style>
-body { margin:0; padding:0; font-family:Arial,sans-serif; background:linear-gradient(180deg,#0d233a 0%,#1a365d 100%); color:white; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-.login-container { width:90%; max-width:400px; background:rgba(255,255,255,0.05); padding:30px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.3); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
-h2 { text-align:center; margin-bottom:24px; font-size:28px; font-weight:bold; }
-.input-group { margin-bottom:16px; }
-label { display:block; margin-bottom:6px; font-size:14px; opacity:0.9; }
-input { width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:white; box-sizing:border-box; font-size:16px; }
-.btn { width:100%; padding:14px; background:#fff; color:#0d233a; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; }
-.link-text { text-align:center; margin-top:16px; font-size:14px; opacity:0.8; }
-.link-text a { color:#2dd4bf; text-decoration:none; font-weight:bold; }
-#message { text-align:center; margin-top:10px; font-size:14px; }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<div class="login-container">
-<h2>Portal Login</h2>
-<form id="loginForm">
-<div class="input-group"><label>Email Address</label><input type="email" id="email" required placeholder="name@example.com"></div>
-<div class="input-group"><label>Password</label><input type="password" id="password" required placeholder="••••••••"></div>
-<button type="submit" id="loginBtn" class="btn">Login</button>
-<div id="message"></div>
-<div class="link-text">Don't have an account? <a href="register.html?v=21">Create Account</a></div>
-</form>
-</div>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobWay - Login</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#11283a;font-family:Inter,Arial,sans-serif;padding:20px}
+.card{background:linear-gradient(180deg,#1e3a4f,#152c3f);border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:28px 24px;width:100%;max-width:400px}
+h1{color:white;text-align:center;font-size:28px;font-weight:900;margin:0 0 20px}
+label{color:#9cc2d0;font-size:14px;margin:14px 0 6px;display:block}
+input{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;font-size:15px;outline:none;box-sizing:border-box}
+input:focus{border-color:#01F9C6;box-shadow:0 0 0 3px rgba(1,249,198,0.15)}
+.pw-wrap{position:relative} .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:6px 9px;color:#9cc2d0;font-size:12px;font-weight:700}
+.log-btn{width:100%;margin-top:22px;background:white;color:#11283a;border:none;padding:14px;border-radius:14px;font-weight:900;font-size:16px;cursor:pointer}
+.log-btn:hover{background:#01F9C6} .foot{text-align:center;margin-top:16px;color:#7f9aab;font-size:14px} .foot a{color:#01F9C6;text-decoration:none;font-weight:700}
+</style></head><body>
+<div class="card"><h1>Portal Login</h1>
+<label>Email</label><input id="email" type="email" placeholder="you@example.com">
+<label>Password</label>
+<div class="pw-wrap"><input id="password" type="password" placeholder="Your password">
+<button class="eye" type="button" onclick="togglePw('password',this)">SHOW</button></div>
+<button class="log-btn" id="loginBtn">Login</button>
+<div class="foot">Don't have account? <a href="register.html?v=33">Register</a></div></div>
 <script>
-https://dmxumcjeetphwzvgzzuk.supabase.co
-const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-e.preventDefault();
-const btn = document.getElementById('loginBtn');
-const msg = document.getElementById('message');
-btn.textContent = "Logging in..."; btn.disabled = true;
-const email = document.getElementById('email').value.trim();
-const password = document.getElementById('password').value;
-const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-if (error) { msg.textContent = "Login Failed: " + error.message; msg.style.color = "#f87171"; btn.textContent = "Login"; btn.disabled = false; return; }
-// Success - redirect
-try {
-const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', data.user.id).single();
-if (profile?.role === 'employer') window.location.href = "employer-dashboard.html";
-else if (profile?.role === 'job_seeker') window.location.href = "seeker-dashboard.html";
-else window.location.href = "dashboard.html";
-} catch (err) { window.location.href = "dashboard.html"; }
+const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3");
+function togglePw(id,btn){const i=document.getElementById(id);if(i.type==="password"){i.type="text";btn.textContent="HIDE";}else{i.type="password";btn.textContent="SHOW";}}
+document.getElementById('loginBtn').addEventListener('click',async()=>{
+const email=document.getElementById('email').value.trim();const password=document.getElementById('password').value;
+if(!email||!password){alert("Fill all");return;}
+const btn=document.getElementById('loginBtn');btn.textContent="Logging in...";btn.disabled=true;
+const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+if(error){alert(error.message);btn.textContent="Login";btn.disabled=false;return;}
+location.href="dashboard.html?v=33";
 });
-</script>
-</body>
-</html>
+</script></body></html>
