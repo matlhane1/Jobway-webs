@@ -1,65 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay - Register</title>
-<style>
-body{margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#0d233a 0%,#1a365d 100%);color:white;display:flex;justify-content:center;align-items:center;min-height:100vh;}
-.form-container{width:90%;max-width:400px;background:rgba(255,255,255,0.05);padding:30px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);}
-h2{text-align:center;margin-bottom:24px;}
-.input-group{margin-bottom:16px;}
-label{display:block;margin-bottom:6px;font-size:14px;opacity:0.9;}
-input,select{width:100%;padding:12px;border:1px solid #20576E;border-radius:8px;background:white;color:#20576E;}
-input:focus,select:focus{border-color:#01F9C6;outline:none;box-shadow:0 0 0 3px rgba(1,249,198,0.3);}
-.btn{width:100%;padding:14px;background:#20576E;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;}
-.btn:hover{background:#30BA8F;}
-.toggle-field{display:none;}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JobWay - Register</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #0d233a 0%, #1a365d 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #20576E;
+            border-radius: 8px;
+            background: white;
+            color: #20576E;
+            font-size: 16px;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #01F9C6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(1, 249, 198, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #20576E;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #30BA8F;
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .toggle-field {
+            display: none;
+        }
+    </style>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 </head>
+
 <body>
-<div class="form-container">
-<h2>Create JobWay Account</h2>
-<form id="registerForm">
-<div class="input-group"><label>Full Name</label><input type="text" id="fullName" required placeholder="John Doe"></div>
-<div class="input-group"><label>Email</label><input type="email" id="email" required placeholder="name@example.com"></div>
-<div class="input-group"><label>Password</label><input type="password" id="password" required placeholder="••••••••"></div>
-<div class="input-group"><label>I want to join as:</label><select id="userRole" onchange="toggleCompanyField()" required><option value="job_seeker">Job Seeker</option><option value="employer">Employer</option></select></div>
-<div class="input-group toggle-field" id="companyGroup"><label>Company Name</label><input type="text" id="companyName" placeholder="Your Company Ltd"></div>
-<button type="submit" id="btnSubmit" class="btn">Register</button>
-</form>
-</div>
-<script>
-const SUPABASE_URL = "https://dmxumcjeetphwvzvgzzuk.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3";
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function toggleCompanyField(){
-  const role = document.getElementById('userRole').value;
-  const g = document.getElementById('companyGroup');
-  const c = document.getElementById('companyName');
-  if(role==='employer'){g.style.display='block';c.required=true;}else{g.style.display='none';c.required=false;}
-}
+    <div class="form-container">
 
-document.getElementById('registerForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const btn=document.getElementById('btnSubmit');
-  btn.innerText="Creating..."; btn.disabled=true;
-  
-  const {data,error} = await _supabase.auth.signUp({
-    email: document.getElementById('email').value.trim(),
-    password: document.getElementById('password').value,
-    options:{data:{
-      full_name: document.getElementById('fullName').value.trim(),
-      role: document.getElementById('userRole').value,
-      company_name: document.getElementById('companyName').value||null
-    }}
-  });
+        <h2>Create JobWay Account</h2>
 
-  if(error){ alert("Error: "+error.message); btn.innerText="Register"; btn.disabled=false; }
-  else { alert("Success! Account created."); window.location.href="login.html"; }
-});
-</script>
+        <form id="registerForm">
+
+            <div class="input-group">
+                <label for="fullName">Full Name</label>
+
+                <input
+                    type="text"
+                    id="fullName"
+                    required
+                    placeholder="John Doe"
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="email">Email</label>
+
+                <input
+                    type="email"
+                    id="email"
+                    required
+                    placeholder="name@example.com"
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="password">Password</label>
+
+                <input
+                    type="password"
+                    id="password"
+                    required
+                    minlength="6"
+                    placeholder="••••••••"
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="userRole">
+                    I want to join as:
+                </label>
+
+                <select id="userRole" required>
+                    <option value="job_seeker">
+                        Job Seeker
+                    </option>
+
+                    <option value="employer">
+                        Employer
+                    </option>
+                </select>
+            </div>
+
+
+            <div
+                class="input-group toggle-field"
+                id="companyGroup"
+            >
+
+                <label for="companyName">
+                    Company Name
+                </label>
+
+                <input
+                    type="text"
+                    id="companyName"
+                    placeholder="Your Company Ltd"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="btnSubmit"
+                class="btn"
+            >
+                Register
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <script>
+
+        /*
+        ==========================================
+        SUPABASE CONFIGURATION
+        ==========================================
+
+        Keep these as your Project URL and
+        Publishable/Anon key.
+
+        NEVER put a service_role or secret key here.
+        */
+
+        const SUPABASE_URL =
+            "https://dmxumcjeetphwvzvgzzuk.supabase.co";
+
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3";
+
+
+        /*
+        ==========================================
+        CREATE SUPABASE CLIENT
+        ==========================================
+        */
+
+        const supabaseClient =
+            supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY
+            );
+
+
+        /*
+        ==========================================
+        SHOW/HIDE COMPANY FIELD
+        ==========================================
+        */
+
+        const userRole =
+            document.getElementById("userRole");
+
+        const companyGroup =
+            document.getElementById("companyGroup");
+
+        const companyName =
+            document.getElementById("companyName");
+
+
+        userRole.addEventListener("change", function () {
+
+            if (userRole.value === "employer") {
+
+                companyGroup.style.display = "block";
+
+                companyName.required = true;
+
+            } else {
+
+                companyGroup.style.display = "none";
+
+                companyName.required = false;
+
+                companyName.value = "";
+
+            }
+
+        });
+
+
+        /*
+        ==========================================
+        REGISTRATION
+        ==========================================
+        */
+
+        const registerForm =
+            document.getElementById("registerForm");
+
+        const submitButton =
+            document.getElementById("btnSubmit");
+
+
+        registerForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                /*
+                Get form values
+                */
+
+                const fullName =
+                    document
+                        .getElementById("fullName")
+                        .value
+                        .trim();
+
+
+                const email =
+                    document
+                        .getElementById("email")
+                        .value
+                        .trim();
+
+
+                const password =
+                    document
+                        .getElementById("password")
+                        .value;
+
+
+                const role =
+                    userRole.value;
+
+
+                const company =
+                    companyName.value.trim();
+
+
+                /*
+                Disable button while creating account
+                */
+
+                submitButton.disabled = true;
+
+                submitButton.textContent =
+                    "Creating...";
+
+
+                try {
+
+                    /*
+                    ==================================
+                    CREATE SUPABASE ACCOUNT
+                    ==================================
+                    */
+
+                    const { data, error } =
+                        await supabaseClient.auth.signUp({
+
+                            email: email,
+
+                            password: password,
+
+                            options: {
+
+                                data: {
+
+                                    full_name: fullName,
+
+                                    role: role,
+
+                                    company_name:
+
+                                        role === "employer"
+                                            ? company
+                                            : null
+                                }
+
+                            }
+
+                        });
+
+
+                    /*
+                    ==================================
+                    CHECK FOR ERRORS
+                    ==================================
+                    */
+
+                    if (error) {
+
+                        throw error;
+
+                    }
+
+
+                    /*
+                    ==================================
+                    SUCCESS
+                    ==================================
+                    */
+
+                    console.log(
+                        "Account created:",
+                        data
+                    );
+
+
+                    alert(
+                        "Account created successfully!"
+                    );
+
+
+                    /*
+                    Go to login page
+                    */
+
+                    window.location.href =
+                        "login.html";
+
+
+                } catch (error) {
+
+                    /*
+                    ==================================
+                    HANDLE ERRORS
+                    ==================================
+                    */
+
+                    console.error(
+                        "Registration error:",
+                        error
+                    );
+
+
+                    let errorMessage =
+                        "Registration failed. Please try again.";
+
+
+                    if (
+                        error &&
+                        error.message
+                    ) {
+
+                        errorMessage =
+                            error.message;
+
+                    }
+
+
+                    alert(
+                        "Error: " +
+                        errorMessage
+                    );
+
+
+                    /*
+                    Re-enable button
+                    */
+
+                    submitButton.disabled = false;
+
+                    submitButton.textContent =
+                        "Register";
+
+                }
+
+            }
+        );
+
+    </script>
+
 </body>
 </html>
