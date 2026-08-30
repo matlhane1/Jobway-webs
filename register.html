@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobWay - Create Account</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root { --primary:#20576E; --secondary:#30BA8F; --accent:#01F9C6; }
+body { margin:0; font-family:Inter,Arial,sans-serif; background: radial-gradient(1200px at 20% 10%, #2a6a84 0%, var(--primary) 45%, #163a4a 100%); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+.card { width:100%; max-width:440px; background:#ffffff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.25); overflow:hidden; border-top:4px solid var(--accent); }
+.header { background:var(--primary); padding:28px 30px 20px; text-align:center; }
+.header h2 { margin:0; color:white; font-size:26px; letter-spacing:-0.5px; }
+.header p { margin:6px 0 0; color:#b9d4df; font-size:13px; }
+.form { padding:24px 30px 30px; }
+label { display:block; font-size:13px; font-weight:600; color:var(--primary); margin-bottom:6px; margin-top:16px; }
+input, select { width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid #d6e4ea; background:#f8fbfc; color:var(--primary); font-size:15px; box-sizing:border-box; outline:none; transition:0.2s; }
+input:focus, select:focus { border-color:var(--secondary); background:white; box-shadow:0 0 0 4px rgba(48,186,143,0.15); }
+.btn { width:100%; margin-top:24px; padding:14px; background:var(--primary); color:white; border:none; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer; transition:0.2s; position:relative; overflow:hidden; }
+.btn:hover { background:#1a4a5e; box-shadow:0 8px 20px rgba(32,87,110,0.3); transform:translateY(-1px); }
+.btn:hover::after { content:''; position:absolute; left:0; bottom:0; height:3px; width:100%; background:var(--accent); }
+.link { text-align:center; margin-top:18px; font-size:14px; color:#5a7a88; }
+.link a { color:var(--secondary); font-weight:700; text-decoration:none; }
+.link a:hover { color:var(--primary); }
+#msg { text-align:center; margin-top:12px; font-size:13px; font-weight:600; }
+.badge { display:inline-block; background:var(--secondary); color:white; font-size:10px; padding:2px 8px; border-radius:20px; margin-left:6px; vertical-align:middle; }
+</style>
+</head>
+<body>
+<div class="card">
+<div class="header"><h2>Create JobWay Account <span class="badge">New</span></h2><p>Join as Job Seeker or Employer</p></div>
+<div class="form">
+<form id="regForm">
+<label>Full Name</label><input type="text" id="fullname" required placeholder="John Doe">
+<label>Email</label><input type="email" id="email" required placeholder="name@example.com">
+<label>Password</label><input type="password" id="password" required placeholder="•••••••• (min 6 chars)">
+<label>I want to join as:</label>
+<select id="role"><option value="job_seeker">Job Seeker</option><option value="employer">Employer</option></select>
+<button type="submit" id="regBtn" class="btn">Register</button>
+<div id="msg"></div>
+<div class="link">Already have an account? <a href="login.html?v=25">Login</a></div>
+</form>
+</div>
+</div>
+<script>
+const SUPABASE_URL = "https://dmxumcjeetphwzvggzzuk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+document.getElementById('regForm').addEventListener('submit', async (e)=>{
+ e.preventDefault();
+ const btn=document.getElementById('regBtn'); const msg=document.getElementById('msg');
+ btn.textContent="Creating..."; btn.disabled=true; msg.textContent="";
+ const fullName=document.getElementById('fullname').value.trim();
+ const email=document.getElementById('email').value.trim();
+ const password=document.getElementById('password').value;
+ const role=document.getElementById('role').value;
+ const { data, error } = await supabaseClient.auth.signUp({ email, password, options:{ data:{ full_name:fullName, role } } });
+ if(error){ msg.style.color="#e11d48"; msg.textContent=error.message; btn.textContent="Register"; btn.disabled=false; return; }
+ // Create profile row
+ if(data.user){
+   await supabaseClient.from('profiles').insert({ id:data.user.id, full_name:fullName, email, role });
+ }
+ msg.style.color="#30BA8F"; msg.textContent="Success! Check email to confirm, then Login.";
+ btn.textContent="Account Created!";
+ setTimeout(()=>window.location.href="login.html?v=25", 2000);
+});
+</script>
+</body>
+</html>
