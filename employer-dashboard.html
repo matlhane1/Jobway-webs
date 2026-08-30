@@ -29,14 +29,14 @@ body{margin:0;background:#11283a;font-family:Inter,Arial,sans-serif;color:white}
 <div><button class="btn" onclick="location.href='post-job.html'">+ Post Job</button><button class="btn2" onclick="localStorage.clear();location.href='login.html'">Logout</button></div>
 </div>
 <div class="container">
-<div class="welcome"><h2>Welcome, mapaya1 👋</h2><p id="welcomeEmail" style="color:#9cc2d0">Loading...</p></div>
+<div class="welcome"><h2>Welcome, mapaya1 👋</h2><p id="welcomeEmail" style="color:#9cc2d0">employer.jobway@gmail.com</p></div>
 <div id="jobsList">Loading jobs...</div>
 </div>
 <script>
 const SUPABASE_URL="https://dmxumcjeetphwzvggzzuk.supabase.co";
-const SUPABASE_KEY="sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
+const SUPABASE_KEY="sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-function timeAgo(d){const s=Math.floor((new Date()-new Date(d))/1000);if(s<60)return "Posted just now";if(s<3600)return`Posted ${Math.floor(s/60)}m ago`;if(s<86400)return`Posted ${Math.floor(s/3600)}h ago`;return`Posted ${Math.floor(s/86400)}d ago`;}
+function timeAgo(d){const s=Math.floor((new Date()-new Date(d))/1000);if(s<60)return"Posted just now";if(s<3600)return`Posted ${Math.floor(s/60)}m ago`;if(s<86400)return`Posted ${Math.floor(s/3600)}h ago`;return`Posted ${Math.floor(s/86400)}d ago`;}
 async function loadJobs(){
  try{
   const {data:jobs,error}=await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false});
@@ -49,22 +49,14 @@ async function loadJobs(){
   }
   document.getElementById('jobsList').innerHTML=html||"No jobs yet - Click + Post Job";
  }catch(err){
-  document.getElementById('jobsList').innerHTML="Error: "+err.message+"<br><br>Run the SQL fix in Supabase!";
+  document.getElementById('jobsList').innerHTML="<div style='background:#3a1a1a;padding:16px;border-radius:12px'>Error: "+err.message+"<br><br>1. Did you run the SQL? You did! ✅<br>2. If still error, Supabase project may be paused. Go to Supabase Table Editor → Restore project</div>";
  }
 }
 (async()=>{
-  // Try to get real session, but DON'T redirect if missing
   try{
     const {data:{session}} = await supabaseClient.auth.getSession();
-    if(session?.user?.email){
-      document.getElementById('welcomeEmail').textContent=session.user.email;
-    }else{
-      const saved=localStorage.getItem('jobway_email')||localStorage.getItem('email')||'employer.jobway@gmail.com';
-      document.getElementById('welcomeEmail').textContent=saved;
-    }
-  }catch(e){
-    document.getElementById('welcomeEmail').textContent=localStorage.getItem('jobway_email')||'employer.jobway@gmail.com';
-  }
+    document.getElementById('welcomeEmail').textContent=session?.user?.email||localStorage.getItem('jobway_email')||'employer.jobway@gmail.com';
+  }catch(e){document.getElementById('welcomeEmail').textContent=localStorage.getItem('jobway_email')||'employer.jobway@gmail.com';}
   loadJobs();
 })();
 </script>
