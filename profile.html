@@ -1,12 +1,58 @@
-<!-- POPIA-COMPLIANT PROFILE -->
-Step 1: Personal
-- Full Name
-- Province (dropdown: Limpopo, Gauteng, etc)
-- City/Town (e.g. Thohoyandou)
-- WhatsApp Number
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobWay Profile</title>
+<style>*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}body{background:#0f1f2e;color:#fff;padding:20px}.container{max-width:480px;margin:0 auto}.logo{font-size:24px;font-weight:800;color:#2ee6a8}.btn{padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;width:100%;margin-top:10px}.btn-green{background:#2ee6a8;color:#0f1f2e}.btn-dark{background:#1e324a;color:#fff}.card{background:#162a3f;border-radius:16px;padding:20px;margin-top:15px}label{display:block;font-size:13px;color:#9fb3c8;margin:8px 0 6px}input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #2a4360;background:#0f1f2e;color:#fff}.pill{background:#2ee6a8;color:#0f1f2e;padding:6px 12px;border-radius:20px;font-size:13px;display:inline-flex;margin:4px}.dot{height:6px;flex:1;background:#1e324a;border-radius:10px}.dot.active{background:#2ee6a8}.progress{display:flex;gap:6px;margin:15px 0}</style>
+</head>
+<body>
+<div class="container">
+<div style="display:flex;justify-content:space-between"><div class="logo">JobWay</div><a href="/index.html" style="color:#fff;text-decoration:none;background:#1e324a;padding:8px 14px;border-radius:8px">Jobs</a></div>
+<div class="progress"><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
-Step 2: Education
-- School/Institution
-- Highest Qualification (Matric, Diploma, Degree)
-- Year Completed (e.g. 2023)
-- Skills/Experience
+<div class="card" id="s1"><h3>Step 1: Personal (Legal)</h3>
+<label>Full Name *</label><input id="fullName" placeholder="Thabo Mulaudzi">
+<label>Province *</label><select id="province"><option value="">Select</option><option>Limpopo</option><option>Gauteng</option><option>KZN</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
+<label>City / Town *</label><input id="city" placeholder="Thohoyandou">
+<label>WhatsApp *</label><input id="whatsapp" placeholder="0821234567">
+<button class="btn btn-green" onclick="go2()">Next</button>
+</div>
+
+<div class="card" id="s2" style="display:none"><h3>Step 2: Education</h3>
+<label>School / Institution *</label><input id="school" placeholder="Thohoyandou High">
+<label>Highest Qualification *</label><select id="qualification"><option value="">Select</option><option>Grade 10</option><option>Grade 11</option><option>Matric</option><option>Certificate</option><option>Diploma</option><option>Degree</option></select>
+<label>Year Completed *</label><input id="year" type="number" placeholder="2023">
+<button class="btn btn-green" onclick="go3()">Next</button>
+<button class="btn btn-dark" onclick="show1()">Back</button>
+</div>
+
+<div class="card" id="s3" style="display:none"><h3>Step 3: Skills</h3>
+<label>Job Title *</label><input id="jobTitle" placeholder="Cashier">
+<label>Skills - Type 1 + Press ENTER *</label><div id="pills"></div><input id="skillInput" placeholder="Customer Service + ENTER">
+<label>Experience</label><textarea id="experience" placeholder="2 years at Shoprite"></textarea>
+<label>Licence</label><select id="licence"><option value="">None</option><option>Code 8 (B)</option><option>Code 10</option><option>Code 14</option></select>
+<button class="btn btn-green" onclick="go4()">Next</button>
+<button class="btn btn-dark" onclick="show2()">Back</button>
+</div>
+
+<div class="card" id="s4" style="display:none"><h3>Step 4: CV</h3>
+<label>CV (PDF optional)</label><input id="cv" type="file">
+<button class="btn btn-green" onclick="save()">Save & Show Matches</button>
+<button class="btn btn-dark" onclick="show3()">Back</button>
+</div>
+</div>
+
+<script>
+let skills=[]; 
+document.getElementById('skillInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();let v=e.target.value.trim();if(v&&!skills.includes(v)){skills.push(v);render();}e.target.value=''}});
+function render(){document.getElementById('pills').innerHTML=skills.map((s,i)=>`<span class="pill">${s} <span onclick="skills.splice(${i},1);render()" style="cursor:pointer">x</span></span>`).join('')}
+function go2(){if(!fullName.value||!province.value||!city.value||!whatsapp.value)return alert('Fill all');s1.style.display='none';s2.style.display='block'}
+function show1(){s2.style.display='none';s1.style.display='block'}
+function go3(){if(!school.value||!qualification.value||!year.value)return alert('Fill school');s2.style.display='none';s3.style.display='block'}
+function show2(){s3.style.display='none';s2.style.display='block'}
+function go4(){if(!jobTitle.value||skills.length<3)return alert('Add job title + 3 skills, press ENTER after each');s3.style.display='none';s4.style.display='block'}
+function show3(){s4.style.display='none';s3.style.display='block'}
+function save(){let p={fullName:fullName.value,province:province.value,city:city.value,whatsapp:whatsapp.value,school:school.value,qualification:qualification.value,year:year.value,jobTitle:jobTitle.value,skills:skills,experience:experience.value,licence:licence.value};localStorage.setItem('jobway_profile',JSON.stringify(p));localStorage.removeItem('idNumber');alert('Saved!');location.href='/index.html?match=1'}
+</script>
+</body>
+</html>
