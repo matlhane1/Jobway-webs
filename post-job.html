@@ -1,0 +1,35 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post a Job - JobWay</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#11283a;color:white;font-family:Arial;padding:16px;display:flex;justify-content:center}
+.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:420px;margin-top:20px}
+label{color:#9cc2d0;font-size:13px;margin:10px 0 6px;display:block}
+input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;box-sizing:border-box}
+.btn{width:100%;margin-top:16px;background:#2dd4bf;color:#11283a;border:none;padding:12px;border-radius:10px;font-weight:900;font-size:15px}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:420px;width:100%;position:absolute;top:12px}
+a{color:white;text-decoration:none}
+</style></head><body>
+<div class="top"><a href="dashboard.html?v=40">← Back</a><h3 style="margin:0">JobWay</h3></div>
+<div class="card" style="margin-top:50px">
+<h2 style="margin:0 0 12px">Post a New Job</h2>
+<label>Job Title</label><input id="title" placeholder="e.g. Cashier">
+<label>Company</label><input id="company" placeholder="e.g. Shoprite">
+<label>Location</label><input id="location" placeholder="e.g. Thohoyandou">
+<label>Salary</label><input id="salary" placeholder="e.g. R4500">
+<label>Type</label><select id="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
+<label>Closing Date</label><input id="closing" type="date">
+<label>Description</label><textarea id="desc" rows="3" placeholder="Job requirements..."></textarea>
+<button class="btn" id="post">Post Job</button>
+</div>
+<script>
+const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+document.getElementById('post').onclick=async()=>{
+const job={title:title.value,company:company.value,location:location.value,salary:salary.value,type:type.value,description:desc.value,closing_date:closing.value||null};
+if(!job.title||!job.company){alert('Fill title & company');return;}
+const b=document.getElementById('post');b.textContent='Posting...';b.disabled=true;
+const {error}=await supabaseClient.from('jobs').insert(job);
+if(error){alert(error.message);b.textContent='Post Job';b.disabled=false;return;}
+alert('Job posted!');location.href='dashboard.html?v=40';
+};
+</script></body></html>
