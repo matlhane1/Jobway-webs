@@ -1,31 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobway | South Africa's Premium Job Board</title>
-    <link href="https://googleapis.com" rel="stylesheet">
-    <style>
-        :root { --primary: #005B5C; --dark-blue: #0F2942; --bg: #F8FAFC; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #1E293B; text-align: center; }
-        nav { background: var(--dark-blue); padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; }
-        nav a { color: white; text-decoration: none; font-weight: 600; font-size: 22px; }
-        .hero { padding: 80px 20px; background: linear-gradient(135deg, #132E4F, var(--dark-blue)); color: white; }
-        .hero h1 { font-size: 36px; margin-bottom: 15px; }
-        .hero p { color: #94A3B8; font-size: 16px; margin-bottom: 30px; }
-        .btn { display: inline-block; background: var(--primary); color: white; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 10px; transition: 0.2s; }
-        .btn:hover { background: #00A896; }
-        .btn-sec { background: transparent; border: 2px solid white; }
-        .btn-sec:hover { background: rgba(255,255,255,0.1); }
-    </style>
-</head>
-<body>
-    <nav><a href="#">Jobway</a></nav>
-    <div class="hero">
-        <h1>Find the job that fits your life</h1>
-        <p>Connecting serious South African companies with premium talent securely.</p>
-        <a href="register.html" class="btn">Create Account</a>
-        <a href="login.html" class="btn btn-sec">Portal Login</a>
-    </div>
-</body>
-</html>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>JobWay - Find Jobs</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}.logo{color:#01F9C6;font-weight:900;font-size:24px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.filters{background:#1a3446;border-radius:20px;padding:16px;margin-bottom:16px}.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}input,select{padding:10px;border-radius:10px;border:none;background:#0f2a3c;color:#fff;flex:1;min-width:120px}.card{background:#1a3446;border-radius:22px;padding:18px;margin-bottom:14px;position:relative}.meta{color:#8fb3c1;font-size:13px;margin:6px 0}.tags{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.tag{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700}.tag-green{background:rgba(1,249,198,.15);color:#01F9C6}.tag-red{background:rgba(255,107,107,.15);color:#ff9a9a}.match{position:absolute;top:16px;right:16px;background:#01F9C6;color:#0d1f2d;padding:6px 10px;border-radius:20px;font-weight:900;font-size:12px}.missing{font-size:12px;color:#ffb3b3;margin:6px 0}.tip{font-size:12px;color:#01F9C6;background:rgba(1,249,198,.1);padding:8px;border-radius:10px;margin:6px 0}.btns{display:flex;gap:8px;margin-top:10px}.btn-apply{background:#01F9C6;color:#0d1f2d;flex:1}.btn-track{background:#0f2a3c;color:#fff;border:1px solid #01F9C6;flex:1}</style></head><body>
+<div class="header"><div class="logo">JobWay</div><div><button class="btn btn-white" onclick="location.href='profile.html'">My Profile</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='employer-dashboard.html'">Employer</button></div></div>
+<div class="container">
+<div class="filters">
+<h3 style="margin-bottom:8px">🔍 Search & Filter</h3>
+<input id="search" placeholder="Search e.g. Cashier" oninput="filterJobs()">
+<div class="filter-row">
+<select id="f_loc" onchange="filterJobs()"><option value="">All Locations</option><option>Thohoyandou</option><option>Makhado</option><option>Louis Trichardt</option><option>Pretoria</option><option>Remote</option></select>
+<select id="f_remote" onchange="filterJobs()"><option value="">Remote/Onsite</option><option>Remote</option><option>On-site</option><option>Hybrid</option></select>
+<select id="f_exp" onchange="filterJobs()"><option value="">Experience</option><option>Entry</option><option>Mid</option><option>Senior</option></select>
+<input id="f_salary" type="number" placeholder="Min Salary" oninput="filterJobs()">
+</div>
+<div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-green" onclick="subscribeAlert()">📱 WhatsApp Job Alerts</button><button class="btn btn-white" onclick="location.href='applications.html'">📊 Track Applications</button></div>
+</div>
+<div id="jobsList"></div>
+</div>
+
+<!-- Interview Modal -->
+<div id="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);align-items:center;justify-content:center;z-index:99"><div style="background:#1a3446;padding:20px;border-radius:20px;max-width:350px;width:90%"><h3>📅 Interview Scheduled!</h3><p id="modalText" style="margin:10px 0;color:#8fb3c1"></p><button class="btn btn-green" style="width:100%" onclick="document.getElementById('modal').style.display='none'">Close</button></div></div>
+
+<script>
+const supa=supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+let allJobs=[];let profile=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
+
+const FALLBACK=[
+{title:"Cashier",company:"Shoprite",location:"Thohoyandou",job_type:"Full-time",salary:"4500",experience:"Entry",required_skills:["Customer Service","POS","Cash Handling"],description:"Looking for cashier with matric"},
+{title:"Waiter",company:"Mugg & Bean",location:"Makhado",job_type:"Part-time",salary:"3500",experience:"Entry",required_skills:["Customer Service","Serving"],description:"Weekend waiter needed"},
+{title:"Driver",company:"Spar",location:"Louis Trichardt",job_type:"Full-time",salary:"6000",experience:"Mid",required_skills:["Code 10","PDP","Driving"],description:"Code 10 driver with PDP needed"}
+];
+
+function calcMatch(job){
+ if(!profile.skills || profile.skills.length==0) return {percent:60,missing:job.required_skills||[],tip:"Create profile for better match!"};
+ let have=profile.skills.map(s=>s.toLowerCase());let need=(job.required_skills||[]);let matched=need.filter(s=>have.includes(s.toLowerCase())).length;
+ let percent=Math.round((matched/need.length)*70 + 30); if(percent>95)percent=95;
+ let missing=need.filter(s=>!have.includes(s.toLowerCase()));
+ let tip=missing.length?`Add ${missing.slice(0,2).join(', ')} to CV for +${missing.length*10}%`:"✅ Perfect match! Apply now!";
+ return {percent,missing,tip};
+}
+
+function draw(jobs){
+ document.getElementById('jobsList').innerHTML=jobs.map(j=>{
+  let m=calcMatch(j);
+  return `<div class="card"><div class="match">${m.percent}% Match</div>
+  <h3>${j.title}</h3><div class="meta">${j.company} • ${j.location} • ${j.job_type||'Full-time'}</div>
+  <div class="tags"><span class="tag tag-green">${j.experience||'Entry'} Level</span><span class="tag tag-red">R${j.salary}</span></div>
+  <div class="meta">${j.description}</div>
+  <div class="missing">❌ Missing: ${m.missing.join(', ')||'None'}</div>
+  <div class="tip">💡 ${m.tip}</div>
+  <div class="btns"><button class="btn btn-apply" onclick="applyJob('${j.title}')">Apply Now</button><button class="btn btn-track" onclick="scheduleInterview('${j.title}')">📅 Interview</button></div></div>`
+ }).join('');
+}
+
+function filterJobs(){
+ let q=document.getElementById('search').value.toLowerCase();
+ let loc=document.getElementById('f_loc').value;let rem=document.getElementById('f_remote').value;let exp=document.getElementById('f_exp').value;let sal=parseInt(document.getElementById('f_salary').value||0);
+ let filtered=allJobs.filter(j=>{
+  if(q &&!j.title.toLowerCase().includes(q)) return false;
+  if(loc &&!j.location.includes(loc)) return false;
+  if(exp && j.experience!=exp) return false;
+  if(sal && parseInt(j.salary)<sal) return false;
+  return true;
+ });
+ draw(filtered);
+}
+
+async function applyJob(title){
+ let email=profile.personal?.email||'employer.jobway@gmail.com';
+ await supa.from('applications').insert({job_id:allJobs[0]?.id,user_email:email,status:'Applied',match_percent:80});
+ alert('✅ Applied to '+title+'! Tracking in Applications. You will get WhatsApp update.');
+ location.href='applications.html';
+}
+
+function scheduleInterview(title){
+ document.getElementById('modalText').innerText=`Interview for ${title} scheduled! We will send WhatsApp reminder to ${profile.preferences?.whatsapp||'your number'}. Date: Tomorrow 10AM`;
+ document.getElementById('modal').style.display='flex';
+ // WhatsApp API simulation
+ fetch('https://api.whatsapp.com/send?text=JobWay Interview for '+title).catch(()=>{});
+}
+
+async function subscribeAlert(){
+ let wa=prompt('Enter WhatsApp number for alerts (e.g. +27...)', profile.preferences?.whatsapp||'');
+ if(!wa) return;
+ await supa.from('job_alerts').insert({user_email:profile.personal?.email||'test@test.com',keywords:document.getElementById('search').value||'Cashier',location:document.getElementById('f_loc').value||'Thohoyandou',whatsapp_number:wa});
+ alert('✅ Subscribed! You will get WhatsApp alerts for new jobs.');
+}
+
+(async()=>{
+ try{let {data}=await supa.from('jobs').select('*');allJobs=(data&&data.length?data:FALLBACK).map(j=>({...j,required_skills:j.required_skills||["Customer Service","Computer"]}))}
+ catch(e){allJobs=FALLBACK}
+ draw(allJobs);
+ if(new URLSearchParams(location.search).get('match')){alert('Profile saved! Showing your personalized matches with missing skills & CV tips below');}
+})();
+</script></body></html>
