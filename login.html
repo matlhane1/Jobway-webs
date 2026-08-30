@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobWay - Login</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <style>
 *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{margin:0;background:#11283a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -12,53 +11,51 @@ h1{color:white;margin:0 0 6px;font-size:30px;font-weight:800}
 .sub{color:#8fb0bf;font-size:14px;margin-bottom:20px}
 label{color:#9cc2d0;text-align:left;display:block;font-size:13px;margin:14px 0 6px 4px}
 .input{width:100%;background:#0f2533;border:1px solid #234355;color:#cde6f0;padding:14px 16px;border-radius:12px;outline:none;font-size:15px}
-.input:focus{border-color:#01F9C6}
 .pass-wrap{position:relative}
-.pass-wrap .input{padding-right:80px}
+.pass-wrap .input{padding-right:85px}
 .show{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:#1a3446;color:#9cc2d0;border:none;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer}
 .btn{width:100%;background:white;color:#11283a;border:none;padding:14px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:20px}
 .link{color:#8fb0bf;font-size:14px;margin-top:14px}
 .link a{color:#01F9C6;text-decoration:none;font-weight:700}
 .err{color:#ff8a8a;font-size:13px;margin-top:12px;min-height:18px}
+.ok{color:#01F9C6;font-size:13px;margin-top:12px}
 </style>
 </head>
 <body>
 <div class="card">
-<h1>Welcome Back</h1>
-<div class="sub">Login to JobWay</div>
-<label>Email</label>
-<input id="email" class="input" placeholder="you@email.com" value="employer.jobway@gmail.com">
+<h1>Welcome Back</h1><div class="sub">Login to JobWay</div>
+<label>Email</label><input id="email" class="input" value="employer.jobway@gmail.com">
 <label>Password</label>
-<div class="pass-wrap">
-<input id="password" class="input" type="password" placeholder="Your password">
-<button class="show" type="button" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'SHOW':'HIDE'">SHOW</button>
-</div>
+<div class="pass-wrap"><input id="password" class="input" type="password" placeholder="Your password"><button class="show" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'SHOW':'HIDE'" type="button">SHOW</button></div>
 <button class="btn" id="loginBtn">Login</button>
 <div class="link">No account? <a href="signup.html">Create one</a></div>
 <div id="msg" class="err"></div>
 </div>
 <script>
-const SUPABASE_URL="https://dmxumcjeetphwzvggzzuk.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRteHVtY2plZXRwaHd6dmdnenp1ayIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU1ODk0OTY2LCJleHAiOjIwNzE0NzA5NjZ9.k3v0L0s2Y9P9Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0"; // placeholder, will use publishable below
-// Use your publishable key - supabase-js UMD version
-const supabaseClient = supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co", "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3");
+const URL="https://dmxumcjeetphwzvggzzuk.supabase.co";
+const KEY="sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-"; // your key - I fixed typo HhSNLK7 -> oHh5NLK7
 
-document.getElementById('loginBtn').onclick = async () => {
- const email = document.getElementById('email').value.trim();
- const password = document.getElementById('password').value.trim();
- const msg = document.getElementById('msg');
- if(!email||!password){msg.textContent="Enter email and password";return;}
- msg.textContent="Logging in...";
- msg.style.color="#9cc2d0";
+document.getElementById('loginBtn').onclick=async()=>{
+ const email=document.getElementById('email').value.trim();
+ const pass=document.getElementById('password').value.trim();
+ const msg=document.getElementById('msg');
+ if(!email||!pass){msg.textContent="Enter email and password";return;}
+ msg.textContent="Logging in..."; msg.className="ok";
  try{
-   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-   if(error) throw error;
-   msg.style.color="#01F9C6";
-   msg.textContent="Login success! Redirecting...";
-   setTimeout(()=>{ location.href='employer-dashboard.html?v=203'; },600);
+  const res=await fetch(`${URL}/auth/v1/token?grant_type=password`,{
+   method:"POST",
+   headers:{"Content-Type":"application/json","apikey":KEY,"Authorization":"Bearer "+KEY},
+   body:JSON.stringify({email,password:pass})
+  });
+  const data=await res.json();
+  if(!res.ok) throw new Error(data.error_description||data.msg||"Login failed");
+  // Save session for supabase-js to read
+  localStorage.setItem('sb-dmxumcjeetphwzvggzzuk-auth-token', JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Math.floor(Date.now()/1000)+data.expires_in,user:data.user}));
+  msg.textContent="Login success! Redirecting...";
+  setTimeout(()=>location.href='employer-dashboard.html?v=204',700);
  }catch(e){
-   msg.style.color="#ff8a8a";
-   msg.textContent = e.message.includes('fetch') ? "NetworkError: Check internet or Supabase paused. Go to supabase.com dashboard > resume project." : e.message;
+  msg.className="err";
+  msg.textContent=e.message;
  }
 };
 </script>
