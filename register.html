@@ -10,11 +10,13 @@ body{margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(
 h2{text-align:center;margin-bottom:24px;}
 .input-group{margin-bottom:16px;}
 label{display:block;margin-bottom:6px;font-size:14px;opacity:0.9;}
-input,select{width:100%;padding:12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.2);color:white;box-sizing:border-box;font-size:16px;}
-.btn{width:100%;padding:14px;background:#FFC400;color:#111;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;}
+input,select{width:100%;padding:12px;border:1px solid #20576E;border-radius:8px;background:white;color:#20576E;}
+input:focus,select:focus{border-color:#01F9C6;outline:none;box-shadow:0 0 0 3px rgba(1,249,198,0.3);}
+.btn{width:100%;padding:14px;background:#20576E;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;}
+.btn:hover{background:#30BA8F;}
 .toggle-field{display:none;}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="form-container">
