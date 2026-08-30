@@ -3,68 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay - Employer Console</title>
+<title>JobWay - Employer Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body { margin: 0; font-family: Arial, sans-serif; background: #f4f7f6; color: #333; }
-.navbar { background: #0a192f; padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center; }
-.navbar h1 { margin: 0; font-size: 20px; }
-.logout-btn { background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-.container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
-.panel-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
-.form-group { margin-bottom: 15px; }
-label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-input, textarea { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-.post-btn { background: #007a78; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 15px; }
+body{margin:0;background:#11283a;font-family:Inter,Arial,sans-serif;color:white}
+.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:20px;color:#01F9C6}
+.btn{background:#01F9C6;color:#11283a;border:none;padding:9px 16px;border-radius:10px;font-weight:800;cursor:pointer}
+.btn2{background:transparent;color:#9cc2d0;border:1px solid #284a5a;padding:9px 16px;border-radius:10px;cursor:pointer;margin-left:8px}
+.container{max-width:700px;margin:0 auto;padding:16px}
+.welcome{background:#1a3446;padding:18px;border-radius:16px;margin-bottom:16px}
+.welcome h2{margin:0}
+.welcome p{margin:4px 0 0;color:#9cc2d0;font-size:13px}
+.card{background:#1a3446;border-radius:18px;padding:18px;margin-bottom:14px}
+.card h3{margin:0 0 6px;font-size:20px}
+.meta{color:#9cc2d0;font-size:13px;margin-bottom:8px}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tag{padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.tag-green{background:rgba(1,249,198,0.15);color:#01F9C6}
+.tag-red{background:rgba(255,107,107,0.15);color:#ff8a8a}
+.tag-blue{background:rgba(156,194,208,0.15);color:#9cc2d0}
+.salary{color:#7fb5c0;font-weight:700;margin-bottom:6px}
+.desc{margin-bottom:12px;font-size:14px;line-height:1.4}
+.apply{background:#4ef2d1;color:#0a2231;border:none;padding:10px 18px;border-radius:10px;font-weight:800;cursor:pointer}
 </style>
-<script src="https://jsdelivr.net"></script>
 </head>
 <body>
-
-<div class="navbar">
-<h1>JobWay Employer Console</h1>
-<button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+<div class="header">
+<div class="logo">JobWay</div>
+<div>
+<button class="btn" onclick="location.href='post-job.html'">+ Post Job</button>
+<button class="btn2" id="logoutBtn">Logout</button>
 </div>
-
+</div>
 <div class="container">
-<div class="panel-card">
-<h2>Recruiter Workspace 🏢</h2>
-<p>Post open positions and securely discover premium talent profiles matching your criteria.</p>
+<div class="welcome">
+<h2 id="welcomeName">Welcome, mapaya1 👋</h2>
+<p id="welcomeEmail">matlhanemapaye50@gmail.com</p>
 </div>
-
-<div class="panel-card">
-<h3>Post a New Position</h3>
-<form onsubmit="alert('Job vacancy submitted to verification pipeline!'); return false;">
-<div class="form-group">
-<label>Job Title</label>
-<input type="text" placeholder="e.g. Senior Data Analyst" required>
+<div id="jobsList">Loading jobs...</div>
 </div>
-<div class="form-group">
-<label>Location Placement</label>
-<input type="text" placeholder="e.g. Pretoria (On-site)" required>
-</div>
-<div class="form-group">
-<label>Role Description & Requirements</label>
-<textarea rows="4" placeholder="Detail the duties and skill expectations..." required></textarea>
-</div>
-<button type="submit" class="post-btn">Publish Job Listing</button>
-</form>
-</div>
-</div>
-
 <script>
-// ⚠️ Replace the link inside the quotation marks with your real Project URL:
-const SUPABASE_URL = "https://supabase.co";
+const SUPABASE_URL="https://dmxumcjeetphwzvggzzuk.supabase.co";
+const SUPABASE_KEY="sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// Your public anon token is perfectly locked in place here:
-const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0eHhSNLK7hv1iEg_oYIr1M3";
-
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-async function handleLogout() {
-await supabase.auth.signOut();
-window.location.href = "login.html";
+function timeAgo(date){
+ const s=Math.floor((new Date()-new Date(date))/1000);
+ if(s<60) return "Posted just now";
+ if(s<3600) return `Posted ${Math.floor(s/60)}m ago`;
+ if(s<86400) return `Posted ${Math.floor(s/3600)}h ago`;
+ return `Posted ${Math.floor(s/86400)}d ago`;
 }
+
+async function loadJobs(){
+ const {data:jobs,error}=await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false});
+ if(error){document.getElementById('jobsList').innerHTML="Error: "+error.message;return;}
+ let html="";
+ for(let job of jobs){
+   const {count} = await supabaseClient.from('applications').select('*',{count:'exact',head:true}).eq('job_id',job.id);
+   const closes = job.closes_at ? new Date(job.closes_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : "13 Sept 2026";
+   html+=`
+   <div class="card">
+     <h3>${job.title}</h3>
+     <div class="meta">${job.company||'Company'} • ${job.location||'Location'} • ${job.type||'Full-time'}</div>
+     <div class="tags">
+       <span class="tag tag-green">${timeAgo(job.created_at)}</span>
+       <span class="tag tag-red">Closes: ${closes}</span>
+       <span class="tag tag-blue">👥 ${count||0} applied</span>
+     </div>
+     <div class="salary">R${job.salary||'4500'}</div>
+     <div class="desc">${job.description||''}</div>
+     <button class="apply" onclick="location.href='applications.html?job=${job.id}'">Manage (${count||0})</button>
+     <button class="apply" style="background:#1f4a5a;color:#9cc2d0;margin-left:8px" onclick="location.href='job-details.html?id=${job.id}'">View</button>
+   </div>`;
+ }
+ document.getElementById('jobsList').innerHTML=html||"No jobs yet";
+}
+
+document.getElementById('logoutBtn').onclick=async()=>{
+ await supabaseClient.auth.signOut();
+ location.href='login.html';
+};
+
+(async()=>{
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session){location.href='login.html?v=31';return;}
+ if(session.user.email){
+   document.getElementById('welcomeEmail').textContent=session.user.email;
+ }
+ loadJobs();
+})();
 </script>
 </body>
 </html>
-
