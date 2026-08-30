@@ -6,15 +6,25 @@ body{margin:0;background:#11283a;color:white;font-family:Inter,Arial;padding:16p
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .card{background:#1e3a4f;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.06)}
 .small{color:#9cc2d0;font-size:13px}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+.badge{background:rgba(45,212,191,0.15);color:#2dd4bf;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.red{background:rgba(255,100,100,0.15);color:#ff8e8e}
 .btn{background:white;color:#11283a;border:none;padding:10px 14px;border-radius:10px;font-weight:900;cursor:pointer}
-.apply{background:#2dd4bf;color:#11283a;border:none;padding:8px 12px;border-radius:8px;font-weight:800;cursor:pointer;margin-top:8px}
+.apply{background:#2dd4bf;color:#11283a;border:none;padding:9px 14px;border-radius:8px;font-weight:800;cursor:pointer;margin-top:10px}
 </style></head><body>
 <div class="top"><h2 style="margin:0">JobWay</h2><button class="btn" id="logout">Logout</button></div>
 <div class="card"><h3 id="welcome" style="margin:0 0 4px">Loading...</h3><p id="email" class="small" style="margin:0"></p></div>
 <div id="jobs"><div class="card"><p class="small">Loading jobs...</p></div></div>
-
 <script>
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+function timeAgo(date){
+ const s=Math.floor((new Date()-new Date(date))/1000);
+ if(s<60) return s+'s ago';
+ if(s<3600) return Math.floor(s/60)+'m ago';
+ if(s<86400) return Math.floor(s/3600)+'h ago';
+ return Math.floor(s/86400)+' days ago';
+}
+function formatDate(d){if(!d) return 'Open until filled'; return new Date(d).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});}
 (async()=>{
 const {data:{session}}=await supabaseClient.auth.getSession();
 if(!session){location.href='login.html?v=38';return;}
@@ -23,8 +33,18 @@ document.getElementById('email').textContent=session.user.email;
 const {data:jobs,error}=await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false});
 const box=document.getElementById('jobs');
 if(error){box.innerHTML='<div class="card">Error: '+error.message+'</div>';return;}
-if(!jobs.length){box.innerHTML='<div class="card">No jobs yet</div>';return;}
-box.innerHTML=jobs.map(j=>`<div class="card"><h3 style="margin:0 0 6px">${j.title}</h3><p class="small" style="margin:0">${j.company} • ${j.location} • ${j.type}</p><p class="small" style="margin:6px 0"><b>${j.salary}</b></p><p style="margin:8px 0 0;font-size:14px">${j.description}</p><button class="apply" onclick="alert('Applied for ${j.title}! We will email you')">Apply Now</button></div>`).join('');
+box.innerHTML=jobs.map(j=>`
+<div class="card">
+<h3 style="margin:0 0 6px">${j.title}</h3>
+<p class="small" style="margin:0">${j.company} • ${j.location} • ${j.type}</p>
+<div class="meta">
+<span class="badge">Posted ${timeAgo(j.created_at)}</span>
+<span class="badge red">Closes: ${formatDate(j.closing_date)}</span>
+</div>
+<p class="small" style="margin:6px 0"><b>${j.salary}</b></p>
+<p style="margin:8px 0 0;font-size:14px">${j.description}</p>
+<button class="apply" onclick="alert('Applied for ${j.title}!')">Apply Now</button>
+</div>`).join('');
 })();
 document.getElementById('logout').onclick=async()=>{await supabaseClient.auth.signOut();location.href='login.html?v=38';};
 </script></body></html>
