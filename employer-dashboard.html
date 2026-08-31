@@ -4,232 +4,312 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Employer Dashboard - JobWay</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#11283a;color:#fff;font-family:Inter,Arial,sans-serif}
-.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(255,255,255,.06)}
-.logo{color:#01F9C6;font-weight:900;font-size:22px;cursor:pointer;letter-spacing:-0.5px}
-.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;transition:.2s}
-.btn-green{background:#01F9C6;color:#11283a}
-.btn-white{background:#fff;color:#11283a}
-.btn-red{background:#ff5a5a;color:#fff}
-.btn:hover{transform:translateY(-1px);opacity:.9}
-.container{max-width:720px;margin:0 auto;padding:18px}
-.card{background:#1a3446;border-radius:20px;padding:18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.05)}
-.input{width:100%;background:#11283a;border:1px solid #2a4a5c;color:#fff;padding:12px 14px;border-radius:12px;margin:6px 0;outline:none;font-size:14px}
-.input:focus{border-color:#01F9C6}
-.row{display:flex;gap:8px}
-.row.input{flex:1}
-.stat{display:flex;gap:10px;margin:14px 0}
-.stat div{flex:1;background:#1a3446;border-radius:16px;padding:14px;text-align:center;border:1px solid rgba(255,255,255,.05)}
-.stat h2{margin:0;color:#01F9C6}
-.stat small{color:#8fb3c1}
-.logo-box{background:rgba(1,249,198,.07);border:1.5px dashed #01F9C6;border-radius:16px;padding:16px;text-align:center;margin-bottom:12px}
-.logo-preview{width:84px;height:84px;background:#11283a;border-radius:16px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;border:1px solid #2a4a5c}
-.job-logo{width:52px;height:52px;background:#11283a;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.06);font-size:22px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:#081a25;color:#fff;padding-bottom:80px}
+.header{position:sticky;top:0;z-index:30;background:rgba(8,26,37,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(1,249,198,.12);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:900;font-size:22px;color:#01F9C6}
+.btn{border:none;border-radius:12px;padding:11px 16px;font-weight:800;cursor:pointer;transition:.25s}
+.btn-green{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#081a25;box-shadow:0 8px 20px rgba(1,249,198,.25)}
+.btn-outline{background:#11283a;color:#fff;border:1px solid rgba(255,255,255,.1)}
+.container{max-width:1000px;margin:0 auto;padding:14px 16px}
+.wallet{background:linear-gradient(135deg,rgba(32,87,110,.95),rgba(17,40,58,.95));border:1.5px solid rgba(1,249,198,.18);border-radius:20px;padding:16px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi div{background:#0d2231;border:1px solid rgba(255,255,255,.06);padding:10px 14px;border-radius:14px;min-width:110px}
+.kpi b{color:#01F9C6;font-size:18px;display:block}
+.kpi span{color:#8fb3c1;font-size:11px}
+.card{background:linear-gradient(180deg,#123044,#11283a);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:14px;margin-top:14px}
 .job-head{display:flex;gap:12px;align-items:center}
-.meta{color:#8fb3c1;font-size:13px;margin:6px 0;line-height:1.4}
-.badge{background:#01F9C6;color:#11283a;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800}
-.error{color:#ff6b6b;font-size:12px;margin-top:6px;display:none;background:rgba(255,90,90,.1);padding:8px;border-radius:8px}
+.job-logo{width:52px;height:52px;background:#11283a;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-weight:900;color:#01F9C6}
+.badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}
+.badge-active{background:rgba(1,249,198,.15);color:#01F9C6;border:1px solid rgba(1,249,198,.3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.input,select,textarea{width:100%;background:#0d2231;border:1px solid #2a4a5c;color:#fff;padding:12px;border-radius:12px;margin:6px 0;outline:none}
+.input:focus,select:focus,textarea:focus{border-color:#01F9C6}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:99;padding:16px}
+.modal-box{background:#123044;border:1px solid rgba(1,249,198,.2);border-radius:20px;padding:18px;max-width:520px;width:100%;max-height:90vh;overflow:auto}
+.err{border-color:#ff5a5a!important;box-shadow:0 0 0 2px rgba(255,90,90,.2)}
+.err-text{color:#ff8e8e;font-size:11px;margin:-2px 0 6px 4px;display:none}
 </style>
 </head>
 <body>
 
 <div class="header">
-<div class="logo" onclick="location.href='index.html'">JobWay Employer</div>
+<div class="logo">JobWay • Employer</div>
 <div style="display:flex;gap:8px">
-<button class="btn btn-white" onclick="location.href='index.html'">← Jobs</button>
-<button class="btn btn-green" onclick="openPost()">+ Post Job</button>
+<button class="btn btn-outline" onclick="location.href='index.html'">🏠 Jobs</button>
+<button class="btn btn-green" onclick="location.href='pricing.html'">💳 Buy Package</button>
 </div>
 </div>
 
 <div class="container">
 
-<div class="stat">
-<div><h2 id="totalJobs">0</h2><small>Total Jobs</small></div>
-<div><h2 id="totalApps">0</h2><small>Applications</small></div>
-<div><h2 id="shortlisted">0</h2><small>Shortlisted</small></div>
+<div class="wallet">
+<div>
+<h3 style="font-weight:900;letter-spacing:-.5px">💼 Wallet & Subscription</h3>
+<div style="color:#8fb3c1;font-size:12px;margin-top:4px" id="subInfo">No active package</div>
 </div>
-
-<!-- POST FORM -->
-<div id="postForm" class="card" style="display:none">
-<h3 style="margin:0 0 12px">📝 Post New Job</h3>
-
-<div class="logo-box">
-<div id="logoPreview" class="logo-preview">🏢</div>
-<input type="file" id="p_logoFile" accept="image/png,image/jpeg,image/jpg,image/webp" style="display:none" onchange="handleLogo(this)">
-<button type="button" class="btn btn-white" onclick="document.getElementById('p_logoFile').click()">📷 Upload Company Logo *</button>
-<div style="color:#8fb3c1;font-size:11px;margin-top:8px">Required • PNG/JPG/WEBP • Max 2MB • Shows on job card</div>
-<div id="logoError" class="error">❌ Please upload company logo to continue</div>
-<div id="logoOk" style="color:#01F9C6;font-size:12px;margin-top:6px;display:none">✅ Logo uploaded</div>
-</div>
-
-<input class="input" id="p_title" placeholder="Job Title * e.g. Cashier">
-<input class="input" id="p_company" placeholder="Company Name * e.g. Shoprite">
-<div class="row">
-<select class="input" id="p_location"><option>Thohoyandou</option><option>Makhado</option><option>Polokwane</option><option>Johannesburg</option><option>Pretoria</option></select>
-<select class="input" id="p_type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
-</div>
-<div class="row">
-<input class="input" id="p_salary" placeholder="Salary e.g. R4500">
-<select class="input" id="p_level"><option>Entry Level</option><option>Mid Level</option><option>Senior</option></select>
-</div>
-<textarea class="input" id="p_desc" rows="3" placeholder="Job Description * What will candidate do?"></textarea>
-<div class="row" style="margin-top:8px">
-<button class="btn btn-green" style="flex:1" onclick="saveJob()">✅ Publish Job</button>
-<button class="btn btn-white" style="flex:1" onclick="closePost()">Cancel</button>
+<div class="kpi">
+<div><b id="w_posts">0</b><span>Posts Left</span></div>
+<div><b id="w_credits">0</b><span>Job Credits</span></div>
+<div><b id="w_cv">0</b><span>CV Unlocks (Bought)</span></div>
+<div><b id="w_sub">None</b><span>Plan</span></div>
 </div>
 </div>
 
-<h3 style="margin:18px 0 10px">📋 My Posted Jobs</h3>
+<div style="display:flex;gap:10px;margin:14px 0">
+<button class="btn btn-green" style="flex:1" onclick="openPost()">+ Post New Job</button>
+<button class="btn btn-outline" style="flex:1" onclick="toggleInvoices()">🧾 Invoices</button>
+</div>
+
+<div id="invoiceBox" class="card" style="display:none">
+<h4>🧾 Payment History & Auto-Activation Log</h4>
+<div id="invoiceList" style="margin-top:10px"></div>
+<div style="margin-top:10px;color:#5a7d8a;font-size:11px">Admin view: package, amount, status, expiry, units used/remaining, subscription status — all auto logged.</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 6px">
+<h3>My Jobs (<span id="jobCount">0</span>)</h3>
+<div style="color:#8fb3c1;font-size:12px">Logo required • Posts auto deduct</div>
+</div>
+
 <div id="jobsList"></div>
 
 </div>
 
+<!-- POST MODAL -->
+<div id="postModal" class="modal" onclick="if(event.target==this)closePost()">
+<div class="modal-box">
+<h3 id="modalTitle">Post New Job</h3>
+
+<div style="background:#0d2231;border:1px dashed #30BA8F;border-radius:14px;padding:12px;margin:10px 0">
+<div style="font-weight:800;font-size:13px;margin-bottom:6px">📷 Company Logo * REQUIRED</div>
+<input type="file" id="logoFile" accept="image/*" class="input" onchange="handleLogo(this)">
+<div id="logoPreview" style="width:64px;height:64px;background:#11283a;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08);display:none;margin-top:8px"></div>
+<div id="logoErr" class="err-text">Logo is required to publish</div>
+<div style="color:#5a7d8a;font-size:11px;margin-top:4px">Logo shows on job card in homepage. Max 2MB.</div>
+</div>
+
+<input id="f_title" class="input" placeholder="Job Title * e.g. Cashier">
+<select id="f_location" class="input"><option value="">Location *</option><option>Thohoyandou</option><option>Makhado</option><option>Polokwane</option></select>
+<div class="grid2"><select id="f_type" class="input"><option>Full-time</option><option>Part-time</option></select><select id="f_level" class="input"><option>Entry Level</option><option>Mid Level</option><option>Senior</option></select></div>
+<input id="f_salary" class="input" placeholder="Salary * e.g. R4500">
+<textarea id="f_desc" class="input" rows="3" placeholder="Job Description *"></textarea>
+
+<div style="display:flex;gap:8px;margin-top:12px">
+<button class="btn btn-green" style="flex:1" onclick="saveJob()">🚀 Publish (Auto Live)</button>
+<button class="btn btn-outline" style="flex:1" onclick="closePost()">Cancel</button>
+</div>
+<div style="color:#5a7d8a;font-size:10px;margin-top:8px;text-align:center">Payment verified → post goes live immediately. 0 posts/credits = redirect to pricing.</div>
+</div>
+</div>
+
+<!-- APPS MODAL -->
+<div id="appsModal" class="modal" onclick="if(event.target==this)closeApps()">
+<div class="modal-box">
+<h3 id="appsTitle">Applications</h3>
+<div id="appsList" style="margin-top:12px"></div>
+<button class="btn btn-outline" style="width:100%;margin-top:12px" onclick="closeApps()">Close</button>
+</div>
+</div>
+
 <script>
-let uploadedLogo = null;
+let uploadedLogoData=null;
+let editId=null;
+
+function getWallet(){return JSON.parse(localStorage.getItem('jobway_wallet')||'{"posts":0,"credits":0,"cv":0,"sub":null,"sub_expiry":null,"transactions":[]}');}
+function saveWallet(w){localStorage.setItem('jobway_wallet',JSON.stringify(w));}
+
+function refreshWalletUI(){
+  let w=getWallet();
+  if(w.sub_expiry && new Date(w.sub_expiry) < new Date()){w.sub=null;w.sub_expiry=null;w.posts=0;saveWallet(w);}
+  document.getElementById('w_posts').innerText=w.posts;
+  document.getElementById('w_credits').innerText=w.credits;
+  document.getElementById('w_cv').innerText=w.cv==9999?'Unlimited':w.cv;
+  document.getElementById('w_sub').innerText=w.sub||'None';
+  document.getElementById('subInfo').innerText=w.sub?`${w.sub} active until ${w.sub_expiry?new Date(w.sub_expiry).toLocaleDateString():''} • ${w.posts} posts left`:`You have ${w.posts+w.credits} posts available • CVs: ${w.cv==9999?'Unlimited':w.cv} (bought pool, separate from candidate uploads)`;
+  document.getElementById('invoiceList').innerHTML=(w.transactions||[]).map(t=>`
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px">
+      <div><b>${t.name}</b><div style="color:#8fb3c1">${new Date(t.date).toLocaleString()} • ${t.status} • ${t.type}</div><div style="color:#8fb3c1">Posts: ${t.posts_remaining} | Credits: ${t.credits_remaining} | CV: ${t.cv_remaining}</div></div>
+      <div style="text-align:right"><b style="color:#01F9C6">R${t.amount}</b><div style="color:#8fb3c1">${t.expiry? 'Exp '+new Date(t.expiry).toLocaleDateString():'No expiry'}</div></div>
+    </div>
+  `).join('')||'<div style="color:#8fb3c1">No payments yet</div>';
+}
 
 function getJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');}
-function saveJobs(j){localStorage.setItem('jobway_employer_jobs',JSON.stringify(j));}
-function getAllApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');}
+function saveJobs(j){localStorage.setItem('jobway_employer_jobs',JSON.stringify(j));renderJobs();}
+
+function renderJobs(){
+  let jobs=getJobs();
+  document.getElementById('jobCount').innerText=jobs.length;
+  if(jobs.length==0){document.getElementById('jobsList').innerHTML=`<div class="card" style="text-align:center;color:#8fb3c1">No jobs posted yet. Buy package to post.</div>`;return;}
+  document.getElementById('jobsList').innerHTML=jobs.map(j=>`
+    <div class="card">
+      <div class="job-head">
+        <div class="job-logo">${j.logo?`<img src="${j.logo}" style="width:100%;height:100%;object-fit:cover">`:j.company.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <div><b>${j.title}</b><div style="color:#01F9C6;font-size:13px">${j.location} • ${j.type} • ${j.salary}</div><div style="color:#8fb3c1;font-size:11px">Live until ${j.expiry?new Date(j.expiry).toLocaleDateString():''} • ${j.status||'Active'}</div></div>
+            <span class="badge badge-active">${j.status||'Active'}</span>
+          </div>
+          <div style="color:#9fc0ce;font-size:12px;margin-top:6px">${j.desc}</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-outline" style="padding:8px 12px;font-size:12px" onclick="viewApps('${j.id}')">👥 View Applications</button>
+            <button class="btn btn-outline" style="padding:8px 12px;font-size:12px" onclick="editJob('${j.id}')">✏️ Edit</button>
+            <button class="btn btn-outline" style="padding:8px 12px;font-size:12px;color:#ff8e8e" onclick="delJob('${j.id}')">🗑️ Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
 
 function openPost(){
-  document.getElementById('postForm').style.display='block';
-  document.getElementById('postForm').scrollIntoView({behavior:'smooth'});
+  // Enforcement: check balance
+  let w=getWallet();
+  let available=(w.posts||0)+(w.credits||0);
+  if(!editId && available<=0){
+    alert('❌ No job posts left! Buy a package first.\nRedirecting to pricing...');
+    location.href='pricing.html';
+    return;
+  }
+  document.getElementById('postModal').style.display='flex';
 }
-function closePost(){
-  document.getElementById('postForm').style.display='none';
-  delete document.getElementById('postForm').dataset.editId;
-  clearForm();
-}
+function closePost(){document.getElementById('postModal').style.display='none';editId=null;clearForm();}
+
 function clearForm(){
-  document.getElementById('p_title').value='';
-  document.getElementById('p_company').value='';
-  document.getElementById('p_salary').value='';
-  document.getElementById('p_desc').value='';
-  uploadedLogo=null;
-  document.getElementById('logoPreview').innerHTML='🏢';
-  document.getElementById('logoError').style.display='none';
-  document.getElementById('logoOk').style.display='none';
-  document.getElementById('p_logoFile').value='';
+  ['f_title','f_salary','f_desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_location').value='';
+  document.getElementById('f_type').value='Full-time';
+  document.getElementById('f_level').value='Entry Level';
+  document.getElementById('logoFile').value='';uploadedLogoData=null;
+  document.getElementById('logoPreview').style.display='none';document.getElementById('logoPreview').innerHTML='';
 }
 
 function handleLogo(input){
-  let file = input.files[0];
+  let file=input.files[0];
   if(!file) return;
-  if(file.size > 2*1024*1024){ alert('Logo too big! Max 2MB please'); return; }
-  let reader = new FileReader();
-  reader.onload = function(e){
-    uploadedLogo = e.target.result;
-    document.getElementById('logoPreview').innerHTML = `<img src="${uploadedLogo}" style="width:100%;height:100%;object-fit:cover">`;
-    document.getElementById('logoError').style.display='none';
-    document.getElementById('logoOk').style.display='block';
+  if(file.size>2*1024*1024){alert('Logo too big, max 2MB');input.value='';return;}
+  let reader=new FileReader();
+  reader.onload=e=>{
+    uploadedLogoData=e.target.result;
+    document.getElementById('logoPreview').style.display='block';
+    document.getElementById('logoPreview').innerHTML=`<img src="${uploadedLogoData}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;top:4px;right:4px;background:#01F9C6;color:#081a25;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:900">✓ Logo uploaded</div>`;
+    document.getElementById('logoFile').classList.remove('err');
+    document.getElementById('logoErr').style.display='none';
   };
   reader.readAsDataURL(file);
 }
 
 function saveJob(){
-  let title = document.getElementById('p_title').value.trim();
-  let company = document.getElementById('p_company').value.trim();
-  let desc = document.getElementById('p_desc').value.trim();
-  let editId = document.getElementById('postForm').dataset.editId;
+  // Validation
+  let title=document.getElementById('f_title').value.trim();
+  let location=document.getElementById('f_location').value.trim();
+  let type=document.getElementById('f_type').value;
+  let level=document.getElementById('f_level').value;
+  let salary=document.getElementById('f_salary').value.trim();
+  let desc=document.getElementById('f_desc').value.trim();
 
-  if(!title){ alert('Enter Job Title'); return; }
-  if(!company){ alert('Enter Company Name'); return; }
-  if(!desc){ alert('Enter Job Description'); return; }
+  // Logo required check
+  let isEdit=!!editId;
+  let existingJobs=getJobs();
+  let existingJob=isEdit?existingJobs.find(j=>j.id==editId):null;
+  let hasLogo=uploadedLogoData || (existingJob && existingJob.logo);
 
-  let existingJobs = getJobs();
-  let existingLogo = editId? existingJobs.find(j=>j.id==editId)?.logo : null;
-  let finalLogo = uploadedLogo || existingLogo;
-
-  if(!finalLogo){
-    document.getElementById('logoError').style.display='block';
-    alert('❌ Company Logo is REQUIRED!\nPlease click "Upload Company Logo" first');
+  if(!hasLogo){
+    document.getElementById('logoFile').classList.add('err');
+    document.getElementById('logoErr').style.display='block';
+    alert('❌ Logo is required! Upload company logo to publish.');
     return;
   }
 
-  let newJob={
-    id: editId? parseInt(editId) : Date.now(),
-    title: title,
-    company: company,
-    location: document.getElementById('p_location').value,
-    type: document.getElementById('p_type').value,
-    level: document.getElementById('p_level').value,
-    salary: document.getElementById('p_salary').value||'R4000',
-    desc: desc,
-    logo: finalLogo,
-    missing:'None',
-    match:95,
-    tip:'New job posted!'
+  if(!title||!location||!salary||!desc){alert('Fill all required fields');return;}
+
+  // Wallet enforcement — auto deduct
+  let w=getWallet();
+  let available=(w.posts||0)+(w.credits||0);
+  if(!isEdit && available<=0){
+    alert('No posts left'); location.href='pricing.html'; return;
+  }
+
+  let expiry=new Date(); expiry.setDate(expiry.getDate()+30);
+
+  let jobData={
+    id:isEdit?editId:Date.now().toString(),
+    title, company:'My Company', location, type, level, salary, desc,
+    logo:uploadedLogoData || (existingJob?existingJob.logo:null),
+    companyInitial:title.charAt(0),
+    match:90,
+    expiry:expiry.toISOString(),
+    status:'Active',
+    date:new Date().toISOString()
   };
 
-  if(editId){
-    existingJobs = existingJobs.map(j=> j.id==editId? newJob : j);
+  if(isEdit){
+    let idx=existingJobs.findIndex(j=>j.id==editId);
+    existingJobs[idx]={...existingJobs[idx],...jobData};
   } else {
-    existingJobs.unshift(newJob);
+    existingJobs.unshift(jobData);
+    // Deduct: prefer posts over credits
+    if(w.posts>0) w.posts-=1; else w.credits-=1;
+    // log usage
+    w.transactions.unshift({name:`Used 1 post for ${title}`,amount:0,type:'usage',status:'Post deducted',date:new Date().toISOString(),expiry:expiry.toISOString(),posts_remaining:w.posts,credits_remaining:w.credits,cv_remaining:w.cv});
+    saveWallet(w);
   }
+
   saveJobs(existingJobs);
+  refreshWalletUI();
   closePost();
-  render();
-  alert('✅ Job Published with Logo!');
+  alert(isEdit?'✅ Job updated!':'✅ Job Published — Live immediately! Remaining posts: '+(w.posts+w.credits));
 }
 
 function editJob(id){
-  let job=getJobs().find(j=>j.id==id);
-  if(!job) return;
-  document.getElementById('p_title').value=job.title;
-  document.getElementById('p_company').value=job.company;
-  document.getElementById('p_location').value=job.location;
-  document.getElementById('p_type').value=job.type;
-  document.getElementById('p_salary').value=job.salary;
-  document.getElementById('p_level').value=job.level;
-  document.getElementById('p_desc').value=job.desc;
-  uploadedLogo = job.logo;
-  if(job.logo){
-    document.getElementById('logoPreview').innerHTML = `<img src="${job.logo}" style="width:100%;height:100%;object-fit:cover">`;
-    document.getElementById('logoOk').style.display='block';
+  let jobs=getJobs(); let j=jobs.find(x=>x.id==id); if(!j) return;
+  editId=id;
+  document.getElementById('f_title').value=j.title;
+  document.getElementById('f_location').value=j.location;
+  document.getElementById('f_type').value=j.type;
+  document.getElementById('f_level').value=j.level;
+  document.getElementById('f_salary').value=j.salary;
+  document.getElementById('f_desc').value=j.desc;
+  if(j.logo){
+    uploadedLogoData=j.logo;
+    document.getElementById('logoPreview').style.display='block';
+    document.getElementById('logoPreview').innerHTML=`<img src="${j.logo}" style="width:100%;height:100%;object-fit:cover">`;
   }
-  document.getElementById('postForm').dataset.editId=id;
-  openPost();
+  document.getElementById('modalTitle').innerText='Edit Job';
+  document.getElementById('postModal').style.display='flex';
 }
-function deleteJob(id){
-  if(!confirm('Delete this job? This cannot be undone.')) return;
-  saveJobs(getJobs().filter(j=>j.id!=id));
-  render();
+function delJob(id){
+  if(!confirm('Delete this job?')) return;
+  let jobs=getJobs().filter(j=>j.id!=id); saveJobs(jobs);
 }
 
-function render(){
-  let jobs=getJobs();
-  let apps=getAllApps();
-  document.getElementById('totalJobs').innerText=jobs.length;
-  document.getElementById('totalApps').innerText=apps.length;
-  document.getElementById('shortlisted').innerText=apps.filter(a=>a.status=='Shortlisted'||a.status=='Approved').length;
-
-  if(jobs.length==0){
-    document.getElementById('jobsList').innerHTML=`<div class="card" style="text-align:center;color:#8fb3c1">No jobs posted yet.<br>Click <b style="color:#01F9C6">+ Post Job</b> to start</div>`;
-    return;
+function viewApps(jobId){
+  let jobs=getJobs(); let job=jobs.find(j=>j.id==jobId);
+  let allApps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
+  let filtered=allApps.filter(a=>a.job_title==job.title);
+  document.getElementById('appsTitle').innerText=`${job.title} — ${filtered.length} Applications`;
+  if(filtered.length==0){document.getElementById('appsList').innerHTML=`<div style="color:#8fb3c1;text-align:center;padding:20px">No applications yet</div>`;}
+  else {
+    document.getElementById('appsList').innerHTML=filtered.map(a=>`
+      <div class="card" style="margin-top:8px">
+        <b>${a.name}</b> <span style="color:#01F9C6;font-size:12px">${a.match||0}% match</span>
+        <div style="color:#8fb3c1;font-size:12px;margin-top:4px">📧 ${a.email}<br>📱 ${a.whatsapp}</div>
+        <div style="color:#8fb3c1;font-size:11px;margin-top:4px">${new Date(a.date).toLocaleString()} • ${a.status}</div>
+        <div style="display:flex;gap:6px;margin-top:8px"><a href="https://wa.me/${a.whatsapp}" target="_blank" class="btn btn-green" style="flex:1;text-align:center;text-decoration:none;padding:8px;font-size:12px">WhatsApp</a><a href="mailto:${a.email}" class="btn btn-outline" style="flex:1;text-align:center;text-decoration:none;padding:8px;font-size:12px">Email</a></div>
+      </div>
+    `).join('');
   }
-  document.getElementById('jobsList').innerHTML=jobs.map(j=>{
-    let count=apps.filter(a=>a.job_title==j.title).length;
-    return `<div class="card">
-      <div class="job-head">
-        <div class="job-logo">${j.logo?`<img src="${j.logo}" style="width:100%;height:100%;object-fit:cover">`:'🏢'}</div>
-        <div style="flex:1">
-          <h3 style="margin:0;font-size:16px">${j.title}</h3>
-          <div style="font-size:13px;color:#01F9C6;font-weight:700">${j.company}</div>
-          <div class="meta">${j.location} • ${j.type} • ${j.salary} • <span class="badge">${count} Apps</span></div>
-        </div>
-      </div>
-      <div class="meta" style="margin-top:10px">${j.desc}</div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn btn-green" style="flex:1.5" onclick="location.href='employer-applications.html?title=${encodeURIComponent(j.title)}'">👁️ View Applications (${count})</button>
-        <button class="btn btn-white" onclick="editJob(${j.id})">✏️</button>
-        <button class="btn btn-red" onclick="deleteJob(${j.id})">🗑️</button>
-      </div>
-    </div>`;
-  }).join('');
+  document.getElementById('appsModal').style.display='flex';
 }
-render();
+function closeApps(){document.getElementById('appsModal').style.display='none';}
+function toggleInvoices(){let el=document.getElementById('invoiceBox');el.style.display=el.style.display=='none'?'block':'none';}
+
+refreshWalletUI();
+renderJobs();
 </script>
 </body>
 </html>
