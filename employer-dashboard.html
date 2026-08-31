@@ -1,19 +1,235 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Manage Applications - JobWay</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}.logo{color:#01F9C6;font-weight:900;font-size:22px;cursor:pointer}.btn{border:none;border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer;font-size:12px;margin:3px}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.btn-dark{background:#223f54;color:#fff}.btn-red{background:rgba(255,107,107,.15);color:#ff9a9a;border:1px solid #ff6b6b}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:20px;padding:18px;margin-bottom:14px}.meta{color:#8fb3c1;font-size:12px;margin:5px 0}.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800}.badge-review{background:rgba(255,193,7,.2);color:#ffc107}.badge-approved{background:#01F9C6;color:#11283a}.badge-reject{background:rgba(255,107,107,.2);color:#ff9a9a}.badge-short{background:rgba(1,249,198,.2);color:#01F9C6}.interview-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center;z-index:999;padding:16px}.modal-box{background:#1a3446;border-radius:22px;padding:22px;width:100%;max-width:400px;border:1px solid rgba(1,249,198,.3)}.input{width:100%;background:#11283a;border:1px solid #2a4a5c;color:#fff;padding:12px;border-radius:10px;margin:6px 0;box-sizing:border-box}.premium-btn{background:linear-gradient(135deg,#01F9C6,#00d4a8);color:#11283a;padding:14px;border-radius:14px;font-weight:900;width:100%;border:none;cursor:pointer;margin-top:10px}</style></head><body>
-<div class="header"><div class="logo" onclick="location.href='employer-dashboard.html'">JobWay</div><button class="btn btn-white" onclick="location.href='employer-dashboard.html'">← Back</button></div>
-<div class="container"><h2 id="jobTitle">Manage Applications</h2><p class="meta" id="jobSub"></p><div id="list"></div></div>
-<div class="interview-modal" id="interviewModal"><div class="modal-box"><h3 style="color:#01F9C6;margin:0">✅ Candidate Approved</h3><p style="color:#8fb3c1;font-size:13px">This candidate has been approved for an interview. Please select a date and time to schedule the interview.</p><label class="meta">Interview Date</label><input type="date" id="intDate" class="input"><label class="meta">Time</label><input type="time" id="intTime" class="input" value="10:00"><label class="meta">Location / Meet Link</label><input type="text" id="intLoc" class="input" placeholder="Thohoyandou Office"><button class="premium-btn" onclick="confirmInterview()">📅 Schedule Interview → Send Email + WhatsApp</button><button class="btn btn-dark" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button></div></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employer Dashboard - JobWay</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#11283a;color:#fff;font-family:Inter,Arial,sans-serif}
+.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{color:#01F9C6;font-weight:900;font-size:22px;cursor:pointer;letter-spacing:-0.5px}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;transition:.2s}
+.btn-green{background:#01F9C6;color:#11283a}
+.btn-white{background:#fff;color:#11283a}
+.btn-red{background:#ff5a5a;color:#fff}
+.btn:hover{transform:translateY(-1px);opacity:.9}
+.container{max-width:720px;margin:0 auto;padding:18px}
+.card{background:#1a3446;border-radius:20px;padding:18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.05)}
+.input{width:100%;background:#11283a;border:1px solid #2a4a5c;color:#fff;padding:12px 14px;border-radius:12px;margin:6px 0;outline:none;font-size:14px}
+.input:focus{border-color:#01F9C6}
+.row{display:flex;gap:8px}
+.row.input{flex:1}
+.stat{display:flex;gap:10px;margin:14px 0}
+.stat div{flex:1;background:#1a3446;border-radius:16px;padding:14px;text-align:center;border:1px solid rgba(255,255,255,.05)}
+.stat h2{margin:0;color:#01F9C6}
+.stat small{color:#8fb3c1}
+.logo-box{background:rgba(1,249,198,.07);border:1.5px dashed #01F9C6;border-radius:16px;padding:16px;text-align:center;margin-bottom:12px}
+.logo-preview{width:84px;height:84px;background:#11283a;border-radius:16px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;border:1px solid #2a4a5c}
+.job-logo{width:52px;height:52px;background:#11283a;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.06);font-size:22px}
+.job-head{display:flex;gap:12px;align-items:center}
+.meta{color:#8fb3c1;font-size:13px;margin:6px 0;line-height:1.4}
+.badge{background:#01F9C6;color:#11283a;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800}
+.error{color:#ff6b6b;font-size:12px;margin-top:6px;display:none;background:rgba(255,90,90,.1);padding:8px;border-radius:8px}
+</style>
+</head>
+<body>
+
+<div class="header">
+<div class="logo" onclick="location.href='index.html'">JobWay Employer</div>
+<div style="display:flex;gap:8px">
+<button class="btn btn-white" onclick="location.href='index.html'">← Jobs</button>
+<button class="btn btn-green" onclick="openPost()">+ Post Job</button>
+</div>
+</div>
+
+<div class="container">
+
+<div class="stat">
+<div><h2 id="totalJobs">0</h2><small>Total Jobs</small></div>
+<div><h2 id="totalApps">0</h2><small>Applications</small></div>
+<div><h2 id="shortlisted">0</h2><small>Shortlisted</small></div>
+</div>
+
+<!-- POST FORM -->
+<div id="postForm" class="card" style="display:none">
+<h3 style="margin:0 0 12px">📝 Post New Job</h3>
+
+<div class="logo-box">
+<div id="logoPreview" class="logo-preview">🏢</div>
+<input type="file" id="p_logoFile" accept="image/png,image/jpeg,image/jpg,image/webp" style="display:none" onchange="handleLogo(this)">
+<button type="button" class="btn btn-white" onclick="document.getElementById('p_logoFile').click()">📷 Upload Company Logo *</button>
+<div style="color:#8fb3c1;font-size:11px;margin-top:8px">Required • PNG/JPG/WEBP • Max 2MB • Shows on job card</div>
+<div id="logoError" class="error">❌ Please upload company logo to continue</div>
+<div id="logoOk" style="color:#01F9C6;font-size:12px;margin-top:6px;display:none">✅ Logo uploaded</div>
+</div>
+
+<input class="input" id="p_title" placeholder="Job Title * e.g. Cashier">
+<input class="input" id="p_company" placeholder="Company Name * e.g. Shoprite">
+<div class="row">
+<select class="input" id="p_location"><option>Thohoyandou</option><option>Makhado</option><option>Polokwane</option><option>Johannesburg</option><option>Pretoria</option></select>
+<select class="input" id="p_type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
+</div>
+<div class="row">
+<input class="input" id="p_salary" placeholder="Salary e.g. R4500">
+<select class="input" id="p_level"><option>Entry Level</option><option>Mid Level</option><option>Senior</option></select>
+</div>
+<textarea class="input" id="p_desc" rows="3" placeholder="Job Description * What will candidate do?"></textarea>
+<div class="row" style="margin-top:8px">
+<button class="btn btn-green" style="flex:1" onclick="saveJob()">✅ Publish Job</button>
+<button class="btn btn-white" style="flex:1" onclick="closePost()">Cancel</button>
+</div>
+</div>
+
+<h3 style="margin:18px 0 10px">📋 My Posted Jobs</h3>
+<div id="jobsList"></div>
+
+</div>
+
 <script>
-const supa=supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-const params=new URLSearchParams(location.search); const title=params.get('title')||'Cashier';
-document.getElementById('jobTitle').innerText=title+' - Applications';
-let applicants=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
-if(applicants.length==0){applicants=[{id:'demo1',name:'Thabo M.',email:'thabo@email.com',whatsapp:'0721234567',match:95,job_title:title,status:'Applied',created_at:new Date().toISOString()},{id:'demo2',name:'Sarah K.',email:'sarah@email.com',whatsapp:'0829876543',match:88,job_title:title,status:'Applied',created_at:new Date().toISOString()}];}
-let currentId=null;
-function sendNotif(type,a,extra={}){let notifs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]'); let msgs={application_received:`✅ Application for ${title} received`,under_review:`👀 Under Review - ${title}`,approved:`🎉 Approved for ${title}!`,shortlisted:`⭐ Shortlisted for ${title}`,rejected:`Update: ${title}`,interview_scheduled:`📅 Interview Scheduled: ${title} on ${extra.date} at ${extra.time}`,interview_reminder:`⏰ Reminder: Interview tomorrow for ${title}`}; notifs.unshift({type,title:msgs[type],message:msgs[type]+' - Email + WhatsApp sent',date:new Date().toISOString()}); localStorage.setItem('jobway_notifications',JSON.stringify(notifs)); let applied=JSON.parse(localStorage.getItem('jobway_applied')||'[]'); applied=applied.map(j=>{if(j.title==title||j.job_title==title){j.status=extra.status||a.status; if(extra.date){j.interview_date=extra.date;j.interview_time=extra.time;j.interview_location=extra.location;}}return j}); localStorage.setItem('jobway_applied',JSON.stringify(applied));}
-function render(){document.getElementById('jobSub').innerText=applicants.length+' applicants'; document.getElementById('list').innerHTML=applicants.map(a=>{let isApproved=a.status=='Approved'||a.status=='Shortlisted'; return `<div class="card"><div style="display:flex;justify-content:space-between"><h3 style="margin:0">${a.name} • ${a.match}%</h3><span class="badge ${a.status=='Approved'?'badge-approved':a.status=='Rejected'?'badge-reject':a.status=='Shortlisted'?'badge-short':'badge-review'}">${a.status}</span></div><div class="meta">${a.email} • ${a.whatsapp}</div>${a.interview_date?`<div style="background:rgba(1,249,198,.1);border:1px solid #01F9C6;border-radius:12px;padding:10px;margin-top:10px;font-size:13px"><b>📅 ${a.interview_date} at ${a.interview_time}</b><br>${a.interview_location}</div>`:''}<div style="margin-top:12px"><button class="btn btn-dark" onclick="updateStatus('${a.id}','Under Review')">Under Review</button><button class="btn btn-white" onclick="updateStatus('${a.id}','Approved')">✓ Approve</button><button class="btn btn-red" onclick="updateStatus('${a.id}','Rejected')">✕ Reject</button>${isApproved?`<button class="btn btn-green" onclick="openSchedule('${a.id}')">📅 Schedule Interview</button>`:''}</div></div>`}).join('');}
-function updateStatus(id,status){let idx=applicants.findIndex(x=>x.id==id); applicants[idx].status=status; localStorage.setItem('jobway_all_applications',JSON.stringify(applicants)); if(status=='Under Review')sendNotif('under_review',applicants[idx],{status}); if(status=='Approved')sendNotif('approved',applicants[idx],{status}); if(status=='Rejected')sendNotif('rejected',applicants[idx],{status}); if(status=='Approved'){openSchedule(id);}else{render(); alert(`✅ ${status} - Email + WhatsApp sent!`);} }
-function openSchedule(id){currentId=id; document.getElementById('interviewModal').style.display='flex';}
-function closeModal(){document.getElementById('interviewModal').style.display='none';}
-function confirmInterview(){let date=document.getElementById('intDate').value; let time=document.getElementById('intTime').value; let loc=document.getElementById('intLoc').value||'Thohoyandou Office'; if(!date){alert('Select date');return;} let idx=applicants.findIndex(x=>x.id==currentId); applicants[idx].interview_date=date; applicants[idx].interview_time=time; applicants[idx].interview_location=loc; applicants[idx].status='Shortlisted'; localStorage.setItem('jobway_all_applications',JSON.stringify(applicants)); sendNotif('interview_scheduled',applicants[idx],{date,time,location:loc,status:'Shortlisted'}); closeModal(); render(); alert(`✅ Interview Scheduled!\n📧 Email sent\n💬 WhatsApp sent\n⏰ Reminder will be sent automatically 24h before`); setTimeout(()=>{sendNotif('interview_reminder',applicants[idx],{date,time})},3000);}
+let uploadedLogo = null;
+
+function getJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');}
+function saveJobs(j){localStorage.setItem('jobway_employer_jobs',JSON.stringify(j));}
+function getAllApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');}
+
+function openPost(){
+  document.getElementById('postForm').style.display='block';
+  document.getElementById('postForm').scrollIntoView({behavior:'smooth'});
+}
+function closePost(){
+  document.getElementById('postForm').style.display='none';
+  delete document.getElementById('postForm').dataset.editId;
+  clearForm();
+}
+function clearForm(){
+  document.getElementById('p_title').value='';
+  document.getElementById('p_company').value='';
+  document.getElementById('p_salary').value='';
+  document.getElementById('p_desc').value='';
+  uploadedLogo=null;
+  document.getElementById('logoPreview').innerHTML='🏢';
+  document.getElementById('logoError').style.display='none';
+  document.getElementById('logoOk').style.display='none';
+  document.getElementById('p_logoFile').value='';
+}
+
+function handleLogo(input){
+  let file = input.files[0];
+  if(!file) return;
+  if(file.size > 2*1024*1024){ alert('Logo too big! Max 2MB please'); return; }
+  let reader = new FileReader();
+  reader.onload = function(e){
+    uploadedLogo = e.target.result;
+    document.getElementById('logoPreview').innerHTML = `<img src="${uploadedLogo}" style="width:100%;height:100%;object-fit:cover">`;
+    document.getElementById('logoError').style.display='none';
+    document.getElementById('logoOk').style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveJob(){
+  let title = document.getElementById('p_title').value.trim();
+  let company = document.getElementById('p_company').value.trim();
+  let desc = document.getElementById('p_desc').value.trim();
+  let editId = document.getElementById('postForm').dataset.editId;
+
+  if(!title){ alert('Enter Job Title'); return; }
+  if(!company){ alert('Enter Company Name'); return; }
+  if(!desc){ alert('Enter Job Description'); return; }
+
+  let existingJobs = getJobs();
+  let existingLogo = editId? existingJobs.find(j=>j.id==editId)?.logo : null;
+  let finalLogo = uploadedLogo || existingLogo;
+
+  if(!finalLogo){
+    document.getElementById('logoError').style.display='block';
+    alert('❌ Company Logo is REQUIRED!\nPlease click "Upload Company Logo" first');
+    return;
+  }
+
+  let newJob={
+    id: editId? parseInt(editId) : Date.now(),
+    title: title,
+    company: company,
+    location: document.getElementById('p_location').value,
+    type: document.getElementById('p_type').value,
+    level: document.getElementById('p_level').value,
+    salary: document.getElementById('p_salary').value||'R4000',
+    desc: desc,
+    logo: finalLogo,
+    missing:'None',
+    match:95,
+    tip:'New job posted!'
+  };
+
+  if(editId){
+    existingJobs = existingJobs.map(j=> j.id==editId? newJob : j);
+  } else {
+    existingJobs.unshift(newJob);
+  }
+  saveJobs(existingJobs);
+  closePost();
+  render();
+  alert('✅ Job Published with Logo!');
+}
+
+function editJob(id){
+  let job=getJobs().find(j=>j.id==id);
+  if(!job) return;
+  document.getElementById('p_title').value=job.title;
+  document.getElementById('p_company').value=job.company;
+  document.getElementById('p_location').value=job.location;
+  document.getElementById('p_type').value=job.type;
+  document.getElementById('p_salary').value=job.salary;
+  document.getElementById('p_level').value=job.level;
+  document.getElementById('p_desc').value=job.desc;
+  uploadedLogo = job.logo;
+  if(job.logo){
+    document.getElementById('logoPreview').innerHTML = `<img src="${job.logo}" style="width:100%;height:100%;object-fit:cover">`;
+    document.getElementById('logoOk').style.display='block';
+  }
+  document.getElementById('postForm').dataset.editId=id;
+  openPost();
+}
+function deleteJob(id){
+  if(!confirm('Delete this job? This cannot be undone.')) return;
+  saveJobs(getJobs().filter(j=>j.id!=id));
+  render();
+}
+
+function render(){
+  let jobs=getJobs();
+  let apps=getAllApps();
+  document.getElementById('totalJobs').innerText=jobs.length;
+  document.getElementById('totalApps').innerText=apps.length;
+  document.getElementById('shortlisted').innerText=apps.filter(a=>a.status=='Shortlisted'||a.status=='Approved').length;
+
+  if(jobs.length==0){
+    document.getElementById('jobsList').innerHTML=`<div class="card" style="text-align:center;color:#8fb3c1">No jobs posted yet.<br>Click <b style="color:#01F9C6">+ Post Job</b> to start</div>`;
+    return;
+  }
+  document.getElementById('jobsList').innerHTML=jobs.map(j=>{
+    let count=apps.filter(a=>a.job_title==j.title).length;
+    return `<div class="card">
+      <div class="job-head">
+        <div class="job-logo">${j.logo?`<img src="${j.logo}" style="width:100%;height:100%;object-fit:cover">`:'🏢'}</div>
+        <div style="flex:1">
+          <h3 style="margin:0;font-size:16px">${j.title}</h3>
+          <div style="font-size:13px;color:#01F9C6;font-weight:700">${j.company}</div>
+          <div class="meta">${j.location} • ${j.type} • ${j.salary} • <span class="badge">${count} Apps</span></div>
+        </div>
+      </div>
+      <div class="meta" style="margin-top:10px">${j.desc}</div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-green" style="flex:1.5" onclick="location.href='employer-applications.html?title=${encodeURIComponent(j.title)}'">👁️ View Applications (${count})</button>
+        <button class="btn btn-white" onclick="editJob(${j.id})">✏️</button>
+        <button class="btn btn-red" onclick="deleteJob(${j.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 render();
-</script></body></html>
+</script>
+</body>
+</html>
