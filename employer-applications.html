@@ -1,0 +1,74 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Applications - JobWay</title><style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}.logo{color:#01F9C6;font-weight:900;font-size:22px}.btn{border:none;border-radius:12px;padding:8px 14px;font-weight:800;cursor:pointer;margin:2px}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.btn-blue{background:#3b82f6;color:#fff}.btn-red{background:#ef4444;color:#fff}.container{max-width:700px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:20px;padding:16px;margin-bottom:12px}.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center;z-index:100;padding:16px;box-sizing:border-box}.modal-box{background:#1a3446;border-radius:20px;padding:20px;max-width:450px;width:100%}.input{width:100%;background:#11283a;border:1px solid #2a4a5c;color:#fff;padding:10px;border-radius:10px;margin:5px 0;box-sizing:border-box}</style></head><body>
+<div class="header"><div class="logo" onclick="location.href='employer-dashboard.html'">JobWay Employer</div><button class="btn btn-white" onclick="location.href='employer-dashboard.html'">← Dashboard</button></div>
+<div class="container"><h2 id="jobTitle">Applications</h2><div id="list"></div></div>
+
+<div id="cvModal" class="modal" onclick="this.style.display='none'"><div class="modal-box" onclick="event.stopPropagation()"><h3 id="cvName"></h3><div id="cvBody" style="color:#8fb3c1;font-size:14px;line-height:1.6"></div><button class="btn btn-white" style="width:100%;margin-top:10px" onclick="document.getElementById('cvModal').style.display='none'">Close</button></div></div>
+
+<div id="intModal" class="modal"><div class="modal-box"><h3>📅 Schedule Interview</h3><input class="input" type="date" id="intDate"><input class="input" type="time" id="intTime"><input class="input" id="intLoc" placeholder="Location"><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-green" style="flex:1" onclick="confirmInterview()">Send Invite</button><button class="btn btn-white" style="flex:1" onclick="document.getElementById('intModal').style.display='none'">Cancel</button></div></div></div>
+
+<script>
+let params=new URLSearchParams(location.search);
+let filterTitle=params.get('title');
+document.getElementById('jobTitle').innerText= filterTitle ? `Applications for: ${filterTitle}` : 'All Applications';
+let currentAppId=null;
+
+function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');}
+function getApplied(){return JSON.parse(localStorage.getItem('jobway_applied')||'[]');}
+function saveApps(a){localStorage.setItem('jobway_all_applications',JSON.stringify(a));}
+function saveApplied(a){localStorage.setItem('jobway_applied',JSON.stringify(a));}
+function saveNotifs(n){localStorage.setItem('jobway_notifications',JSON.stringify(n));}
+
+function render(){
+  let apps=getApps();
+  if(filterTitle) apps=apps.filter(a=>a.job_title==filterTitle);
+  if(apps.length==0){
+    document.getElementById('list').innerHTML=`<div class="card" style="text-align:center"><p>No applications yet for ${filterTitle||'this job'}</p><p style="color:#8fb3c1;font-size:13px">Apply from homepage as job seeker first</p></div>`;
+    return;
+  }
+  document.getElementById('list').innerHTML=apps.map(app=>`<div class="card"><div style="display:flex;justify-content:space-between"><div><h3 style="margin:0">${app.name}</h3><div style="color:#8fb3c1;font-size:12px">${app.email} • ${app.whatsapp} • Match: ${app.match}% • ${app.job_title}</div></div><span style="background:${app.status=='Applied'?'#01F9C6':'#3b82f6'};color:#11283a;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;height:fit-content">${app.status}</span></div><div style="margin-top:12px;display:flex;flex-wrap:wrap"><button class="btn btn-green" onclick="updateStatus('${app.id}','Under Review')">👁️ Under Review</button><button class="btn btn-blue" onclick="updateStatus('${app.id}','Shortlisted')">⭐ Shortlist</button><button class="btn btn-green" onclick="updateStatus('${app.id}','Approved')">✅ Approve</button><button class="btn btn-white" onclick="openInterview('${app.id}')">📅 Interview</button><button class="btn btn-white" onclick="viewCV('${app.id}')">📄 View CV</button><button class="btn btn-red" onclick="updateStatus('${app.id}','Rejected')">❌ Reject</button></div></div>`).join('');
+}
+
+function updateStatus(id, status){
+  let apps=getApps(); let applied=getApplied(); let notifs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
+  let app=apps.find(a=>a.id==id);
+  apps=apps.map(a=>a.id==id?{...a,status}:a);
+  saveApps(apps);
+  // Update job seeker track
+  applied=applied.map(a=>a.title==app.job_title?{...a,status}:a);
+  if(status=='Under Review' || status=='Shortlisted' || status=='Approved'){
+    applied=applied.map(a=>a.title==app.job_title?{...a,interview_date:a.interview_date, interview_time:a.interview_time}:a);
+  }
+  saveApplied(applied);
+  // Push notification
+  let msgs={ 'Under Review':`👁️ Your ${app.job_title} application is Under Review`, 'Shortlisted':`⭐ You are Shortlisted for ${app.job_title}!`, 'Approved':`✅ Approved for ${app.job_title}! Employer will contact you`, 'Rejected':`❌ Application for ${app.job_title} was not successful`, 'Interview':`📅 Interview scheduled for ${app.job_title}` };
+  notifs.unshift({type:status.toLowerCase(), title:msgs[status]||status, message:`Status updated to ${status} for ${app.job_title}`, date:new Date().toISOString(), job: app.job_title });
+  saveNotifs(notifs);
+  render();
+  alert(`Status → ${status} + Notification sent to job seeker`);
+}
+
+function viewCV(id){
+  let app=getApps().find(a=>a.id==id);
+  document.getElementById('cvName').innerText=app.name+' - CV';
+  document.getElementById('cvBody').innerHTML=`<b>Email:</b> ${app.email}<br><b>WhatsApp:</b> ${app.whatsapp}<br><b>Job:</b> ${app.job_title}<br><b>Match:</b> ${app.match}%<br><b>Status:</b> ${app.status}<br><br><b>Education:</b> Matric<br><b>Experience:</b> 1 year retail<br><b>Skills:</b> Cashier, Customer Service, POS<br><br><b>About:</b> Hardworking candidate from Thohoyandou looking for ${app.job_title} role. Available immediately.`;
+  document.getElementById('cvModal').style.display='flex';
+}
+
+function openInterview(id){currentAppId=id; document.getElementById('intModal').style.display='flex';}
+function confirmInterview(){
+  let date=document.getElementById('intDate').value; let time=document.getElementById('intTime').value; let loc=document.getElementById('intLoc').value||'Thohoyandou Office';
+  if(!date||!time) return alert('Pick date and time');
+  let apps=getApps(); let applied=getApplied(); let notifs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
+  let app=apps.find(a=>a.id==currentAppId);
+  apps=apps.map(a=>a.id==currentAppId?{...a,status:'Interview',interview_date:date,interview_time:time,interview_location:loc}:a);
+  saveApps(apps);
+  applied=applied.map(a=>a.title==app.job_title?{...a,status:'Interview',interview_date:date,interview_time:time,interview_location:loc}:a);
+  saveApplied(applied);
+  notifs.unshift({type:'interview', title:`📅 Interview: ${app.job_title} on ${date} at ${time}`, message:`Location: ${loc}. Bring CV and ID`, date:new Date().toISOString(), job: app.job_title });
+  saveNotifs(notifs);
+  document.getElementById('intModal').style.display='none';
+  render();
+  alert('Interview scheduled + Notification sent!');
+}
+render();
+</script></body></html>
