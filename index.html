@@ -3,103 +3,58 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobWay.co.za - Find the job that fits your life</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,sans-serif;background:#f4f9fb;color:#132e3f}
-.topbar{background:#11283a;color:#cfe2ea;display:flex;justify-content:space-between;align-items:center;padding:12px 20px;position:sticky;top:0;z-index:99}
-.topbar .links{display:flex;gap:18px;font-size:12px;font-weight:600;align-items:center}
-.topbar a{color:#cfe2ea;text-decoration:none}.topbar a:hover{color:#01F9C6}
-.hero{background:#eef6f9;padding:28px 20px;display:grid;grid-template-columns:1.15fr .85fr;max-width:1280px;margin:0 auto;gap:20px;align-items:center}
-.hero h1{font-size:48px;line-height:.9;letter-spacing:-1.5px;font-weight:900;color:#0c2333}
-.hero h1 span{color:#30BA8F}
-.hero p{color:#6b8795;font-size:13px;margin:12px 0;max-width:440px}
-.searchWrap{background:#fff;border:1px solid #dce9ee;border-radius:12px;padding:6px;display:flex;gap:6px;max-width:540px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
-.searchWrap input{flex:1;border:none;outline:none;padding:10px 12px;font-size:13px}
-.btn{border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer}
-.btn-green{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231c}
-.btn-dark{background:#11283a;color:#fff}
-.heroVisual{position:relative;height:320px;display:flex;align-items:center;justify-content:center}
-.heroCircle{width:320px;height:320px;background:radial-gradient(circle at 40% 40%, #2fc9a0, #1a6b63);border-radius:50%;overflow:hidden}
-.heroCircle img{width:100%;height:100%;object-fit:cover}
-.jobsBadge{position:absolute;right:10px;top:40px;background:#fff;border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px rgba(0,0,0,.12)}
-.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1280px;margin:0 auto;padding:14px 20px}
-.feat{background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px;display:flex;gap:10px}
-.ic{width:34px;height:34px;border-radius:8px;background:#11283a;color:#01F9C6;display:flex;align-items:center;justify-content:center}
-.liveJobs{max-width:1280px;margin:10px auto;padding:0 20px;display:grid;grid-template-columns:1fr 320px;gap:16px}
-.card{background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px;display:flex;gap:12px;margin-bottom:10px}
-.jlogo{width:44px;height:44px;border-radius:10px;background:#11283a;color:#01F9C6;display:flex;align-items:center;justify-content:center;font-weight:900;overflow:hidden}
-.box{background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px}
-.footer{background:#11283a;color:#8fb3c1;padding:22px 20px;margin-top:16px}
-@media(max-width:900px){.hero{grid-template-columns:1fr}.feats{grid-template-columns:1fr 1fr}.liveJobs{grid-template-columns:1fr}}
+.top{background:#11283a;color:#cfe2ea;display:flex;justify-content:space-between;padding:12px 18px;position:sticky;top:0;z-index:10}
+.top a{color:#cfe2ea;text-decoration:none;margin-left:14px;font-size:12px;font-weight:700}.top a.active{color:#01F9C6}
+.hero{max-width:1280px;margin:0 auto;padding:26px 18px;display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:center}
+.h1{font-size:46px;line-height:0.95;font-weight:900;letter-spacing:-1.5px;color:#0c2333}.h1 span{color:#30BA8F}
+.sub{color:#6b8795;font-size:13px;margin:10px 0;max-width:460px}
+.search{background:#fff;border:1px solid #dce9ee;border-radius:12px;padding:6px;display:flex;gap:6px;max-width:540px}
+.search input{flex:1;border:none;outline:none;padding:10px;font-size:13px}
+.btn{border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer}
+.btn-g{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231c}
+.btn-d{background:#11283a;color:#fff}
+.grid4{max-width:1280px;margin:0 auto;padding:10px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.f{background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px;display:flex;gap:10px}
+.i{width:34px;height:34px;border-radius:8px;background:#11283a;color:#01F9C6;display:flex;align-items:center;justify-content:center}
+.main{max-width:1280px;margin:10px auto;padding:0 18px;display:grid;grid-template-columns:1fr 300px;gap:14px}
+.card{background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px;display:flex;gap:10px;margin-bottom:10px}
+.logo{width:44px;height:44px;border-radius:10px;background:#11283a;color:#01F9C6;display:flex;align-items:center;justify-content:center;font-weight:900}
+.circle{width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#01F9C6,#0f6a62);display:flex;align-items:center;justify-content:center;color:#fff;font-size:90px}
+.badge{position:absolute;right:0;top:30px;background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:flex;gap:8px}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="topbar">
-<div style="font-weight:900;color:#01F9C6">● JobWay</div>
-<div class="links">
-<a href="index.html">Find Jobs</a><a href="jobs.html">Companies</a><a>Career Tips</a><a>About Us</a>
-<a href="employer-dashboard.html">For Employers</a><a href="track.html">Login</a>
-<a href="employer-dashboard.html" style="background:#30BA8F;color:#fff;padding:6px 12px;border-radius:8px">Sign Up</a>
-</div>
-</div>
+<div class="top"><div style="font-weight:900;color:#01F9C6">● JobWay</div><div><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html" style="background:#30BA8F;color:#fff;padding:6px 12px;border-radius:8px">For Employers</a></div></div>
 
 <div class="hero">
 <div>
-<h1>Find the job<br><span>that fits your life</span></h1>
-<p>Discover thousands of job opportunities from top companies and build your future. Thohoyandou • Makhado • Polokwane</p>
-<div class="searchWrap">
-<input id="q1" placeholder="Job title or keyword">
-<input id="q2" placeholder="Location" style="max-width:140px;border-left:1px solid #e6eef2">
-<button class="btn btn-green" onclick="location.href='jobs.html'">Search Jobs</button>
+<div class="h1">Find the job<br><span>that fits your life</span></div>
+<div class="sub">Discover thousands of job opportunities from top companies in Thohoyandou, Makhado, Polokwane.</div>
+<div class="search"><input placeholder="Job title or keyword"><input placeholder="Location" style="max-width:120px;border-left:1px solid #e6eef2"><button class="btn btn-g" onclick="location.href='jobs.html'">Search Jobs</button></div>
+<div style="margin-top:10px;font-size:11px;color:#7a95a3"><b style="color:#0c2333">Popular:</b> Designer, Developer, Marketing, Sales</div>
 </div>
-<div style="margin-top:10px;font-size:11px;color:#7a95a3"><b style="color:#0c2333">Popular searches:</b> Designer Developer Marketing Sales Product Manager</div>
-</div>
-<div class="heroVisual">
-<div class="heroCircle"><img src="https://images.unsplash.com/photo-1556157388-97eda2d62296?q=80&w=800&auto=format&fit=crop" alt=""></div>
-<div class="jobsBadge"><div style="background:#e7faf5;padding:8px;border-radius:8px">💼</div><div><b style="font-size:13px;color:#0c2333">35,000+</b><div style="font-size:10px;color:#7a95a3">Jobs Available</div></div></div>
-</div>
+<div style="position:relative;display:flex;justify-content:center"><div class="circle">👨‍💼</div><div class="badge"><div style="background:#e7faf5;padding:8px;border-radius:8px">💼</div><div><b style="font-size:13px">35,000+</b><div style="font-size:10px;color:#7a95a3">Jobs Available</div></div></div></div>
 </div>
 
-<div class="feats">
-<div class="feat"><div class="ic">🔍</div><div><b style="font-size:13px">Search Jobs</b><div style="font-size:11px;color:#6b8795">Find the right job that matches your skills</div></div></div>
-<div class="feat"><div class="ic">🏢</div><div><b style="font-size:13px">Top Companies</b><div style="font-size:11px;color:#6b8795">Explore top companies hiring now</div></div></div>
-<div class="feat"><div class="ic">📝</div><div><b style="font-size:13px">Build Resume</b><div style="font-size:11px;color:#6b8795">Create a professional resume in minutes</div></div></div>
-<div class="feat"><div class="ic">📈</div><div><b style="font-size:13px">Career Growth</b><div style="font-size:11px;color:#6b8795">Get tips and resources to grow your career</div></div></div>
+<div class="grid4">
+<div class="f"><div class="i">🔍</div><div><b style="font-size:12px">Search Jobs</b><div style="font-size:11px;color:#6b8795">Find right job</div></div></div>
+<div class="f"><div class="i">🏢</div><div><b style="font-size:12px">Top Companies</b><div style="font-size:11px;color:#6b8795">Explore hiring</div></div></div>
+<div class="f"><div class="i">📝</div><div><b style="font-size:12px">Build Resume</b><div style="font-size:11px;color:#6b8795">Create fast</div></div></div>
+<div class="f"><div class="i">📈</div><div><b style="font-size:12px">Career Growth</b><div style="font-size:11px;color:#6b8795">Grow career</div></div></div>
 </div>
 
-<div class="liveJobs">
-<div>
-<div style="display:flex;justify-content:space-between;margin:6px 0"><b style="font-size:13px">LIVE JOBS FROM EMPLOYERS</b><a href="jobs.html" style="font-size:12px;color:#30BA8F;text-decoration:none;font-weight:800">View all →</a></div>
-<div id="jobsHere"></div>
+<div class="main">
+<div><div style="display:flex;justify-content:space-between;margin:6px 0"><b style="font-size:12px">LIVE JOBS FROM EMPLOYERS</b><a href="jobs.html" style="font-size:12px;color:#30BA8F;font-weight:800;text-decoration:none">View all →</a></div>
+<div class="card"><div class="logo">S</div><div style="flex:1"><b style="font-size:13px">Cashier</b><div style="font-size:11px;color:#6b8795">Shoprite • Thohoyandou Mall</div></div><button class="btn btn-g" style="font-size:11px" onclick="location.href='jobs.html'">Apply</button></div>
+<div class="card"><div class="logo">B</div><div style="flex:1"><b style="font-size:13px">Retail Assistant</b><div style="font-size:11px;color:#6b8795">Boxer • Thohoyandou</div></div><button class="btn btn-g" style="font-size:11px" onclick="location.href='jobs.html'">Apply</button></div>
 </div>
-<div>
-<div class="box"><b style="font-size:13px">Quick Actions</b>
-<button class="btn btn-green" style="width:100%;margin-top:10px" onclick="location.href='pricing.html'">💳 Buy Package R299</button>
-<button class="btn btn-dark" style="width:100%;margin-top:8px" onclick="location.href='employer-dashboard.html'">🏢 Employer Dashboard</button>
-<button class="btn" style="width:100%;margin-top:8px;background:#eaf3f7" onclick="location.href='track.html'">📍 Track Application</button>
-<div style="font-size:11px;color:#7a95a3;margin-top:10px" id="walletTxt"></div>
-</div>
-<div class="box" style="margin-top:12px;background:#11283a;color:#fff"><b style="color:#01F9C6">For Employers</b><div style="font-size:11px;color:#8fb3c1;margin:6px 0">Post jobs, payment auto-verified, goes live immediately.</div><button class="btn btn-green" style="width:100%" onclick="location.href='pricing.html'">See Pricing</button></div>
-</div>
+<div><div style="background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px"><b style="font-size:13px">Quick Actions</b><button class="btn btn-g" style="width:100%;margin-top:10px" onclick="location.href='pricing.html'">💳 Buy Package R299</button><button class="btn btn-d" style="width:100%;margin-top:8px" onclick="location.href='employer-dashboard.html'">🏢 Employer Dashboard</button><button class="btn" style="width:100%;margin-top:8px;background:#eaf3f7" onclick="location.href='track.html'">📍 Track</button></div></div>
 </div>
 
-<div class="footer">
-<div style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1.4fr;gap:16px">
-<div><b style="color:#01F9C6">● JobWay</b><div style="font-size:11px;margin-top:6px">Your journey to a better career starts here.</div></div>
-<div><b style="color:#fff;font-size:12px">For Job Seekers</b><a style="color:#8fb3c1;font-size:12px;display:block;margin:5px 0" href="jobs.html">Find Jobs</a></div>
-<div><b style="color:#fff;font-size:12px">For Employers</b><a style="color:#8fb3c1;font-size:12px;display:block;margin:5px 0" href="employer-dashboard.html">Post a Job</a></div>
-<div><b style="color:#fff;font-size:12px">Company</b><a style="color:#8fb3c1;font-size:12px;display:block;margin:5px 0">About Us</a></div>
-<div><b style="color:#fff;font-size:12px">Newsletter</b><div style="font-size:11px;margin:6px 0">Get latest job updates.</div></div>
-</div>
-<div style="text-align:center;font-size:10px;color:#5a7d8a;margin-top:16px">© 2024 JobWay.co.za</div>
-</div>
-
-<script>
-function getWallet(){return JSON.parse(localStorage.getItem('jobway_wallet')||'{"posts":0,"credits":0,"cv":0}')}
-function getJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]')}
-function defaults(){return [{title:'Cashier',company:'Shoprite',loc:'Thohoyandou Mall',type:'Full-time',salary:'R5,500 - R6,800'},{title:'Retail Assistant',company:'Boxer',loc:'Thohoyandou',type:'Part-time',salary:'R4,600 - R5,600'},{title:'Waiter',company:'Mugg & Bean',loc:'Thohoyandou',type:'Part-time',salary:'R4,200 + Tips'}]}
-function render(){let all=[...getJobs(),...defaults()];document.getElementById('jobsHere').innerHTML=all.slice(0,3).map(j=>`<div class="card"><div class="jlogo">${j.company[0]}</div><div style="flex:1"><b style="font-size:13px">${j.title}</b><div style="font-size:11px;color:#6b8795">${j.company} • ${j.loc||j.location}</div><div style="margin-top:6px"><span style="background:#eef6f9;padding:4px 8px;border-radius:8px;font-size:10px">${j.type}</span> <span style="background:#f5f7f2;padding:4px 8px;border-radius:8px;font-size:10px">${j.salary}</span></div></div><button class="btn btn-green" style="font-size:11px" onclick="location.href='jobs.html'">Apply</button></div>`).join('');let w=getWallet();document.getElementById('walletTxt').innerText=w.posts+w.credits+' posts left';}
-render();
-</script>
+<div style="background:#11283a;color:#8fb3c1;padding:18px;text-align:center;font-size:10px;margin-top:14px">© 2024 JobWay.co.za • ● JobWay brand restored</div>
 </body>
 </html>
