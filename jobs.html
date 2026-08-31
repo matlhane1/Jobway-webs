@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs - JobWay.co.za</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;background:#f4f9fb;color:#132e3f}
+.header{background:#11283a;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn-green{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231c}
+.card{background:#fff;border:1px solid #e3eef2;border-radius:14px;padding:12px;margin-bottom:10px;display:flex;gap:12px}
+.logo{width:44px;height:44px;border-radius:10px;background:#11283a;color:#01F9C6;display:flex;align-items:center;justify-content:center;font-weight:900}
+.container{max-width:1000px;margin:0 auto;padding:14px 16px}
+.input{width:100%;background:#fff;border:1px solid #dce9ee;padding:12px;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="header">
+<div style="font-weight:900;color:#01F9C6">● JobWay</div>
+<div style="display:flex;gap:8px">
+<button class="btn" style="background:#1a3446;color:#fff" onclick="location.href='index.html'">🏠 Home</button>
+<button class="btn btn-green" onclick="location.href='employer-dashboard.html'">🏢 Employer</button>
+</div>
+</div>
+<div class="container">
+<h2 style="font-weight:900;margin:10px 0">Find Jobs in Thohoyandou</h2>
+<input id="search" class="input" placeholder="Search job title, company..." oninput="render(this.value)">
+<div id="list" style="margin-top:12px"></div>
+</div>
+<script>
+function getEmployerJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]')}
+function getDefaults(){return [{title:'Cashier',company:'Shoprite',location:'Thohoyandou Mall',type:'Full-time',salary:'R5,500 - R6,800',desc:'Handle POS and customers',logo:null},{title:'Retail Assistant',company:'Boxer',location:'Thohoyandou',type:'Part-time',salary:'R4,600 - R5,600',desc:'Assist shoppers',logo:null},{title:'Waiter',company:'Mugg & Bean',location:'Thohoyandou',type:'Part-time',salary:'R4,200 + Tips',desc:'Serve customers',logo:null}]}
+function render(q=''){let jobs=[...getEmployerJobs(),...getDefaults()];if(q) jobs=jobs.filter(j=>(j.title+j.company+j.location).toLowerCase().includes(q.toLowerCase()));document.getElementById('list').innerHTML=jobs.map(j=>`<div class="card"><div class="logo">${j.logo?`<img src="${j.logo}" style="width:100%;height:100%;object-fit:cover">`:j.company[0]}</div><div style="flex:1"><b>${j.title}</b><div style="color:#30BA8F;font-size:12px">${j.company} • ${j.location}</div><div style="font-size:11px;color:#6b8795;margin-top:4px">${j.type} • ${j.salary}</div><button class="btn btn-green" style="margin-top:8px;font-size:12px" onclick="applyJob('${j.title}')">Apply Now</button></div></div>`).join('');}
+function applyJob(t){let n=prompt('Full name?');if(!n)return;let e=prompt('Email?');let w=prompt('WhatsApp?');let a=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');a.unshift({id:Date.now().toString(),job_title:t,name:n,email:e,whatsapp:w,date:new Date().toISOString(),status:'Applied'});localStorage.setItem('jobway_all_applications',JSON.stringify(a));alert('✅ Applied to '+t);location.href='track.html';}
+render();
+</script>
+</body>
+</html>
