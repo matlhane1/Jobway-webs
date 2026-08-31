@@ -1,41 +1,19 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Track Applications - JobWay</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:24px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:22px;padding:18px;margin-bottom:14px}.status-row{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap}.step{padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;background:#0f2a3c;color:#8fb3c1;border:1px solid #2a4a5c}.step.active{background:#01F9C6;color:#0d1f2d;border-color:#01F9C6}.step.reject.active{background:#ff6b6b;color:#fff}.meta{color:#8fb3c1;font-size:13px;margin:6px 0}.interview-box{background:rgba(1,249,198,.1);border:1px solid #01F9C6;border-radius:12px;padding:12px;margin-top:10px}</style></head><body>
-<div class="header"><div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobWay</div><div><button class="btn btn-white" onclick="location.href='index.html'">Find Jobs</button></div></div>
-<div class="container">
-<h2>📊 Track Applications</h2><p class="meta" id="count">Loading...</p>
-<div id="list"></div>
-</div>
+<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:24px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:22px;padding:18px;margin-bottom:14px}.status-row{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap}.step{padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;background:#0f2a3c;color:#8fb3c1;border:1px solid #2a4a5c}.step.active{background:#01F9C6;color:#0d1f2d}.step.reject.active{background:#ff6b6b;color:#fff}.meta{color:#8fb3c1;font-size:13px;margin:6px 0}.interview-box{background:rgba(1,249,198,.1);border:1px solid #01F9C6;border-radius:12px;padding:12px;margin-top:10px}</style></head><body>
+<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><div><button class="btn btn-white" onclick="location.href='notifications.html'">🔔 <span id="notifCount">0</span></button><button class="btn btn-white" onclick="location.href='index.html'" style="margin-left:6px">Find Jobs</button></div></div>
+<div class="container"><h2>📊 Track Applications</h2><p class="meta" id="count">Loading...</p><div id="list"></div></div>
 <script>
 const supa=supabase.createClient("https://dmxumcjeetphwzvggzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-let profile=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
 function renderJobs(jobs){
-  document.getElementById('count').innerText = jobs.length + ' applications found';
+  document.getElementById('count').innerText=jobs.length+' applications found';
+  let notifs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]'); document.getElementById('notifCount').innerText=notifs.length;
   if(jobs.length==0){document.getElementById('list').innerHTML='<div class="card">No applications yet. Go apply for 95% Cashier job!</div>';return}
   document.getElementById('list').innerHTML=jobs.map(j=>{
-    let status=j.status||'Applied';
-    let steps=['Applied','Under Review','Shortlisted','Approved'];
-    let isReject = status==='Rejected';
-    let htmlSteps = isReject ? `<span class="step">Applied</span> <span class="step reject active">Rejected</span>` : steps.map(s=>{
-      let active = steps.indexOf(s) <= steps.indexOf(status) || (status==='Approved' && s==='Shortlisted');
-      return `<span class="step ${active?'active':''}">${s}</span>`
-    }).join('');
-    return `<div class="card"><h3>${j.title||j.job_title||'Job'} - ${j.company||''}</h3><div class="meta">Applied: ${j.date||j.created_at||''} • Match: ${j.match||j.match_percent||95}%</div>
-    <div class="status-row">${htmlSteps}</div>
-    ${j.interview_date ? `<div class="interview-box">📅 <b>Interview Scheduled!</b><br>Date: ${j.interview_date} ${j.interview_time||''}<br>Location: ${j.interview_location||'Online / WhatsApp Call'}<br><span class="meta">You got Email + WhatsApp notification</span></div>` : ''}
-    <div class="meta">Status: <b style="color:${isReject?'#ff6b6b':'#01F9C6'}">${status}</b></div></div>`
+    let status=j.status||'Applied'; let steps=['Applied','Under Review','Shortlisted','Approved']; let isReject=status==='Rejected';
+    let htmlSteps=isReject?`<span class="step">Applied</span> <span class="step reject active">Rejected</span>`:steps.map(s=>`<span class="step ${(steps.indexOf(s)<=steps.indexOf(status)||(status==='Approved'&&s==='Shortlisted'))?'active':''}">${s}</span>`).join('');
+    return `<div class="card"><h3>${j.title||j.job_title||'Cashier'} - ${j.company||'Shoprite'}</h3><div class="meta">Applied: ${j.date||j.created_at||''} • Match: ${j.match||95}%</div><div class="status-row">${htmlSteps}</div>${j.interview_date?`<div class="interview-box">📅 <b>Interview Scheduled!</b><br>Date: ${j.interview_date} ${j.interview_time||''}<br>Location: ${j.interview_location||''}<br><span class="meta">Email + WhatsApp sent ✅</span></div>`:''}<div class="meta">Status: <b style="color:${isReject?'#ff6b6b':'#01F9C6'}">${status}</b></div></div>`
   }).join('');
 }
-async function load(){
-  let localJobs = JSON.parse(localStorage.getItem('jobway_applied')||'[]');
-  try{
-    let email = profile.email || profile.whatsapp || '';
-    if(email){
-      let {data} = await supa.from('applications').select('*').eq('user_email', email);
-      if(data && data.length){ localJobs = data.map(d=>({title:d.job_id||'Job', company:'', date:d.created_at, status:d.status, interview_date:d.interview_date, interview_time:d.interview_time, match:d.match_percent})); }
-    }
-  }catch(e){}
-  renderJobs(localJobs);
-}
-load();
+let localJobs=JSON.parse(localStorage.getItem('jobway_applied')||'[]'); renderJobs(localJobs);
 </script></body></html>
