@@ -62,7 +62,7 @@
 <a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
 <div class="nav-cta"><button class="btn btn-login" onclick="location.href='login.html'">Log In</button><button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up</button></div>
 </div>
-<div class="header-nav"><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
+<div class="header-nav"><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html" id="nav-pricing">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
 </div></div>
 
 <div class="wrap">
@@ -87,13 +87,12 @@
 <div class="grid3">
 <div class="card"><div class="card-icon i1">📢</div><h4>① POST JOBS</h4><p>Pay-Per-Post R299 or subscriptions from R999. All applicant CVs FREE.</p></div>
 <div class="card"><div class="card-icon i2">📦</div><h4>② JOB CREDITS</h4><p>50 for R7,500 to 250 for R31,250. R150 → R125/job. Credits never expire.</p></div>
-<div class="card"><div class="card-icon i3">🔍</div><h4>③ FIND CANDIDATES</h4><p>CV Database — 10 for R499 to 200 for R5,999. Find talent before they apply.</p></div>
+<div class="card"><div class="card-icon i3">🔍</div><h4>③ FIND CANDIDATES</h4><p>CV Database — 10 for R999 to 250 for R10,999. Find talent before they apply.</p></div>
 </div>
 </div>
-<div class="cta"><div><h3>Ready to hire your way?</h3><p>Flexible hiring solutions built for every size. Start with R299 or scale to R125/job.</p></div><div style="display:flex;gap:10px"><button class="btn-dark" onclick="location.href='pricing.html'">View Pricing →</button><button class="btn-light" onclick="location.href='employer-dashboard.html'">Employer Dashboard</button></div></div>
+<div class="cta"><div><h3>Ready to hire your way?</h3><p>Flexible hiring solutions built for every size. Start with R299 or scale to R125/job.</p></div><div style="display:flex;gap:10px"><button class="btn-dark" id="cta-pricing">View Pricing →</button><button class="btn-light" onclick="location.href='employer-dashboard.html'">Employer Dashboard</button></div></div>
 </div>
 
-<!-- PREMIUM FOOTER WITH REAL SOCIAL LOGOS LIKE FIRST IMAGE -->
 <footer class="footer">
 <div class="footer-grid">
 <div class="foot">
@@ -111,7 +110,7 @@
 <a href="contact.html">Contact</a>
 <a href="help.html">Help / FAQ</a>
 <a href="jobs.html">Find Jobs</a>
-<a href="pricing.html">Pricing</a>
+<a href="#" id="footer-pricing">Pricing</a>
 <a href="employer-dashboard.html">For Employers</a>
 </div>
 <div class="foot">
@@ -125,7 +124,6 @@
 <div class="foot">
 <h5>Connect With Us</h5>
 <p>Chat with us directly — real logos, clickable.</p>
-<!-- REAL LOGOS EXACTLY LIKE YOUR FIRST SCREENSHOT -->
 <div style="display:flex;gap:12px;margin-top:14px;align-items:center">
 <a href="https://facebook.com/jobwayza" target="_blank" aria-label="Facebook" style="width:46px;height:46px;border-radius:50%;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)">
 <svg viewBox="0 0 24 24" width="20" height="20" fill="#000"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
@@ -150,5 +148,30 @@
 <span>© 2026 JobWay.co.za • Your Job, Your Way </span>
 </div>
 </footer>
+
+<!-- PRICING LOCK LOGIC - ADDED, DOES NOT BREAK DESIGN -->
+<script>
+function checkEmployerAccess(e){
+  const role = localStorage.getItem('user_role');
+  const email = localStorage.getItem('employer_email');
+  const isEmployer = (role === 'employer' && email);
+  
+  if(!isEmployer){
+    e.preventDefault();
+    // Show employer-only modal
+    if(confirm('🔒 Pricing is for EMPLOYERS ONLY.\n\nJob seekers cannot view pricing.\n\nClick OK to Sign Up as Employer, or Cancel to stay.')){
+      window.location.href = 'employer-signup.html?next=pricing.html';
+    }
+    return false;
+  }
+  // Employer - allow
+  window.location.href = 'pricing.html';
+}
+
+// Lock all pricing links on homepage
+document.getElementById('nav-pricing')?.addEventListener('click', checkEmployerAccess);
+document.getElementById('cta-pricing')?.addEventListener('click', checkEmployerAccess);
+document.getElementById('footer-pricing')?.addEventListener('click', checkEmployerAccess);
+</script>
 </body>
 </html>
