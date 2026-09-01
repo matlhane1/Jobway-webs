@@ -1,152 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay.co.za — Your Job, Your Way</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--deep:#11283A;--deep2:#0A1F2E;--muted:#A8C8D0}
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff;overflow-x:hidden}
-.top{position:sticky;top:0;z-index:50;background:var(--deep2);border-bottom:1px solid rgba(1,249,198,0.15)}
-.top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
-.header-main{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand-logo svg{height:38px;width:auto;display:block}
-.nav-cta{display:flex;align-items:center;gap:10px}
-.btn{border-radius:999px;height:42px;padding:0 22px;font-size:13.5px;font-weight:800;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
-.btn-login{background:var(--navy);color:#fff}.btn-signup{background:var(--bright);color:var(--navy);font-weight:900;box-shadow:0 8px 20px rgba(1,249,198,0.3)}
-.header-nav{height:44px;display:flex;align-items:center;gap:24px;border-top:1px solid rgba(255,255,255,0.08)}
-.header-nav a{color:#8FB3C1;font-size:13px;font-weight:600;text-decoration:none}.header-nav a.active{color:#fff}
-.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
-.hero{display:grid;grid-template-columns:1.15fr 0.85fr;gap:32px;align-items:center;padding:36px 0 28px}
-.kicker{font-size:11px;font-weight:800;letter-spacing:0.18em;color:var(--bright);margin-bottom:12px}
-.h1{font-family:'Space Grotesk',sans-serif;font-size:64px;line-height:0.9;letter-spacing:-0.04em;font-weight:800}
-.h1 .n{color:#fff}.h1 .m{color:var(--mid)}.h1 .b{color:var(--bright)}
-.sub{color:var(--muted);font-size:15.5px;line-height:1.6;margin:16px 0;max-width:520px}
-.search-box{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.2);border-radius:20px;padding:14px;display:flex;gap:10px;box-shadow:0 18px 40px rgba(0,0,0,0.3)}
-.search-box input{flex:1;background:rgba(10,31,46,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:0 18px;height:48px;color:#fff;font-size:14px;outline:none}
-.search-box input::placeholder{color:#6EA3AF}
-.btn-search{background:var(--bright);color:var(--navy);font-weight:900;height:48px;padding:0 28px;border-radius:999px;border:0;cursor:pointer}
-.trust{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
-.trust span{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);padding:6px 12px;border-radius:999px;font-size:11px;color:var(--muted)}
-.hero-visual{height:460px;border-radius:28px;background:linear-gradient(135deg,#20576E,#0F2835 60%,#0A4A42);border:1px solid rgba(1,249,198,0.15);display:grid;place-items:center;position:relative;overflow:hidden}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0 32px}
-.s-card{border-radius:20px;padding:18px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 30px rgba(0,0,0,0.25)}
-.s-navy{background:linear-gradient(135deg,#20576E,#143645)}.s-teal{background:linear-gradient(135deg,#30BA8F,#1A7A5D)}.s-dark{background:linear-gradient(135deg,#0F2835,#1F4F63)}.s-bright{background:linear-gradient(135deg,#01F9C6,#0ABF95);color:#0A2A3A}
-.s-card b{font-family:'Space Grotesk',sans-serif;font-size:30px;display:block}
-.s-card span{font-size:11px;font-weight:800;letter-spacing:0.06em;margin-top:6px;display:block}
-.section{margin:36px 0}.section-title{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;margin-bottom:14px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.card{border-radius:20px;padding:20px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 30px rgba(0,0,0,0.25);background:linear-gradient(135deg,#11283A,#1A3E52)}
-.card h4{font-size:14px;font-weight:800;color:var(--bright);margin-bottom:8px}.card p{font-size:12.5px;line-height:1.6;color:var(--muted)}
-.card-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;margin-bottom:12px}
-.i1{background:rgba(1,249,198,0.15);border:1px solid rgba(1,249,198,0.25)}.i2{background:rgba(48,186,143,0.15);border:1px solid rgba(48,186,143,0.25)}.i3{background:rgba(32,87,110,0.5);border:1px solid rgba(1,249,198,0.15)}
-.cta{background:linear-gradient(135deg,#01F9C6 0%,#30BA8F 60%,#20576E 100%);border-radius:24px;padding:28px;display:flex;justify-content:space-between;align-items:center;gap:20px;margin:36px 0;color:#0A2A3A}
-.cta h3{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800}.cta p{font-size:13px;opacity:0.85;margin-top:4px}
-.btn-dark{background:#0A1F2E;color:#fff;height:46px;padding:0 28px;border-radius:999px;border:0;font-weight:800;cursor:pointer}
-.btn-light{background:#fff;color:var(--navy);height:46px;padding:0 28px;border-radius:999px;border:0;font-weight:800;cursor:pointer}
-/* FOOTER - BRAND, NO WHITE, CLICKABLE */
-.footer{background:#081824;border-top:1px solid rgba(1,249,198,0.15);padding:28px 0 18px;margin-top:20px}
-.footer-grid{max-width:1280px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr;gap:20px}
-.foot h5{font-size:12px;font-weight:800;letter-spacing:0.08em;color:var(--bright);margin-bottom:12px}
-.foot a,.foot p{font-size:12.5px;color:#8FB3C1;line-height:1.8;text-decoration:none;display:block}
-.foot a:hover{color:#fff}
-.contact-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#20576E,#12344A);border:1px solid rgba(1,249,198,0.2);color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:800;margin:6px 0;text-decoration:none;transition:0.2s}
-.contact-btn:hover{background:var(--navy);border-color:var(--bright)}
-.contact-btn.bright{background:var(--bright);color:var(--navy);border:0}
-.social{display:flex;gap:10px;margin-top:12px}
-.social a{width:40px;height:40px;border-radius:999px;display:grid;place-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:16px;text-decoration:none}
-.social a:hover{background:var(--navy);border-color:var(--bright)}
-.copy{max-width:1280px;margin:18px auto 0;padding:14px 20px 0;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11px;color:#6EA3AF}
-@media(max-width:960px){.hero{grid-template-columns:1fr}.h1{font-size:44px}.stats{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.cta{flex-direction:column;align-items:flex-start}}
-@media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<div class="top"><div class="top-inner">
-<div class="header-main">
-<a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
-<div class="nav-cta"><button class="btn btn-login" onclick="location.href='login.html'">Log In</button><button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up</button></div>
-</div>
-<div class="header-nav"><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
-</div></div>
-
-<div class="wrap">
-<div class="hero">
+<!-- PREMIUM FOOTER WITH REAL SOCIAL LOGOS -->
+<footer style="background:#081824;border-top:1px solid rgba(1,249,198,0.15);padding:28px 0 18px;margin-top:20px">
+<div style="max-width:1280px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr;gap:20px">
 <div>
-<div class="kicker">YOUR JOB, YOUR WAY</div>
-<div class="h1"><div class="n">Jobs.</div><div class="m">Careers.</div><div class="b">Opportunities.</div></div>
-<div class="sub">Discover thousands of job opportunities from top companies across South Africa. Post jobs. Reach candidates. Find talent. Your way.</div>
-<div class="search-box"><input placeholder="Job title, skills"><input placeholder="City"><button class="btn-search">Search →</button></div>
-<div class="trust"><span>🇿🇦 Trusted by SA employers</span><span>✓ CVs FREE on apply</span><span>✓ 100% Brand Colours</span></div>
-</div>
-<div class="hero-visual"><div style="font-size:90px">🇿🇦</div></div>
-</div>
-<div class="stats">
-<div class="s-card s-navy"><b>1,247+</b><span style="color:var(--bright)">ACTIVE JOBS</span></div>
-<div class="s-card s-teal"><b>580+</b><span>EMPLOYERS</span></div>
-<div class="s-card s-dark"><b>12k+</b><span style="color:var(--bright)">CANDIDATES</span></div>
-<div class="s-card s-bright"><b>R125</b><span>FROM / JOB</span></div>
-</div>
-<div class="section">
-<div class="section-title">How JobWay Works</div>
-<div class="grid3">
-<div class="card"><div class="card-icon i1">📢</div><h4>① POST JOBS</h4><p>Pay-Per-Post R299 or subscriptions from R999. All applicant CVs FREE.</p></div>
-<div class="card"><div class="card-icon i2">📦</div><h4>② JOB CREDITS</h4><p>50 for R7,500 to 250 for R31,250. R150 → R125/job. Credits never expire.</p></div>
-<div class="card"><div class="card-icon i3">🔍</div><h4>③ FIND CANDIDATES</h4><p>CV Database — 10 for R499 to 200 for R5,999. Find talent before they apply.</p></div>
+<h5 style="font-size:12px;font-weight:800;letter-spacing:0.08em;color:#01F9C6;margin-bottom:12px">JobWay.co.za</h5>
+<p style="font-size:12.5px;color:#8FB3C1;line-height:1.8">Your Job, Your Way<br>South Africa's premium hiring platform.</p>
+<div style="margin-top:14px;display:grid;gap:8px">
+<a href="mailto:hello@jobway.co.za" style="display:inline-flex;align-items:center;gap:8px;background:#01F9C6;color:#0F2835;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:900;text-decoration:none">hello@jobway.co.za</a>
+<a href="https://wa.me/27790608952" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#20576E,#12344A);border:1px solid rgba(1,249,198,0.2);color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:800;text-decoration:none">WhatsApp: 079 060 8952</a>
+<a href="mailto:support@jobway.co.za" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#20576E,#12344A);border:1px solid rgba(1,249,198,0.2);color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:800;text-decoration:none">support@jobway.co.za</a>
 </div>
 </div>
-<div class="cta"><div><h3>Ready to hire your way?</h3><p>Flexible hiring solutions built for every size. Start with R299 or scale to R125/job.</p></div><div style="display:flex;gap:10px"><button class="btn-dark" onclick="location.href='pricing.html'">View Pricing →</button><button class="btn-light" onclick="location.href='employer-dashboard.html'">Employer Dashboard</button></div></div>
+<div>
+<h5 style="font-size:12px;font-weight:800;color:#01F9C6;margin-bottom:12px;letter-spacing:0.08em">Quick Links</h5>
+<a href="contact.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Contact</a>
+<a href="help.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Help / FAQ</a>
+<a href="jobs.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Find Jobs</a>
+<a href="pricing.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Pricing</a>
+<a href="employer-dashboard.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">For Employers</a>
 </div>
-
-<!-- PREMIUM FOOTER WITH ALL LINKS + CLICKABLE CONTACT -->
-<footer class="footer">
-<div class="footer-grid">
-<div class="foot">
-<h5>JobWay.co.za</h5>
-<p style="color:#fff;font-weight:800">Your Job, Your Way</p>
-<p>South Africa's premium hiring platform for employers and job seekers.</p>
-<div style="margin-top:14px">
-<a class="contact-btn bright" href="mailto:hello@jobway.co.za">📧 hello@jobway.co.za</a>
-<a class="contact-btn" href="https://wa.me/27790608952" target="_blank">💬 WhatsApp: 079 060 8952</a>
-<a class="contact-btn" href="mailto:support@jobway.co.za">🛟 support@jobway.co.za</a>
+<div>
+<h5 style="font-size:12px;font-weight:800;color:#01F9C6;margin-bottom:12px;letter-spacing:0.08em">Legal</h5>
+<a href="privacy.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Privacy Policy</a>
+<a href="popia.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">POPIA / Privacy</a>
+<a href="terms.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Terms & Conditions</a>
+<a href="cookies.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Cookie Policy</a>
+<a href="refund.html" style="font-size:12.5px;color:#8FB3C1;line-height:2;text-decoration:none;display:block">Refund Policy</a>
 </div>
+<div>
+<h5 style="font-size:12px;font-weight:800;color:#01F9C6;margin-bottom:12px;letter-spacing:0.08em">Connect With Us</h5>
+<p style="font-size:12px;color:#8FB3C1;margin-bottom:14px">Follow us — real logos, direct links.</p>
+<!-- REAL LOGOS LIKE FIRST IMAGE -->
+<div style="display:flex;gap:14px;align-items:center">
+<!-- FACEBOOK -->
+<a href="https://facebook.com" target="_blank" aria-label="Facebook" style="width:44px;height:44px;border-radius:999px;background:#fff;display:grid;place-items:center;text-decoration:none">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="#000"><path d="M14 8h3V4h-3c-2.76 0-5 2.24-5 5v3H6v4h3v5h4v-5h3l1-4h-4V9c0-.55.45-1 1-1z"/></svg>
+</a>
+<!-- INSTAGRAM -->
+<a href="https://instagram.com" target="_blank" aria-label="Instagram" style="width:44px;height:44px;border-radius:999px;background:#fff;display:grid;place-items:center;text-decoration:none">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#000" stroke="none"/></svg>
+</a>
+<!-- WHATSAPP -->
+<a href="https://wa.me/27790608952" target="_blank" aria-label="WhatsApp" style="width:44px;height:44px;border-radius:999px;background:#fff;display:grid;place-items:center;text-decoration:none">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="#000"><path d="M12 2a10 10 0 0 0-8.75 14.78L2 22l5.36-1.26A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.12l-.29-.17-3.18.75.75-3.1-.19-.32A8 8 0 1 1 12 20zm4.53-5.93c-.25-.12-1.47-.73-1.7-.81s-.39-.12-.56.12-.64.81-.79.98-.3.19-.55.06c-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.38-1.72s-.02-.38.1-.5c.1-.1.25-.3.37-.45.12-.15.16-.25.25-.42.08-.17.04-.31-.02-.43s-.56-1.35-.77-1.85c-.2-.48-.4-.42-.56-.42h-.48c-.17 0-.43.06-.66.31s-.86.84-.86 2.05.88 2.38 1 2.55c.12.17 1.73 2.64 4.19 3.7.59.25 1.04.4 1.4.51.59.19 1.12.16 1.54.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.1-.22-.16-.47-.28z"/></svg>
+</a>
+<!-- YOUTUBE -->
+<a href="https://youtube.com" target="_blank" aria-label="YouTube" style="width:44px;height:44px;border-radius:999px;background:#fff;display:grid;place-items:center;text-decoration:none">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="#000"><path d="M23 12s0-3.55-.45-5.27a2.5 2.5 0 0 0-1.76-1.76C18.52 4.52 12 4.52 12 4.52s-6.52 0-8.79.45A2.5 2.5 0 0 0 1.45 6.73C1 8.45 1 12 1 12s0 3.55.45 5.27a2.5 2.5 0 0 0 1.76 1.76c2.27.45 8.79.45 8.79.45s6.52 0 8.79-.45a2.5 2.5 0 0 0 1.76-1.76C23 15.55 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z" fill="#000"/></svg>
+</a>
 </div>
-<div class="foot">
-<h5>Quick Links</h5>
-<a href="contact.html">Contact</a>
-<a href="help.html">Help / FAQ</a>
-<a href="jobs.html">Find Jobs</a>
-<a href="pricing.html">Pricing</a>
-<a href="employer-dashboard.html">For Employers</a>
-</div>
-<div class="foot">
-<h5>Legal</h5>
-<a href="privacy.html">Privacy Policy</a>
-<a href="popia.html">POPIA / Privacy</a>
-<a href="terms.html">Terms & Conditions</a>
-<a href="cookies.html">Cookie Policy</a>
-<a href="refund.html">Refund Policy</a>
-</div>
-<div class="foot">
-<h5>Connect With Us</h5>
-<p>Chat with us directly — buttons open Gmail & WhatsApp.</p>
-<div class="social">
-<a href="https://facebook.com" target="_blank" aria-label="Facebook">📘</a>
-<a href="https://instagram.com" target="_blank" aria-label="Instagram">📸</a>
-<a href="https://wa.me/27790608952" target="_blank" aria-label="WhatsApp">💬</a>
-<a href="mailto:hello@jobway.co.za" aria-label="Gmail">✉️</a>
-</div>
-<div style="margin-top:14px;background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);border-radius:12px;padding:10px">
-<p style="font-size:11px;color:var(--bright);font-weight:800">SUPPORT HOURS</p>
-<p style="font-size:11px">Mon-Fri 8am-6pm SAST</p>
-<p style="font-size:11px">WhatsApp replies within 1 hour</p>
+<div style="margin-top:16px;background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);border-radius:12px;padding:10px">
+<p style="font-size:11px;color:#01F9C6;font-weight:800">SUPPORT HOURS</p>
+<p style="font-size:11px;color:#8FB3C1;margin-top:4px">Mon-Fri 8am-6pm SAST • WhatsApp replies within 1 hour</p>
 </div>
 </div>
 </div>
-<div class="copy">
-<span>© 2026 JobWay.co.za • Your Job, Your Way • Brand #20576E #30BA8F #01F9C6</span>
-<span>Built with 100% brand colours • No white background • 100% visibility</span>
+<div style="max-width:1280px;margin:18px auto 0;padding:14px 20px 0;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11px;color:#6EA3AF">
+<span>© 2026 JobWay.co.za • Your Job, Your Way</span><span>Facebook • Instagram • WhatsApp • YouTube</span>
 </div>
 </footer>
-</body>
-</html>
