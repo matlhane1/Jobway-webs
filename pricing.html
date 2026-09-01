@@ -2,137 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing — JobWay.co.za | Your Job, Your Way</title>
+<title>Pricing — JobWay.co.za | Find the right hiring plan</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--bg:#F5FAF8;--muted:#6E8A95;--line:#E3EEEB}
+:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--bg:#F4FBF8;--muted:#6E8A95;--line:#D9ECE6}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--dark)}
 .top{position:sticky;top:0;z-index:50;background:#11283A;border-bottom:1px solid rgba(255,255,255,0.08)}
 .top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
 .header-main{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand-logo{display:flex;align-items:center;flex-shrink:0}
-.brand-logo svg{height:38px;width:auto;display:block}
+.brand-logo{display:flex;align-items:center;flex-shrink:0}.brand-logo svg{height:38px;width:auto;display:block}
 .nav-cta{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.btn{border-radius:999px;height:40px;padding:0 20px;min-width:88px;font-size:13.5px;font-weight:800;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:0.2s}
-.btn-login{background:#20576E;color:#fff}.btn-signup{background:#01F9C6;color:#20576E;font-weight:900;box-shadow:0 8px 20px rgba(1,249,198,0.3)}
-.btn-dark{background:#0F2835;color:#fff}.btn-ghost{background:#fff;border:1px solid var(--line)}
+.btn{border-radius:999px;height:42px;padding:0 22px;min-width:92px;font-size:13.5px;font-weight:800;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:0.2s}
+.btn-login{background:#20576E;color:#fff}.btn-signup{background:#01F9C6;color:#20576E;font-weight:900;box-shadow:0 8px 20px rgba(1,249,198,0.28)}
 .header-nav{height:44px;display:flex;align-items:center;gap:24px;border-top:1px solid rgba(255,255,255,0.08)}
 .header-nav a{color:#B7CDD5;font-size:13px;font-weight:600;text-decoration:none}.header-nav a.active{color:#fff}
 .wrap{max-width:1280px;margin:0 auto;padding:28px 20px}
-.badge{display:inline-flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);padding:7px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:0.08em;color:var(--navy)}
-.h1{font-family:'Space Grotesk',sans-serif;font-size:48px;line-height:0.95;letter-spacing:-0.03em;font-weight:800;margin:14px 0 8px}
-.h1 span{color:var(--mid)}
-.sub{color:var(--muted);font-size:15px;max-width:680px;line-height:1.6}
-.section{margin-top:34px}
-.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
-.section-head h2{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.02em}
-.pill{font-size:11px;font-weight:800;padding:6px 12px;border-radius:999px;background:#0F2835;color:#01F9C6}
+.kicker{font-size:11px;font-weight:800;letter-spacing:0.18em;color:var(--mid)}
+.h1{font-family:'Space Grotesk',sans-serif;font-size:46px;line-height:0.95;letter-spacing:-0.03em;font-weight:800;margin:10px 0 10px}
+.h1 span{color:var(--navy)}
+.sub{color:var(--muted);font-size:15px;line-height:1.6;max-width:720px}
+.sub b{color:var(--dark)}
+.divider{height:1px;background:var(--line);margin:28px 0}
+/* SECTION HEADER */
+.sec{margin-top:32px}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.num{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:14px;flex-shrink:0}
+.n1{background:var(--navy);color:#fff}.n2{background:var(--mid);color:#fff}.n3{background:var(--bright);color:var(--navy)}
+.sec-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.02em}
+.sec-desc{font-size:12.5px;color:var(--muted);margin-left:52px;margin-top:-12px;margin-bottom:14px}
 .grid{display:grid;gap:14px}
-.grid-1{grid-template-columns:1fr}
-.grid-4{grid-template-columns:repeat(4,1fr)}
-.grid-5{grid-template-columns:repeat(5,1fr)}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 12px 30px rgba(15,40,53,0.06);position:relative;overflow:hidden}
+.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;position:relative;box-shadow:0 10px 28px rgba(15,40,53,0.06);overflow:hidden}
 .card.pop{border:2px solid var(--bright);box-shadow:0 18px 40px rgba(1,249,198,0.18)}
-.card.best{border:2px solid var(--navy);box-shadow:0 18px 40px rgba(32,87,110,0.18)}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.price{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.02em}
-.price span{font-size:14px;color:var(--muted);font-weight:600}
+.card.best{border:2px solid var(--navy);box-shadow:0 18px 40px rgba(32,87,110,0.14)}
+.card-dark{background:linear-gradient(135deg,#11283A,#20576E);color:#fff;border:0}
+.card-dark .mut{color:#9DC3CF}
+.price{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.02em}
+.price s{font-size:13px;color:var(--muted);font-weight:600}
+.per{font-size:12px;color:var(--mid);font-weight:800;margin-top:2px}
 .feat{font-size:12.5px;color:var(--muted);line-height:1.6;margin:10px 0}
 .feat b{color:var(--dark)}
 .tag{position:absolute;top:12px;right:12px;font-size:10px;font-weight:900;padding:5px 10px;border-radius:999px}
-.tag-pop{background:var(--bright);color:var(--navy)}
-.tag-best{background:var(--navy);color:#fff}
-.explain{background:#0F2835;color:#8FB3C1;border-radius:20px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
-.explain h4{color:#fff;font-size:13px;margin-bottom:6px}
-.explain p{font-size:12px;line-height:1.6}
-.overview{background:#fff;border:1px dashed #C8DDD6;border-radius:20px;padding:18px;margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.overview .o{background:#F5FAF8;border-radius:14px;padding:14px;text-align:center}
-.overview .o b{font-size:22px;display:block;color:var(--navy)}
-.overview .o span{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:0.06em}
-@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-5{grid-template-columns:repeat(2,1fr)}.overview{grid-template-columns:repeat(2,1fr)}.explain{grid-template-columns:1fr}.h1{font-size:36px}}
-@media(max-width:600px){.grid-4,.grid-5{grid-template-columns:1fr}.header-main{height:60px}.brand-logo svg{height:34px}}
+.tag-pop{background:var(--bright);color:var(--navy)}.tag-best{background:var(--navy);color:#fff}
+.explain{background:#0F2835;border-radius:20px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;color:#8FB3C1}
+.explain h4{color:#fff;font-size:13px;margin-bottom:6px}.explain p{font-size:12px;line-height:1.6}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(2,1fr)}.h1{font-size:38px}}
+@media(max-width:640px){.g4,.g5,.g2{grid-template-columns:1fr}.sec-desc{margin-left:0}.header-main{height:60px}.brand-logo svg{height:34px}}
 </style>
 </head>
 <body>
 <div class="top"><div class="top-inner">
 <div class="header-main">
-<a href="index.html" class="brand-logo" aria-label="JobWay">
-<svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" letter-spacing="-0.8px" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" letter-spacing="0.5px" fill="#8FB3C1">your job, your way</text></g></svg>
-</a>
+<a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
 <div class="nav-cta"><button class="btn btn-login" onclick="location.href='login.html'">Log In</button><button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up</button></div>
 </div>
 <div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html" class="active">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
 </div></div>
 
 <div class="wrap">
-<div class="badge">⚡ 3 INDEPENDENT PRODUCTS — NO BUNDLED CONFUSION</div>
-<div class="h1">Simple pricing that <span>scales with you</span></div>
-<div class="sub">Pay only for what you need. Job posts, job credits, and CV database are separate products. No hidden CV unlocks inside subscriptions.</div>
+<div class="kicker">FIND YOUR PERFECT HIRING SOLUTION</div>
+<div class="h1">Find the right hiring plan <span>for you</span></div>
+<div class="sub"><b>Flexible hiring solutions built for businesses of every size.</b> Post jobs. Reach candidates. Find talent. Your way.</div>
 
-<!-- 1. PAY PER POST -->
-<div class="section">
-<div class="section-head"><h2>1. Pay-Per-Post</h2><span class="pill">ONE OFF</span></div>
-<div class="grid grid-1">
-<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
-<div><div style="font-weight:800;font-size:14px;letter-spacing:0.06em">SINGLE JOB POST</div><div class="feat"><b>30 days live</b> • Standard visibility • Manage applications in dashboard • No CV database access</div></div>
-<div style="text-align:right"><div class="price">R299 <span>/ 30 days</span></div><button class="btn btn-dark" style="margin-top:8px;width:140px" onclick="location.href='employer-dashboard.html'">Post a Job</button></div>
-</div>
-</div>
-</div>
+<!-- ① POST JOBS -->
+<div class="sec">
+<div class="sec-head"><div class="num n1">①</div><div class="sec-title">POST JOBS — For employers who want to advertise vacancies</div></div>
+<div class="sec-desc">Posting occasionally? Choose Pay-Per-Post. Posting regularly? Save with subscriptions.</div>
 
-<!-- 2. SUBSCRIPTIONS -->
-<div class="section">
-<div class="section-head"><h2>2. Subscriptions — Job Posts Only</h2><span class="pill">MONTHLY • NO CV UNLOCKS</span></div>
-<div class="grid grid-4">
-<div class="card"><div class="card-top"><div><div style="font-weight:800;font-size:12px;letter-spacing:0.08em">STARTER</div><div class="price" style="margin-top:6px">R999<span>/mo</span></div></div></div><div class="feat"><b>5 job posts / month</b><br>30 days each<br>Standard support</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Choose Starter</button></div>
-<div class="card"><div class="card-top"><div><div style="font-weight:800;font-size:12px;letter-spacing:0.08em">GROWTH</div><div class="price" style="margin-top:6px">R2,500<span>/mo</span></div></div></div><div class="feat"><b>15 job posts / month</b><br>Priority listing<br>Email support</div><button class="btn btn-dark" style="width:100%;margin-top:10px">Choose Growth</button></div>
-<div class="card pop"><span class="tag tag-pop">POPULAR</span><div class="card-top"><div><div style="font-weight:800;font-size:12px;letter-spacing:0.08em">PRO</div><div class="price" style="margin-top:6px">R3,500<span>/mo</span></div></div></div><div class="feat"><b>30 job posts / month</b><br>Featured jobs<br>Phone + Email support</div><button class="btn btn-signup" style="width:100%;margin-top:10px">Choose Pro</button></div>
-<div class="card best"><span class="tag tag-best">BEST FOR SCALE</span><div class="card-top"><div><div style="font-weight:800;font-size:12px;letter-spacing:0.08em">BUSINESS</div><div class="price" style="margin-top:6px">R5,999<span>/mo</span></div></div></div><div class="feat"><b>70 job posts / month</b><br>Max visibility<br>Dedicated manager</div><button class="btn btn-dark" style="width:100%;margin-top:10px">Choose Business</button></div>
+<div class="grid g2">
+<div class="card card-dark" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+<div><div style="font-weight:800;font-size:12px;letter-spacing:0.08em;color:#01F9C6">PAY-PER-POST</div><div class="price" style="margin-top:6px">R299 <span style="font-size:14px;color:#9DC3CF;font-weight:600">/ 30 days</span></div><div class="feat mut"><b style="color:#fff">30 days live</b> • Standard visibility • Applications managed in dashboard</div></div>
+<div><button class="btn btn-signup" style="width:148px" onclick="location.href='post-job.html'">Post a Job</button></div>
 </div>
-<p style="font-size:11px;color:var(--muted);margin-top:10px">Subscriptions include ONLY job posts. They do NOT include CV unlocks or CV search. CV database is sold separately.</p>
-</div>
-
-<!-- 3. JOB CREDITS -->
-<div class="section">
-<div class="section-head"><h2>3. Job Credits — Bulk Posts</h2><span class="pill">PAY AS YOU GO • NEVER EXPIRE</span></div>
-<div class="grid grid-5">
-<div class="card"><div class="price">50 Credits</div><div class="price" style="font-size:20px;margin-top:6px">R7,500</div><div class="feat">R150 per job<br>Use anytime</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Buy 50</button></div>
-<div class="card pop"><span class="tag tag-pop">MOST POPULAR</span><div class="price">100 Credits</div><div class="price" style="font-size:20px;margin-top:6px">R14,500</div><div class="feat"><b>R145 per job</b><br>Save R500</div><button class="btn btn-signup" style="width:100%;margin-top:10px">Buy 100</button></div>
-<div class="card"><div class="price">150 Credits</div><div class="price" style="font-size:20px;margin-top:6px">R20,999</div><div class="feat">R139.99 per job</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Buy 150</button></div>
-<div class="card best"><span class="tag tag-best">BEST VALUE</span><div class="price">200 Credits</div><div class="price" style="font-size:20px;margin-top:6px">R29,999</div><div class="feat"><b>R149.99 per job</b><br>Enterprise</div><button class="btn btn-dark" style="width:100%;margin-top:10px">Buy 200</button></div>
-<div class="card"><div class="price">250 Credits</div><div class="price" style="font-size:20px;margin-top:6px">R49,999</div><div class="feat">R199.99 per job<br>Maximum bulk</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Buy 250</button></div>
+<div class="card" style="background:#F8FFFD;border:1px dashed #BFE8DC">
+<div style="font-weight:800;font-size:11px;letter-spacing:0.1em;color:#20576E">HOW IT WORKS</div>
+<div style="font-size:12.5px;color:#3E6B75;line-height:1.6;margin-top:8px">Single vacancy? Pay as you go. No commitment. Your job stays live for 30 days and you get all applicant CVs <b style="color:#20576E">FREE</b>.</div>
 </div>
 </div>
 
-<!-- 4. CV DATABASE -->
-<div class="section">
-<div class="section-head"><h2>4. CV Database — Separate Product</h2><span class="pill">PROACTIVE SEARCH</span></div>
-<div class="grid grid-5">
-<div class="card"><div style="font-weight:800;font-size:12px">10 Unlocks</div><div class="price" style="font-size:20px;margin-top:6px">R499</div><div class="feat">Search & unlock 10 CVs</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Unlock 10</button></div>
-<div class="card"><div style="font-weight:800;font-size:12px">25 Unlocks</div><div class="price" style="font-size:20px;margin-top:6px">R1,099</div><div class="feat">Search & unlock 25 CVs</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Unlock 25</button></div>
-<div class="card pop"><span class="tag tag-pop">STARTER</span><div style="font-weight:800;font-size:12px">50 Unlocks</div><div class="price" style="font-size:20px;margin-top:6px">R1,999</div><div class="feat">Most chosen by SMBs</div><button class="btn btn-signup" style="width:100%;margin-top:10px">Unlock 50</button></div>
-<div class="card"><div style="font-weight:800;font-size:12px">100 Unlocks</div><div class="price" style="font-size:20px;margin-top:6px">R3,499</div><div class="feat">Growing teams</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Unlock 100</button></div>
-<div class="card"><div style="font-weight:800;font-size:12px">200 Unlocks</div><div class="price" style="font-size:20px;margin-top:6px">R5,999</div><div class="feat">High-volume hiring</div><button class="btn btn-ghost" style="width:100%;margin-top:10px">Unlock 200</button></div>
+<div style="margin-top:14px" class="grid g4">
+<div class="card"><div style="font-weight:800;font-size:11px;letter-spacing:0.08em;color:var(--navy)">STARTER</div><div class="price" style="margin-top:6px">R999<span style="font-size:13px;color:var(--muted)">/mo</span></div><div class="feat"><b>5 job posts / month</b><br>For regular hiring</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line)">Choose Starter</button></div>
+<div class="card"><div style="font-weight:800;font-size:11px;letter-spacing:0.08em;color:var(--navy)">GROWTH</div><div class="price" style="margin-top:6px">R2,500<span style="font-size:13px;color:var(--muted)">/mo</span></div><div class="feat"><b>15 job posts / month</b><br>Priority listing</div><button class="btn" style="width:100%;background:#0F2835;color:#fff">Choose Growth</button></div>
+<div class="card pop"><span class="tag tag-pop">POPULAR</span><div style="font-weight:800;font-size:11px;letter-spacing:0.08em;color:var(--navy)">PRO</div><div class="price" style="margin-top:6px">R3,500<span style="font-size:13px;color:var(--muted)">/mo</span></div><div class="feat"><b>30 job posts / month</b><br>Featured jobs</div><button class="btn" style="width:100%;background:var(--bright);color:var(--navy);font-weight:900">Choose Pro</button></div>
+<div class="card best"><span class="tag tag-best">SCALE</span><div style="font-weight:800;font-size:11px;letter-spacing:0.08em;color:var(--navy)">BUSINESS</div><div class="price" style="margin-top:6px">R5,999<span style="font-size:13px;color:var(--muted)">/mo</span></div><div class="feat"><b>70 job posts / month</b><br>Dedicated manager</div><button class="btn" style="width:100%;background:#20576E;color:#fff">Choose Business</button></div>
+</div>
+<div style="font-size:11px;color:var(--muted);margin-top:8px">Subscriptions are for employers who post jobs regularly. <b style="color:var(--navy)">CV Database access is available separately.</b> No hidden CV unlocks inside subscriptions.</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ② BUY JOB CREDITS - FIXED PRICING -->
+<div class="sec">
+<div class="sec-head"><div class="num n2">②</div><div class="sec-title">BUY JOB CREDITS — For employers who post jobs in bulk</div></div>
+<div class="sec-desc">Buy in bulk. Post when you need. <b>The more you buy, the less you pay per job.</b></div>
+<div class="grid g5">
+<div class="card"><div style="font-weight:800;font-size:11px">50 CREDITS</div><div class="price" style="font-size:24px;margin-top:6px">R7,500</div><div class="per">R150 / job</div><div class="feat">Use anytime</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line);margin-top:6px">Buy 50</button></div>
+<div class="card"><div style="font-weight:800;font-size:11px">100 CREDITS</div><div class="price" style="font-size:24px;margin-top:6px">R14,000</div><div class="per">R140 / job • Save R1,000</div><div class="feat">Bulk saver</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line);margin-top:6px">Buy 100</button></div>
+<div class="card"><div style="font-weight:800;font-size:11px">150 CREDITS</div><div class="price" style="font-size:24px;margin-top:6px">R20,250</div><div class="per">R135 / job • Save R2,250</div><div class="feat">Growing teams</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line);margin-top:6px">Buy 150</button></div>
+<div class="card pop"><span class="tag tag-pop">BEST VALUE</span><div style="font-weight:800;font-size:11px">200 CREDITS</div><div class="price" style="font-size:24px;margin-top:6px">R26,000</div><div class="per">R130 / job • Save R4,000</div><div class="feat">Most efficient</div><button class="btn" style="width:100%;background:var(--bright);color:var(--navy);font-weight:900;margin-top:6px">Buy 200</button></div>
+<div class="card best"><span class="tag tag-best">LOWEST PER JOB</span><div style="font-weight:800;font-size:11px">250 CREDITS</div><div class="price" style="font-size:24px;margin-top:6px">R31,250</div><div class="per">R125 / job • Save R6,250</div><div class="feat">Enterprise scale</div><button class="btn" style="width:100%;background:#20576E;color:#fff;margin-top:6px">Buy 250</button></div>
+</div>
+<div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap"><span style="background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700">✓ Pay as you go</span><span style="background:rgba(1,249,198,0.15);border:1px solid rgba(1,249,198,0.4);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:800;color:#0B6A5A">Credits never expire*</span></div>
+<p style="font-size:10.5px;color:var(--muted);margin-top:6px">*Check Terms & Conditions before launch. If you guarantee never expiring, this is a powerful selling point.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ③ FIND CANDIDATES -->
+<div class="sec">
+<div class="sec-head"><div class="num n3">③</div><div class="sec-title">FIND CANDIDATES — CV Database</div></div>
+<div class="sec-desc"><b>Find candidates before they apply.</b> Proactive sourcing for fast hiring.</div>
+<div class="grid g5">
+<div class="card"><div style="font-weight:800;font-size:11px;letter-spacing:0.06em">10 CANDIDATE UNLOCKS</div><div class="price" style="font-size:24px;margin-top:8px">R499</div><div class="per">R49.90 per candidate</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line);margin-top:10px">Unlock 10</button></div>
+<div class="card"><div style="font-weight:800;font-size:11px;letter-spacing:0.06em">25 CANDIDATE UNLOCKS</div><div class="price" style="font-size:24px;margin-top:8px">R1,099</div><div class="per">R43.96 per candidate</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line);margin-top:10px">Unlock 25</button></div>
+<div class="card pop"><span class="tag tag-pop">STARTER</span><div style="font-weight:800;font-size:11px;letter-spacing:0.06em">50 CANDIDATE UNLOCKS</div><div class="price" style="font-size:24px;margin-top:8px">R1,999</div><div class="per">R39.98 per candidate</div><button class="btn" style="width:100%;background:var(--bright);color:var(--navy);font-weight:900;margin-top:10px">Unlock 50</button></div>
+<div class="card"><div style="font-weight:800;font-size:11px;letter-spacing:0.06em">100 CANDIDATE UNLOCKS</div><div class="price" style="font-size:24px;margin-top:8px">R3,499</div><div class="per">R34.99 per candidate</div><button class="btn" style="width:100%;background:#F5FAF8;border:1px solid var(--line);margin-top:10px">Unlock 100</button></div>
+<div class="card best"><span class="tag tag-best">SCALE</span><div style="font-weight:800;font-size:11px;letter-spacing:0.06em">200 CANDIDATE UNLOCKS</div><div class="price" style="font-size:24px;margin-top:8px">R5,999</div><div class="per">R29.99 per candidate</div><button class="btn" style="width:100%;background:#20576E;color:#fff;margin-top:10px">Unlock 200</button></div>
 </div>
 <div class="explain">
-<div><h4>✅ Application CVs — FREE</h4><p>When a candidate applies to your job post, you get their CV free. No unlock needed. This is included in every job post and subscription.</p></div>
-<div><h4>🔍 CV Database Unlocks — PAID</h4><p>When YOU proactively search our CV database and want to contact a candidate who hasn't applied, you need a CV unlock. This is a separate product sold above.</p></div>
-</div>
-</div>
-
-<!-- EMPLOYER ACCOUNT OVERVIEW -->
-<div class="section">
-<div class="section-head"><h2>Employer Account Overview</h2><span class="pill">WALLET RENAMED</span></div>
-<div class="overview">
-<div class="o"><b>0</b><span>JOB POSTS</span></div>
-<div class="o"><b>0</b><span>JOB CREDITS</span></div>
-<div class="o"><b>0</b><span>CV UNLOCKS</span></div>
-<div class="o"><b>None</b><span>SUBSCRIPTION</span></div>
+<div><h4>✅ Application CVs — Always FREE</h4><p>Someone applies to your job → you get their CV FREE. No unlock needed. Included in every Pay-Per-Post, Subscription, and Job Credit.</p></div>
+<div><h4>🔍 Candidate Unlocks — PAID</h4><p>You search JobWay's database for talent who hasn't applied yet → you pay to unlock and contact them. That's the CV Database product.</p></div>
 </div>
 </div>
 
 </div>
-
-<div style="background:#11283A;color:#8FB3C1;padding:22px;text-align:center;font-size:11px;margin-top:30px">© 2026 JobWay.co.za • Your Job, Your Way • Premium hiring platform</div>
+<div style="background:#11283A;color:#8FB3C1;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za • Your Job, Your Way • Brand colours #20576E #30BA8F #01F9C6 • Clean 3-product model: Post Jobs | Job Credits | CV Database</div>
 </body>
 </html>
