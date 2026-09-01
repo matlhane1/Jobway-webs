@@ -1,108 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing — JobWay.co.za</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--deep:#11283A;--muted:#A8C8D0}
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff}
-.top{position:sticky;top:0;z-index:50;background:#0A1F2E;border-bottom:1px solid rgba(1,249,198,0.15)}
-.top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
-.header-main{height:64px;display:flex;align-items:center;justify-content:space-between}
-.brand-logo svg{height:38px;width:auto;display:block}
-.btn{border-radius:999px;height:42px;padding:0 22px;font-size:13.5px;font-weight:800;border:0;cursor:pointer}
-.btn-login{background:var(--navy);color:#fff}.btn-signup{background:var(--bright);color:var(--navy)}
-.header-nav{height:44px;display:flex;align-items:center;gap:24px;border-top:1px solid rgba(255,255,255,0.08)}
-.header-nav a{color:#8FB3C1;font-size:13px;font-weight:600;text-decoration:none}.header-nav a.active{color:#fff}
-.wrap{max-width:1280px;margin:0 auto;padding:28px 20px}
-.kicker{font-size:11px;font-weight:800;letter-spacing:0.18em;color:var(--bright)}
-.h1{font-family:'Space Grotesk',sans-serif;font-size:46px;font-weight:800;margin:10px 0}
-.sub{color:var(--muted);font-size:15px;max-width:720px}
-.sec{margin-top:36px}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:8px}
-.num{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:14px}
-.n1{background:var(--bright);color:var(--navy)}.n2{background:var(--mid);color:#fff}.n3{background:var(--navy);color:var(--bright);border:1px solid rgba(1,249,198,0.3)}
-.sec-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800}
-.sec-desc{font-size:12.5px;color:var(--muted);margin-left:52px;margin-bottom:16px}
-.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g7{grid-template-columns:repeat(4,1fr)}
-.card{border-radius:20px;padding:18px;position:relative;box-shadow:0 12px 30px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08)}
-.c-navy{background:linear-gradient(135deg,#20576E,#143645)}.c-dark{background:linear-gradient(135deg,#0F2835,#1B4D5E)}.c-teal{background:linear-gradient(135deg,#30BA8F,#1D7A5D)}.c-bright{background:linear-gradient(135deg,#01F9C6,#0ABF95);color:#0A2A3A}.c-mix{background:linear-gradient(135deg,#11283A,#20576E 60%,#30BA8F)}
-.price{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800}.per{font-size:11px;font-weight:800;margin-top:4px;opacity:0.9}.feat{font-size:12px;line-height:1.5;margin:10px 0;opacity:0.85}
-.tag{position:absolute;top:12px;right:12px;font-size:10px;font-weight:900;padding:5px 10px;border-radius:999px}.tag-pop{background:var(--bright);color:var(--navy)}.tag-best{background:#fff;color:var(--navy)}
-.btn-card{width:100%;margin-top:10px;height:44px;border-radius:999px;border:0;font-weight:900;font-size:13px;cursor:pointer}
-.btn-white{background:#fff;color:var(--navy)}.btn-navy{background:var(--navy);color:#fff}.btn-dark2{background:#0A1F2E;color:#fff;border:1px solid rgba(255,255,255,0.15)}
-.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(1,249,198,0.2),transparent);margin:32px 0}
-@media(max-width:1100px){.g4,.g5,.g7{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.g4,.g5,.g2,.g7{grid-template-columns:1fr}}
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing - JobWay</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<div class="top"><div class="top-inner">
-<div class="header-main">
-<a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
-<div class="nav-cta"><button class="btn btn-login">Log In</button><button class="btn btn-signup">Sign Up</button></div>
-</div>
-<div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html" class="active">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
-</div></div>
+<body class="bg-gray-50">
+<section class="py-12 px-4 max-w-7xl mx-auto">
+<h1 class="text-4xl font-bold text-center mb-2">CV Unlock Pricing</h1>
+<p class="text-center text-gray-600 mb-10">Application CVs = FREE | Search Database = Paid</p>
 
-<div class="wrap">
-<div class="kicker">PAYFAST SECURE CHECKOUT</div>
-<div class="h1">Find the right hiring plan <span style="color:var(--bright)">for you</span></div>
-<div class="sub">All payments secured by PayFast. Invoice instantly from invoices@jobway.co.za</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-<!-- ① POST JOBS -->
-<div class="sec">
-<div class="sec-head"><div class="num n1">①</div><div class="sec-title">POST JOBS</div></div>
-<div class="grid g2">
-<div class="card c-navy"><div style="font-size:11px;font-weight:800;color:var(--bright)">PAY-PER-POST</div><div class="price" style="margin-top:6px">R299 <span style="font-size:14px;opacity:0.7">/ 30 days</span></div><div class="feat">30 days live • All CVs FREE</div>
-<form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="299.00"><input type="hidden" name="item_name" value="JobWay Single Job Post"><input type="hidden" name="email_address" value=""><input type="hidden" name="custom_str1" value=""><button class="btn-card btn-white" type="submit">Post a Job — Pay R299</button></form>
-</div>
-<div class="card c-dark"><div style="font-size:11px;font-weight:800;color:var(--bright)">HOW IT WORKS</div><div class="feat" style="margin-top:10px">Pay via PayFast → Invoice from <b style="color:var(--bright)">invoices@jobway.co.za</b> instantly.</div></div>
-</div>
-<div class="grid g4" style="margin-top:14px">
-<div class="card c-dark"><div class="price">R999<span style="font-size:13px;opacity:0.7">/mo</span></div><div class="feat"><b>5 posts</b></div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="999.00"><input type="hidden" name="item_name" value="JobWay Starter 5 Posts"><input type="hidden" name="email_address" value=""><button class="btn-card btn-white" type="submit">Choose Starter</button></form></div>
-<div class="card c-navy"><div class="price">R2,500<span style="font-size:13px;opacity:0.7">/mo</span></div><div class="feat"><b>15 posts</b></div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="2500.00"><input type="hidden" name="item_name" value="JobWay Growth 15 Posts"><input type="hidden" name="email_address" value=""><button class="btn-card btn-white" type="submit">Choose Growth</button></form></div>
-<div class="card c-teal"><span class="tag tag-pop">POPULAR</span><div class="price">R3,500<span style="font-size:13px;opacity:0.8">/mo</span></div><div class="feat"><b>30 posts</b></div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="3500.00"><input type="hidden" name="item_name" value="JobWay Pro 30 Posts"><input type="hidden" name="email_address" value=""><button class="btn-card" style="background:var(--bright);color:var(--navy);font-weight:900" type="submit">Choose Pro</button></form></div>
-<div class="card c-mix"><span class="tag tag-best">SCALE</span><div class="price">R5,999<span style="font-size:13px;opacity:0.8">/mo</span></div><div class="feat"><b>70 posts</b></div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="5999.00"><input type="hidden" name="item_name" value="JobWay Business 70 Posts"><input type="hidden" name="email_address" value=""><button class="btn-card btn-navy" type="submit">Choose Business</button></form></div>
+<!-- 1. STARTER - R999 - MOST POPULAR -->
+<div class="bg-white rounded-2xl shadow-lg border-2 border-green-500 p-6 relative transform scale-105">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-1 rounded-full text-sm font-black tracking-widest">MOST POPULAR</div>
+<div class="mt-4">
+<p class="text-xs font-bold text-green-600 tracking-widest">STARTER</p>
+<h3 class="text-2xl font-bold mt-1">10 CVs</h3>
+<p class="text-3xl font-black mt-3">R999</p>
+<p class="text-sm text-gray-500">R99.90 per CV</p>
+<button onclick="pay(999, '10 CVs')" class="w-full mt-5 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold">Unlock Now</button>
 </div>
 </div>
 
-<div class="divider"></div>
-
-<!-- ② JOB CREDITS -->
-<div class="sec">
-<div class="sec-head"><div class="num n2">②</div><div class="sec-title">BUY JOB CREDITS</div></div>
-<div class="grid g5">
-<div class="card c-dark"><div class="price">R7,500</div><div class="per" style="color:var(--bright)">50 Credits • R150/job</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="7500.00"><input type="hidden" name="item_name" value="JobWay 50 Job Credits"><input type="hidden" name="email_address" value=""><button class="btn-card btn-dark2" type="submit">Buy 50</button></form></div>
-<div class="card c-navy"><div class="price">R14,000</div><div class="per" style="color:var(--bright)">100 Credits</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="14000.00"><input type="hidden" name="item_name" value="JobWay 100 Job Credits"><input type="hidden" name="email_address" value=""><button class="btn-card btn-white" type="submit">Buy 100</button></form></div>
-<div class="card c-navy"><div class="price">R20,250</div><div class="per" style="color:var(--bright)">150 Credits</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="20250.00"><input type="hidden" name="item_name" value="JobWay 150 Job Credits"><input type="hidden" name="email_address" value=""><button class="btn-card btn-white" type="submit">Buy 150</button></form></div>
-<div class="card c-teal"><div class="price">R26,000</div><div class="per">200 Credits</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="26000.00"><input type="hidden" name="item_name" value="JobWay 200 Job Credits"><input type="hidden" name="email_address" value=""><button class="btn-card" style="background:var(--bright);color:var(--navy)" type="submit">Buy 200</button></form></div>
-<div class="card c-bright"><div class="price">R31,250</div><div class="per" style="color:var(--navy)">250 Credits • R125/job</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="31250.00"><input type="hidden" name="item_name" value="JobWay 250 Job Credits"><input type="hidden" name="email_address" value=""><button class="btn-card btn-navy" type="submit">Buy 250</button></form></div>
-</div>
+<!-- 2. SMALL -->
+<div class="bg-white rounded-2xl shadow p-6 border">
+<p class="text-xs font-bold text-gray-400 tracking-widest">SMALL</p>
+<h3 class="text-2xl font-bold mt-1">25 CVs</h3>
+<p class="text-3xl font-black mt-3">R1,499</p>
+<p class="text-sm text-gray-500">R59.96 per CV</p>
+<button onclick="pay(1499, '25 CVs')" class="w-full mt-5 bg-gray-900 text-white py-3 rounded-xl font-bold">Unlock Now</button>
 </div>
 
-<div class="divider"></div>
-
-<!-- ③ CV UNLOCKS — YOUR NEW PRICES -->
-<div class="sec">
-<div class="sec-head"><div class="num n3">③</div><div class="sec-title">FIND CANDIDATES — CV Database</div></div>
-<div class="grid g7">
-<div class="card c-dark"><div class="price">R999</div><div class="per" style="color:var(--bright)">10 CVs • R99.90/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="999.00"><input type="hidden" name="item_name" value="JobWay 10 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card btn-dark2" type="submit">Unlock 10</button></form></div>
-<div class="card c-dark"><div class="price">R1,499</div><div class="per" style="color:var(--bright)">25 CVs • R59.96/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="1499.00"><input type="hidden" name="item_name" value="JobWay 25 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card btn-dark2" type="submit">Unlock 25</button></form></div>
-<div class="card c-navy"><span class="tag tag-pop">POPULAR</span><div class="price">R2,499</div><div class="per" style="color:var(--bright)">50 CVs • R49.98/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="2499.00"><input type="hidden" name="item_name" value="JobWay 50 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card btn-white" type="submit">Unlock 50</button></form></div>
-<div class="card c-navy"><div class="price">R4,999</div><div class="per" style="color:var(--bright)">100 CVs • R49.99/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="4999.00"><input type="hidden" name="item_name" value="JobWay 100 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card btn-white" type="submit">Unlock 100</button></form></div>
-<div class="card c-teal"><div class="price">R6,999</div><div class="per">150 CVs • R46.66/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="6999.00"><input type="hidden" name="item_name" value="JobWay 150 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card" style="background:#fff;color:var(--navy)" type="submit">Unlock 150</button></form></div>
-<div class="card c-teal"><div class="price">R8,999</div><div class="per">200 CVs • R45.00/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="8999.00"><input type="hidden" name="item_name" value="JobWay 200 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card" style="background:var(--bright);color:var(--navy)" type="submit">Unlock 200</button></form></div>
-<div class="card c-bright"><span class="tag tag-best">BEST VALUE</span><div class="price" style="color:var(--navy)">R10,999</div><div class="per" style="color:var(--navy)">250 CVs • R44.00/CV</div><form action="https://www.payfast.co.za/eng/process" method="post"><input type="hidden" name="merchant_id" value="36908075"><input type="hidden" name="merchant_key" value="qakpbrei45zbu"><input type="hidden" name="return_url" value="https://jobway-webs.pages.dev/payment-success.html"><input type="hidden" name="cancel_url" value="https://jobway-webs.pages.dev/pricing.html"><input type="hidden" name="notify_url" value="https://jobway-webs.pages.dev/api/payfast-itn"><input type="hidden" name="amount" value="10999.00"><input type="hidden" name="item_name" value="JobWay 250 CV Unlocks"><input type="hidden" name="email_address" value=""><button class="btn-card btn-navy" type="submit">Unlock 250</button></form></div>
-</div>
+<!-- 3. POPULAR -->
+<div class="bg-white rounded-2xl shadow p-6 border">
+<p class="text-xs font-bold text-gray-400 tracking-widest">POPULAR</p>
+<h3 class="text-2xl font-bold mt-1">50 CVs</h3>
+<p class="text-3xl font-black mt-3">R2,499</p>
+<p class="text-sm text-gray-500">R49.98 per CV</p>
+<button onclick="pay(2499, '50 CVs')" class="w-full mt-5 bg-gray-900 text-white py-3 rounded-xl font-bold">Unlock Now</button>
 </div>
 
+<!-- 4. GROWTH -->
+<div class="bg-white rounded-2xl shadow p-6 border">
+<p class="text-xs font-bold text-gray-400 tracking-widest">GROWTH</p>
+<h3 class="text-2xl font-bold mt-1">100 CVs</h3>
+<p class="text-3xl font-black mt-3">R4,999</p>
+<p class="text-sm text-gray-500">R49.99 per CV</p>
+<button onclick="pay(4999, '100 CVs')" class="w-full mt-5 bg-gray-900 text-white py-3 rounded-xl font-bold">Unlock Now</button>
 </div>
-<div style="background:#081824;border-top:1px solid rgba(1,249,198,0.12);color:#6EA3AF;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za • PayFast Secure • Invoices from invoices@jobway.co.za</div>
+
+<!-- 5. AGENCY -->
+<div class="bg-white rounded-2xl shadow p-6 border">
+<p class="text-xs font-bold text-gray-400 tracking-widest">AGENCY</p>
+<h3 class="text-2xl font-bold mt-1">150 CVs</h3>
+<p class="text-3xl font-black mt-3">R6,999</p>
+<p class="text-sm text-gray-500">R46.66 per CV</p>
+<button onclick="pay(6999, '150 CVs')" class="w-full mt-5 bg-gray-900 text-white py-3 rounded-xl font-bold">Unlock Now</button>
+</div>
+
+<!-- 6. ENTERPRISE -->
+<div class="bg-white rounded-2xl shadow p-6 border">
+<p class="text-xs font-bold text-gray-400 tracking-widest">ENTERPRISE</p>
+<h3 class="text-2xl font-bold mt-1">200 CVs</h3>
+<p class="text-3xl font-black mt-3">R8,999</p>
+<p class="text-sm text-gray-500">R44.99 per CV</p>
+<button onclick="pay(8999, '200 CVs')" class="w-full mt-5 bg-gray-900 text-white py-3 rounded-xl font-bold">Unlock Now</button>
+</div>
+
+<!-- 7. BEST VALUE -->
+<div class="bg-white rounded-2xl shadow-lg border-2 border-yellow-400 p-6 relative">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black px-6 py-1 rounded-full text-xs font-black">BEST VALUE</div>
+<div class="mt-4">
+<p class="text-xs font-bold text-yellow-600 tracking-widest">BEST VALUE</p>
+<h3 class="text-2xl font-bold mt-1">250 CVs</h3>
+<p class="text-3xl font-black mt-3">R10,999</p>
+<p class="text-sm text-gray-500">R44.00 per CV</p>
+<button onclick="pay(10999, '250 CVs')" class="w-full mt-5 bg-yellow-400 hover:bg-yellow-500 text-black py-3 rounded-xl font-bold">Unlock Now</button>
+</div>
+</div>
+
+</div>
+</section>
+
 <script>
-// Auto-fill employer email from localStorage if logged in
-const savedEmail = localStorage.getItem('employer_email') || '';
-if(savedEmail){
-document.querySelectorAll('input[name="email_address"]').forEach(i=>i.value=savedEmail);
+function pay(amount, item){
+const merchant_id = "36908075";
+const merchant_key = "qakpbrei45zbu";
+const return_url = "https://jobway-webs.pages.dev/payment-success.html";
+const cancel_url = "https://jobway-webs.pages.dev/pricing.html";
+const notify_url = "https://jobway-webs.pages.dev/payment-success.html";
+let form = document.createElement("form");
+form.method = "POST";
+form.action = "https://www.payfast.co.za/eng/process";
+let data = {
+merchant_id, merchant_key,
+amount, item_name: item,
+return_url, cancel_url, notify_url,
+email_confirmation: "1",
+confirmation_address: "support@jobway.co.za"
+};
+for(let k in data){
+let input = document.createElement("input");
+input.type="hidden"; input.name=k; input.value=data[k];
+form.appendChild(input);
+}
+document.body.appendChild(form);
+form.submit();
 }
 </script>
 </body>
