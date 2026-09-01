@@ -26,8 +26,7 @@
 .n1{background:var(--bright);color:var(--navy)}.n2{background:var(--mid);color:#fff}.n3{background:var(--navy);color:var(--bright);border:1px solid rgba(1,249,198,0.3)}
 .sec-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800}
 .sec-desc{font-size:12.5px;color:var(--muted);margin-left:52px;margin-bottom:16px}
-/* NO WHITE CARDS - ALL BRAND */
-.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g7{grid-template-columns:repeat(4,1fr)}
 .card{border-radius:20px;padding:18px;position:relative;box-shadow:0 12px 30px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);overflow:hidden}
 .c-navy{background:linear-gradient(135deg,#20576E,#143645);color:#fff}
 .c-dark{background:linear-gradient(135deg,#0F2835,#1B4D5E);color:#fff}
@@ -44,8 +43,8 @@
 .explain{background:linear-gradient(135deg,#0A1F2E,#12344A);border:1px solid rgba(1,249,198,0.15);border-radius:20px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
 .explain h4{color:var(--bright);font-size:13px;margin-bottom:6px}.explain p{font-size:12px;line-height:1.6;color:#A8C8D0}
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(1,249,198,0.2),transparent);margin:32px 0}
-@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(2,1fr)}.h1{font-size:38px}}
-@media(max-width:640px){.g4,.g5,.g2{grid-template-columns:1fr}.sec-desc{margin-left:0}}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g5,.g7{grid-template-columns:repeat(2,1fr)}.h1{font-size:38px}}
+@media(max-width:640px){.g4,.g5,.g2,.g7{grid-template-columns:1fr}.sec-desc{margin-left:0}}
 </style>
 </head>
 <body>
@@ -80,7 +79,7 @@
 
 <div class="divider"></div>
 
-<!-- ② JOB CREDITS - FIXED -->
+<!-- ② JOB CREDITS - SAME AS BEFORE -->
 <div class="sec">
 <div class="sec-head"><div class="num n2">②</div><div class="sec-title">BUY JOB CREDITS — Bulk discount</div></div>
 <div class="sec-desc">Buy in bulk. Post when you need. The more you buy, the less you pay.</div>
@@ -95,25 +94,27 @@
 
 <div class="divider"></div>
 
-<!-- ③ FIND CANDIDATES - NOW BRAND COLOURS, NO WHITE -->
+<!-- ③ FIND CANDIDATES - EDITED ONLY HERE WITH YOUR NEW PRICES -->
 <div class="sec">
 <div class="sec-head"><div class="num n3">③</div><div class="sec-title">FIND CANDIDATES — CV Database</div></div>
-<div class="sec-desc">Find candidates before they apply. No white background — 100% brand colours.</div>
-<div class="grid g5">
-<div class="card c-dark"><div style="font-size:10px;font-weight:800;color:var(--bright)">10 CANDIDATE UNLOCKS</div><div class="price" style="margin-top:8px">R499</div><div class="per" style="color:var(--bright)">R49.90 per candidate</div><button class="btn-card btn-dark2">Unlock 10</button></div>
-<div class="card c-dark"><div style="font-size:10px;font-weight:800;color:var(--bright)">25 CANDIDATE UNLOCKS</div><div class="price" style="margin-top:8px">R1,099</div><div class="per" style="color:var(--bright)">R43.96 per candidate</div><button class="btn-card btn-dark2">Unlock 25</button></div>
-<div class="card c-navy"><span class="tag tag-pop">STARTER</span><div style="font-size:10px;font-weight:800;color:var(--bright)">50 CANDIDATE UNLOCKS</div><div class="price" style="margin-top:8px">R1,999</div><div class="per" style="color:var(--bright)">R39.98 per candidate</div><button class="btn-card btn-white">Unlock 50</button></div>
-<div class="card c-teal"><div style="font-size:10px;font-weight:800">100 CANDIDATE UNLOCKS</div><div class="price" style="margin-top:8px">R3,499</div><div class="per">R34.99 per candidate</div><button class="btn-card" style="background:#fff;color:var(--navy);font-weight:900">Unlock 100</button></div>
-<div class="card c-bright"><span class="tag tag-best">SCALE</span><div style="font-size:10px;font-weight:800;color:var(--navy)">200 CANDIDATE UNLOCKS</div><div class="price" style="color:var(--navy)">R5,999</div><div class="per" style="color:var(--navy)">R29.99 per candidate</div><button class="btn-card btn-navy">Unlock 200</button></div>
+<div class="sec-desc">Find candidates before they apply. No white background — 100% brand colours. NEW PRICES.</div>
+<div class="grid g7">
+<div class="card c-dark"><div style="font-size:10px;font-weight:800;color:var(--bright)">10 CVs</div><div class="price" style="margin-top:8px">R999</div><div class="per" style="color:var(--bright)">R99.90 per CV</div><button class="btn-card btn-dark2">Unlock 10</button></div>
+<div class="card c-dark"><div style="font-size:10px;font-weight:800;color:var(--bright)">25 CVs</div><div class="price" style="margin-top:8px">R1,499</div><div class="per" style="color:var(--bright)">R59.96 per CV</div><button class="btn-card btn-dark2">Unlock 25</button></div>
+<div class="card c-navy"><span class="tag tag-pop">POPULAR</span><div style="font-size:10px;font-weight:800;color:var(--bright)">50 CVs</div><div class="price" style="margin-top:8px">R2,499</div><div class="per" style="color:var(--bright)">R49.98 per CV</div><button class="btn-card btn-white">Unlock 50</button></div>
+<div class="card c-navy"><div style="font-size:10px;font-weight:800;color:var(--bright)">100 CVs</div><div class="price" style="margin-top:8px">R4,999</div><div class="per" style="color:var(--bright)">R49.99 per CV</div><button class="btn-card btn-white">Unlock 100</button></div>
+<div class="card c-teal"><div style="font-size:10px;font-weight:800">150 CVs</div><div class="price" style="margin-top:8px">R6,999</div><div class="per">R46.66 per CV</div><button class="btn-card" style="background:#fff;color:var(--navy);font-weight:900">Unlock 150</button></div>
+<div class="card c-teal"><div style="font-size:10px;font-weight:800">200 CVs</div><div class="price" style="margin-top:8px">R8,999</div><div class="per">R45.00 per CV</div><button class="btn-card" style="background:var(--bright);color:var(--navy);font-weight:900">Unlock 200</button></div>
+<div class="card c-bright"><span class="tag tag-best">BEST VALUE</span><div style="font-size:10px;font-weight:800;color:var(--navy)">250 CVs</div><div class="price" style="color:var(--navy)">R10,999</div><div class="per" style="color:var(--navy)">R44.00 per CV</div><button class="btn-card btn-navy">Unlock 250</button></div>
 </div>
 
 <div class="explain">
 <div><h4>✅ Application CVs — Always FREE</h4><p>Someone applies to your job → you get their CV FREE. No unlock needed. Included in every Pay-Per-Post, Subscription, and Job Credit.</p></div>
-<div><h4>🔍 Candidate Unlocks — PAID</h4><p>You search JobWay's database for talent who hasn't applied yet → you pay to unlock and contact them. That's the CV Database product.</p></div>
+<div><h4>🔍 Candidate Unlocks — PAID (NEW PRICES)</h4><p>You search JobWay's database for talent who hasn't applied yet → you pay to unlock and contact them. Prices now from R999 for 10 CVs to R10,999 for 250 CVs.</p></div>
 </div>
 </div>
 
 </div>
-<div style="background:#081824;border-top:1px solid rgba(1,249,198,0.12);color:#6EA3AF;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za • Your Job, Your Way • 100% Brand Colours #20576E #30BA8F #01F9C6 #0F2835 #11283A</div>
+<div style="background:#081824;border-top:1px solid rgba(1,249,198,0.12);color:#6EA3AF;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za • Your Job, Your Way </div>
 </body>
 </html>
