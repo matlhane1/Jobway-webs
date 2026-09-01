@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Successful — JobWay.co.za</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--deep:#11283A;--muted:#A8C8D0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff;min-height:100vh;display:grid;place-items:center;padding:20px}
+.card{width:100%;max-width:560px;background:linear-gradient(135deg,#20576E,#0F2835);border:1px solid rgba(1,249,198,0.25);border-radius:28px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,0.4);text-align:center}
+.logo svg{height:40px;margin-bottom:18px}
+.badge{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#01F9C6,#30BA8F);display:grid;place-items:center;margin:0 auto 18px;font-size:34px;color:#0A1F2E;font-weight:900}
+h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px}
+h1 span{color:var(--bright)}
+p{color:var(--muted);font-size:14px;line-height:1.6;margin:8px 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 28px;border-radius:999px;font-weight:900;font-size:14px;text-decoration:none;margin-top:18px;border:0;cursor:pointer}
+.btn-primary{background:var(--bright);color:var(--navy)}
+.btn-secondary{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.12);margin-left:10px}
+.small{font-size:11px;color:#6EA3AF;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="logo">
+<svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg>
+</div>
+<div class="badge">✓</div>
+<h1>Payment <span>Successful!</span></h1>
+<p><b style="color:#fff">Thank you for choosing JobWay.co.za</b><br>Your job posts / credits are now active in your dashboard.</p>
+<p>PayFast has emailed your receipt. You can also download invoices in PayFast Dashboard → Transactions.</p>
+<div style="margin-top:8px">
+<a href="employer-dashboard.html" class="btn btn-primary">Go to Dashboard →</a>
+<a href="pricing.html" class="btn btn-secondary">Back to Pricing</a>
+</div>
+<div class="small">© 2026 JobWay.co.za • PayFast Secure Checkout • support@jobway.co.za • 079 060 8952</div>
+</div>
+<script>
+// Auto-redirect to dashboard after 8 seconds
+setTimeout(()=>{ window.location.href='employer-dashboard.html'; }, 8000);
+</script>
+</body>
+</html>
