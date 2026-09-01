@@ -7,114 +7,40 @@
 <style>
 :root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--bg:#F5FAF8;--muted:#6E8A95;--line:#E3EEEB}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--dark)}
-h1,h2{font-family:'Space Grotesk',sans-serif}
-/* PERFECT HEADER - FIXED */
+/* PERFECT HEADER - STRAIGHT LINE FIX */
 .top{position:sticky;top:0;z-index:50;background:#11283A;border-bottom:1px solid rgba(255,255,255,0.08)}
 .top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
-.header-main{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}
+.header-main{height:68px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand-logo{display:flex;align-items:center;flex-shrink:0}
-.brand-logo svg{height:42px;width:auto;display:block}
+.brand-logo img{height:42px;width:auto;display:block;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.15))}
 .nav-cta{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.btn{border-radius:999px;height:40px;padding:0 20px;min-width:88px;font-size:13.5px;font-weight:800;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:0.2s;white-space:nowrap}
-.btn-login{background:#20576E;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
-.btn-login:hover{background:#1a4a5e}
-.btn-signup{background:#01F9C6;color:#20576E;font-weight:900;box-shadow:0 8px 20px rgba(1,249,198,0.3)}
-.btn-signup:hover{background:#00e8b8}
+.btn{border-radius:999px;height:40px;padding:0 20px;min-width:88px;font-size:13.5px;font-weight:800;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.btn-login{background:#20576E;color:#fff}.btn-signup{background:#01F9C6;color:#20576E;font-weight:900;box-shadow:0 8px 20px rgba(1,249,198,0.3)}
 .header-nav{height:44px;display:flex;align-items:center;gap:24px;border-top:1px solid rgba(255,255,255,0.08)}
-.header-nav a{color:#B7CDD5;font-size:13px;font-weight:600;text-decoration:none}.header-nav a.active,.header-nav a:hover{color:#fff}
-.hero{max-width:1280px;margin:0 auto;padding:28px 20px 16px;display:grid;grid-template-columns:1.15fr 0.85fr;gap:28px;align-items:center}
-.slogan{font-weight:800;letter-spacing:0.22em;font-size:11px;color:#30BA8F;margin-bottom:10px}
-.h1{font-size:62px;line-height:0.9;letter-spacing:-0.04em;font-weight:800;color:#0C2333}
+.header-nav a{color:#B7CDD5;font-size:13px;font-weight:600;text-decoration:none}.header-nav a.active{color:#fff}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 20px}
+.hero{display:grid;grid-template-columns:1.15fr 0.85fr;gap:28px;align-items:center}
+.h1{font-family:'Space Grotesk',sans-serif;font-size:62px;line-height:0.9;letter-spacing:-0.04em;font-weight:800;color:#0C2333}
 .sub{color:#6E8A95;font-size:15px;line-height:1.6;margin:14px 0;max-width:520px}
-.trust{display:inline-flex;gap:8px;background:#fff;border:1px solid #E3EEEB;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;color:#20576E}
-.dot{width:8px;height:8px;border-radius:50%;background:#30BA8F;box-shadow:0 0 0 6px rgba(48,186,143,0.15);flex-shrink:0;margin-top:3px}
-.search{margin-top:18px;background:#fff;border:1px solid #E3EEEB;border-radius:18px;padding:8px;display:flex;gap:8px;box-shadow:0 18px 40px rgba(15,40,53,0.08)}
-.search input{flex:1;border:0;outline:0;background:#F5F9F8;border-radius:12px;padding:14px;font-size:14px}
-.search input:nth-child(2){max-width:160px;background:#fff;border-left:1px solid #E3EEEB}
-.visual{position:relative;height:480px;border-radius:28px;background:linear-gradient(180deg,#E9FFFB 0%,#FFFFFF 65%);border:1px solid #DFF0EA;box-shadow:0 24px 60px rgba(15,40,53,0.08);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.circle{width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #01F9C6, #0F6A62);display:grid;place-items:center;font-size:84px}
-.float{position:absolute;background:#fff;border:1px solid #EAF2EF;border-radius:16px;padding:12px 14px;box-shadow:0 12px 32px rgba(15,40,53,0.12);font-size:12px;animation:float 4s ease-in-out infinite}
-.f1{top:18px;left:18px}.f2{right:18px;bottom:24px;animation-delay:1s}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.features{max-width:1280px;margin:0 auto;padding:14px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.feat{background:#fff;border:1px solid #E3EEEB;border-radius:16px;padding:14px;display:flex;gap:12px}
-.feat .ic{width:38px;height:38px;border-radius:10px;background:#0F2835;color:#01F9C6;display:grid;place-items:center}
-.main{max-width:1280px;margin:12px auto;padding:0 20px;display:grid;grid-template-columns:1fr 320px;gap:16px}
-.card{background:#fff;border:1px solid #E3EEEB;border-radius:14px;padding:12px;display:flex;gap:12px;margin-bottom:10px}
-.logo{width:46px;height:46px;border-radius:12px;background:#0F2835;color:#01F9C6;display:grid;place-items:center;font-weight:900}
-.quick{background:#fff;border:1px solid #E3EEEB;border-radius:16px;padding:14px}
-.persona{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#30BA8F;margin:10px 0 6px}
-.stack{display:grid;gap:8px}
-.footer{background:#11283A;color:#8FB3C1;padding:22px;text-align:center;font-size:11px;margin-top:20px}
-.btn-dark{background:#0F2835;color:#fff}.btn-ghost{background:#fff;border:1px solid #E3EEEB}
-.modal{position:fixed;inset:0;background:rgba(10,28,38,0.56);backdrop-filter:blur(10px);display:none;place-items:center;z-index:100}
-.modal-box{background:#fff;border-radius:24px;padding:26px;width:92%;max-width:380px}
-@media(max-width:960px){.hero{grid-template-columns:1fr}.h1{font-size:42px}.visual{height:360px}.features{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr}.top-inner{padding:0 16px}.header-main{height:60px}.brand-logo svg{height:36px}.btn{height:38px;padding:0 16px;min-width:80px;font-size:13px}.header-nav{height:42px;gap:18px;overflow-x:auto;white-space:nowrap}}
+@media(max-width:960px){.hero{grid-template-columns:1fr}.h1{font-size:42px}.header-main{height:62px}.brand-logo img{height:36px}.top-inner{padding:0 16px}}
 </style>
 </head>
 <body>
-<div class="top">
-<div class="top-inner">
-<!-- ROW 1: LOGO + BUTTONS IN ONE STRAIGHT LINE -->
+<div class="top"><div class="top-inner">
 <div class="header-main">
-<a href="index.html" class="brand-logo" aria-label="JobWay Home">
-<!-- CRISP WHITE LOGO FOR DARK HEADER - NO TEXT DUPLICATE -->
-<svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
-  <!-- Icon -->
-  <g transform="translate(0,0)">
-    <path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/>
-    <circle cx="82" cy="12" r="7" fill="#01F9C6"/>
-    <path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/>
-  </g>
-  <!-- Text: JobWay in WHITE, your job your way -->
-  <g transform="translate(0,56)">
-    <text x="4" y="0" font-family="Space Grotesk, Plus Jakarta Sans, sans-serif" font-weight="800" font-size="34" letter-spacing="-0.8px" fill="white">JobWay</text>
-    <text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" letter-spacing="0.5px" fill="#8FB3C1">your job, your way</text>
-  </g>
-</svg>
-</a>
-<div class="nav-cta">
-<button class="btn btn-login" onclick="location.href='login.html'">Log In</button>
-<button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up</button>
+<a href="index.html" class="brand-logo"><img src="jobway_clean_white_small.png" alt="JobWay - your job, your way"></a>
+<div class="nav-cta"><button class="btn btn-login" onclick="location.href='login.html'">Log In</button><button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up</button></div>
 </div>
-</div>
-<!-- ROW 2: NAV LINKS -->
-<div class="header-nav">
-<a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Jobs</a><a href="employer-dashboard.html">For Employers</a>
-</div>
-</div>
-</div>
+<div class="header-nav"><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
+</div></div>
 
+<div class="wrap">
 <div class="hero"><div>
-<div class="trust"><span class="dot"></span> Premium hiring tools trusted by employers across South Africa</div>
-<div class="slogan">YOUR JOB, YOUR WAY.</div>
+<div style="font-weight:800;letter-spacing:0.22em;font-size:11px;color:#30BA8F;margin-bottom:10px">YOUR JOB, YOUR WAY.</div>
 <div class="h1"><span style="color:#20576E">Jobs.</span><br>Careers.<br><span style="color:#30BA8F">Opportunities.</span></div>
-<div class="sub">Discover thousands of job opportunities from top companies across South Africa. JobWay is custom-built for speed, trust and results.</div>
-<div class="search"><input placeholder="Job title, skill, or company"><input placeholder="All South Africa"><button class="btn btn-signup" onclick="location.href='jobs.html'">Search Jobs</button></div>
-<div style="display:flex;gap:12px;margin-top:14px"><button class="btn btn-dark" onclick="location.href='jobs.html'">Find Jobs →</button><button class="btn btn-ghost" onclick="location.href='employer-dashboard.html'">Post a Job</button></div>
-<div style="margin-top:10px;font-size:11px;color:#8AA0AA"><b style="color:#0C2333">Popular:</b> Designer, Developer, Marketing, Sales</div>
-</div><div class="visual"><div class="float f1">✨ <b>12k+ Active Jobs</b><br><span style="color:#6E8A95">Across South Africa</span></div><div class="float f2">🏢 <b>Top Employers Hiring Now</b><br><span style="color:#6E8A95">Verified</span></div><div class="circle">🇿🇦</div></div></div>
-
-<div class="features">
-<div class="feat"><div class="ic">🔍</div><div><b style="font-size:12px">Search Jobs</b><div style="font-size:11px;color:#6E8A95">Find right job</div></div></div>
-<div class="feat"><div class="ic">🏢</div><div><b style="font-size:12px">Top Companies</b><div style="font-size:11px;color:#6E8A95">Explore hiring</div></div></div>
-<div class="feat"><div class="ic">📝</div><div><b style="font-size:12px">Build Resume</b><div style="font-size:11px;color:#6E8A95">Create fast</div></div></div>
-<div class="feat"><div class="ic">📈</div><div><b style="font-size:12px">Career Growth</b><div style="font-size:11px;color:#6E8A95">Grow career</div></div></div>
+<div class="sub">Discover thousands of job opportunities from top companies across South Africa. Premium hiring tools trusted by employers across South Africa.</div>
+<div style="margin-top:18px;display:flex;gap:12px"><button class="btn btn-dark" style="background:#0F2835;color:#fff;height:44px;padding:0 24px" onclick="location.href='jobs.html'">Find Jobs →</button><button class="btn" style="background:#fff;border:1px solid #E3EEEB;height:44px" onclick="location.href='employer-dashboard.html'">Post a Job</button></div>
+</div><div style="height:420px;border-radius:28px;background:linear-gradient(180deg,#E9FFFB,#fff);border:1px solid #DFF0EA;display:grid;place-items:center;font-size:80px">🇿🇦</div></div>
 </div>
-
-<div class="main"><div>
-<div style="display:flex;justify-content:space-between;margin:6px 0"><b style="font-size:11px;letter-spacing:0.12em">LIVE JOBS FROM EMPLOYERS</b><a href="jobs.html" style="font-size:12px;color:#30BA8F;font-weight:800;text-decoration:none">View all →</a></div>
-<div class="card"><div class="logo">S</div><div style="flex:1"><b style="font-size:13px">Cashier — Shoprite</b><div style="font-size:11px;color:#6E8A95">Thohoyandou Mall • Full-time</div></div><button class="btn btn-signup" style="font-size:11px;height:36px;min-width:70px">Apply</button></div>
-<div class="card"><div class="logo">B</div><div style="flex:1"><b style="font-size:13px">Retail Assistant — Boxer</b><div style="font-size:11px;color:#6E8A95">Thohoyandou • Full-time</div></div><button class="btn btn-signup" style="font-size:11px;height:36px;min-width:70px">Apply</button></div>
-</div><div><div class="quick">
-<h4 style="font-size:13px">Quick Actions</h4>
-<div class="persona">JOB SEEKER</div>
-<div class="stack"><button class="btn btn-dark" style="width:100%" onclick="location.href='jobs.html'">🔍 Search Jobs</button><button class="btn btn-ghost" style="width:100%" onclick="location.href='resume.html'">📝 Build Resume</button><button class="btn btn-ghost" style="width:100%;background:#EEF6F3" onclick="location.href='track.html'">📍 Track Applications</button></div>
-<div style="height:1px;background:#EEF3F1;margin:12px 0"></div>
-<div class="persona">EMPLOYER</div>
-<div class="stack"><button class="btn" style="width:100%;background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#20576E" onclick="location.href='employer-dashboard.html'">📦 View Pricing & Packages</button><button class="btn btn-dark" style="width:100%" onclick="location.href='employer-dashboard.html'">🏢 Employer Dashboard</button></div>
-</div></div></div>
-
-<div class="footer">© 2026 JobWay.co.za • Premium hiring platform • Your Job, Your Way.</div>
 </body>
 </html>
