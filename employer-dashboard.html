@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--deep:#11283A;--deep2:#0A1F2E}
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff;min-height:100vh}
 .top{position:sticky;top:0;z-index:50;background:var(--deep2);border-bottom:1px solid rgba(1,249,198,0.15)}
 .top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
 .header-main{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -22,8 +22,6 @@
 .badge{display:inline-flex;background:rgba(1,249,198,0.15);border:1px solid rgba(1,249,198,0.35);color:var(--bright);padding:6px 12px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:0.08em;position:relative}
 .hero h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;margin-top:10px;position:relative}
 .hero p{font-size:13px;color:#A8C8D0;margin-top:6px;position:relative;line-height:1.5}
-
-/* OVERVIEW - NO WHITE, 100% BRAND */
 .overview{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
 .card{border-radius:20px;padding:20px;position:relative;box-shadow:0 14px 32px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);overflow:hidden}
 .card b{font-family:'Space Grotesk',sans-serif;font-size:42px;display:block;line-height:1}
@@ -32,16 +30,14 @@
 .c1{background:linear-gradient(135deg,#20576E,#0F3A4E);color:#fff}.c1 span{color:var(--bright)}
 .c2{background:linear-gradient(135deg,#30BA8F,#1A7A5D);color:#fff}.c2 span{color:#C8FFF1}
 .c3{background:linear-gradient(135deg,#0F2835,#1F4F63);color:#fff}.c3 span{color:#8FB3C1}
-.c4{background:linear-gradient(135deg,#01F9C6,#0ABF95);color:#0A2A3A}.c4 b{color:#0A2A3A}.c4 span{color:#0A2A3A}
-
-/* ACTION CARDS - BRAND ONLY */
+.c4{background:linear-gradient(135deg,#01F9C6,#0ABF95);color:#0A2A3A}.c4 b{color:#0A2A3A;font-size:20px}.c4 span{color:#0A2A3A}
 .actions{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .box{border-radius:20px;padding:18px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 30px rgba(0,0,0,0.25)}
 .box-navy{background:linear-gradient(135deg,#11283A,#20576E);color:#fff}
 .box-dark{background:linear-gradient(135deg,#0A1F2E,#143645);color:#fff}
 .box h3{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;color:#fff}
 .stack{display:grid;gap:10px}
-.btn-card{width:100%;height:46px;border-radius:999px;border:0;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.btn-card{width:100%;height:46px;border-radius:999px;border:0;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .btn-white{background:#fff;color:var(--navy)}.btn-bright{background:var(--bright);color:var(--navy)}.btn-teal{background:var(--mid);color:#fff}.btn-ghost-dark{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15)}
 .explain{margin-top:18px;background:linear-gradient(135deg,#0A1F2E,#12344A);border:1px solid rgba(1,249,198,0.15);border-radius:20px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .explain h4{color:var(--bright);font-size:13px;margin-bottom:6px}.explain p{font-size:12px;line-height:1.6;color:#A8C8D0}
@@ -52,7 +48,7 @@
 <div class="top"><div class="top-inner">
 <div class="header-main">
 <a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
-<div class="nav-cta"><button class="btn btn-login" onclick="location.href='pricing.html'">View Pricing</button><button class="btn btn-signup" onclick="location.href='post-job.html'">Post a Job</button></div>
+<div class="nav-cta"><button class="btn btn-login" onclick="location.href='pricing.html'">View Pricing</button><button class="btn btn-signup" onclick="location.href='post-job.html'">+ Post a Job</button></div>
 </div>
 <div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html" class="active">Employer Dashboard</a></div>
 </div></div>
@@ -60,29 +56,43 @@
 <div class="wrap">
 <div class="hero">
 <div class="badge">EMPLOYER ACCOUNT OVERVIEW</div>
-<h1>Welcome back, Employer</h1>
-<p>Your hiring power at a glance — 100% brand colours, 100% visible on mobile even in sunlight. No white background.</p>
+<h1 id="welcome">Welcome back, Employer</h1>
+<p>Your hiring power at a glance — 100% brand colours, 100% visible on mobile even in sunlight.</p>
 </div>
 
-<!-- 100% BRAND COLOUR OVERVIEW - HIGH VISIBILITY -->
 <div class="overview">
-<div class="card c1"><b>0</b><span>JOB POSTS</span><small>Active listings live</small></div>
-<div class="card c2"><b>0</b><span>JOB CREDITS</span><small>Bulk posts ready</small></div>
-<div class="card c3"><b>0</b><span>CV UNLOCKS</span><small>Proactive search</small></div>
-<div class="card c4"><b>None</b><span>SUBSCRIPTION</span><small>Upgrade to scale</small></div>
+<div class="card c1"><b id="stat-posts">0</b><span>JOB POSTS</span><small id="stat-posts-sub">Active listings live</small></div>
+<div class="card c2"><b id="stat-credits">0</b><span>JOB CREDITS</span><small>Bulk posts ready</small></div>
+<div class="card c3"><b id="stat-cvs">0</b><span>CV UNLOCKS</span><small>Proactive search</small></div>
+<div class="card c4"><b id="stat-sub">None</b><span>SUBSCRIPTION</span><small id="stat-sub-sub">Upgrade to scale</small></div>
 </div>
 
 <div class="actions">
-<div class="box box-navy"><h3>Quick Actions</h3><div class="stack"><button class="btn-card btn-bright" onclick="location.href='pricing.html'">📦 Buy Job Credits / Packages</button><button class="btn-card btn-white" onclick="location.href='post-job.html'">➕ Post a New Job — R299</button><button class="btn-card btn-ghost-dark" onclick="location.href='manage.html'">📋 Manage Applications</button></div></div>
-<div class="box box-dark"><h3>Why Brand Colours?</h3><div style="background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);border-radius:14px;padding:12px"><b style="font-size:12px;color:var(--bright)">100% VISIBILITY FIXED</b><p style="font-size:11px;color:#A8C8D0;margin-top:6px;line-height:1.5">Before: white on white = invisible in sun. Now: Navy #20576E, Teal #30BA8F, Bright #01F9C6 on dark #11283A = clear for employers on all phones.</p></div><button class="btn-card btn-teal" onclick="location.href='pricing.html'" style="margin-top:12px">View Pricing Details →</button></div>
+<div class="box box-navy"><h3>Quick Actions</h3><div class="stack"><button class="btn-card btn-bright" onclick="location.href='pricing.html'">📦 Buy Job Credits / Packages</button><button class="btn-card btn-white" onclick="location.href='post-job.html'">➕ Post a New Job — R299</button><button class="btn-card btn-ghost-dark" onclick="location.href='manage.html'">📋 Manage Applications</button><button class="btn-card btn-ghost-dark" onclick="localStorage.clear();location.href='index.html'">🚪 Logout</button></div></div>
+<div class="box box-dark"><h3>Why Brand Colours?</h3><div style="background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);border-radius:14px;padding:12px"><b style="font-size:12px;color:var(--bright)">100% VISIBILITY FIXED</b><p style="font-size:11px;color:#A8C8D0;margin-top:6px;line-height:1.5">Before: white on white = invisible in sun. Now: Navy #20576E, Teal #30BA8F, Bright #01F9C6 on dark #11283A = clear for employers on all phones. Duration & Closing Date now included on every job card.</p></div><button class="btn-card btn-teal" onclick="location.href='jobs.html'" style="margin-top:12px">View Live Jobs →</button></div>
 </div>
 
 <div class="explain">
 <div><h4>✅ Application CVs — FREE</h4><p>When a candidate applies to your job, you get their CV free automatically. No unlock needed. Included in every job post and subscription.</p></div>
-<div><h4>🔍 Candidate Unlocks — PAID</h4><p>When YOU search our CV database and want to contact talent who hasn't applied, you need a Candidate Unlock. Sold separately.</p></div>
+<div><h4>🔍 Candidate Unlocks — PAID</h4><p>When YOU search our CV database and want to contact talent who hasn't applied, you need a Candidate Unlock. Sold separately. Duration & Closing Date help candidates know how long role is open.</p></div>
 </div>
 
 </div>
-<div style="background:#081824;border-top:1px solid rgba(1,249,198,0.12);color:#6EA3AF;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za • Employer Dashboard • 100% Brand Colours #20576E #30BA8F #01F9C6 #11283A #0F2835 • No white background</div>
+<div style="background:#081824;border-top:1px solid rgba(1,249,198,0.12);color:#6EA3AF;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za • Employer Dashboard • Brand #20576E #30BA8F #01F9C6 #11283A #0F2835</div>
+
+<script>
+// SAME BRAND - NOW WITH REAL STATS
+function loadStats(){
+ let jobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
+ let apps = JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
+ document.getElementById('stat-posts').innerText = jobs.length;
+ document.getElementById('stat-posts-sub').innerText = jobs.length ? `${jobs.length} live on jobs page` : 'No jobs yet — post one';
+ document.getElementById('stat-cvs').innerText = apps.length;
+ // user email from login
+ let email = localStorage.getItem('jobway_user_email')||'Employer';
+ document.getElementById('welcome').innerText = `Welcome back, ${email.split('@')[0]}`;
+}
+loadStats();
+</script>
 </body>
 </html>
