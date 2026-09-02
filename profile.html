@@ -2,130 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Profile | JobWay.co.za</title>
+<title>My Profile | JobWay</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
-.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
+.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0}
 .logo{font-weight:900;color:#01F9C6;font-size:20px}
 .btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
 .btn-dark{background:#2A3F4E;color:white}
-.btn-green{background:#01F9C6;color:#08231C}
+.btn-green{background:#01F9C6;color:#08231C;width:100%;padding:14px;margin-top:12px;font-size:15px}
 .container{max-width:600px;margin:0 auto;padding:16px}
 .card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
-.label{color:#8DB0BF;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
-.input{width:100%;background:#0F2230;border:1px solid #25475A;padding:12px 14px;border-radius:12px;color:white;outline:none;margin-bottom:12px}
-.input:focus{border-color:#01F9C6}
-.skills-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-.skill-tag{background:#143E4A;color:#01F9C6;border:1px solid rgba(1,249,198,0.3);padding:8px 12px;border-radius:20px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px}
-.skill-tag button{background:none;border:none;color:#FF8A9D;font-weight:900;cursor:pointer;font-size:14px}
-.add-row{display:flex;gap:8px;margin-top:10px}
-.btn-add{background:#01F9C6;color:#08231C;border:none;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;flex:1}
-.save-banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;padding:12px;border-radius:12px;font-weight:900;text-align:center;margin-top:12px;display:none}
-.important{ background:rgba(1,249,198,0.1); border:1px solid #01F9C6; color:#01F9C6; padding:10px; border-radius:12px; font-size:12px; font-weight:700; text-align:center; margin-bottom:12px }
+.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:12px;margin-top:8px}
+.label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
+.upload-box{border:2px dashed #01F9C6;border-radius:16px;padding:20px;text-align:center;margin-top:10px;background:rgba(1,249,198,0.05);cursor:pointer}
+.upload-box.dragover{background:rgba(1,249,198,0.15)}
+.file-name{color:#01F9C6;font-size:12px;margin-top:8px;font-weight:800}
+.badge-skill{background:#143E4A;color:#01F9C6;padding:6px 10px;border-radius:20px;font-size:11px;margin:4px;display:inline-block}
+.banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:16px;padding:12px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
 </style>
 </head>
 <body>
 <div class="header">
 <div class="logo">JobWay</div>
 <div style="display:flex;gap:8px">
-<button class="btn btn-dark" onclick="location.href='index.html'">🏠 Home</button>
-<button class="btn btn-green" onclick="location.href='jobs.html'">💼 Jobs</button>
+<button class="btn btn-dark" onclick="location.href='jobs.html'">💼 Jobs</button>
+<button class="btn btn-dark" onclick="location.href='seeker-dashboard.html'">📊 Track</button>
 </div>
 </div>
 
 <div class="container">
-<div class="important">📱 Official WhatsApp: 079 060 8952 - Save it to get alerts!</div>
+<div class="banner">📱 Official WhatsApp: 079 060 8952 — CV attached to all applications</div>
 
 <div class="card">
-<h3 style="margin-bottom:14px">My Profile - Editable Anytime</h3>
+<h3>👤 My Profile</h3>
+<label class="label">Full Name</label>
+<input class="input" id="fullName" placeholder="e.g. Thabo Molefe">
+<label class="label">Email (for automatic notifications)</label>
+<input class="input" id="email" placeholder="you@gmail.com">
+<label class="label">WhatsApp Number (for alerts from 079 060 8952)</label>
+<input class="input" id="whatsapp" placeholder="e.g. 072 123 4567">
 
-<div class="label">Full Name</div>
-<input id="name" class="input" placeholder="e.g. Thabo Ndlovu" oninput="autoSave()">
+<label class="label">📄 Upload CV (PDF, DOC, DOCX - max 5MB)</label>
+<div class="upload-box" id="uploadBox" onclick="document.getElementById('cvFile').click()">
+<div style="font-size:32px">📄</div>
+<div style="font-weight:800;margin-top:6px">Click to upload CV or drag & drop</div>
+<div style="color:#8DB0BF;font-size:11px;margin-top:4px">PDF, DOC, DOCX supported</div>
+<div class="file-name" id="fileName"></div>
+<input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx,application/pdf" onchange="handleFile(this.files[0])">
+</div>
 
-<div class="label">Email</div>
-<input id="email" class="input" placeholder="e.g. thabo@gmail.com" oninput="autoSave()">
+<label class="label">Skills (comma separated)</label>
+<input class="input" id="skills" placeholder="e.g. Serving, POS, Customer Service, Cashier">
+<div id="skillsPreview" style="margin-top:8px"></div>
 
-<div class="label">WhatsApp Number</div>
-<input id="whatsapp" class="input" placeholder="e.g. 079 060 8952" oninput="autoSave()">
+<label class="label">Location</label>
+<select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Limpopo</option><option>Eastern Cape</option><option>Remote</option></select>
 
-<div class="label">Location</div>
-<input id="location" class="input" placeholder="e.g. Johannesburg, Gauteng" oninput="autoSave()">
-
+<button class="btn btn-green" onclick="saveProfile()">💾 Save Profile + CV</button>
+<div id="savedMsg" style="text-align:center;color:#01F9C6;font-size:12px;margin-top:10px;display:none">✅ Profile saved! CV will be sent with every application</div>
 </div>
 
 <div class="card">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<h3>My Skills - Powers Your Match %</h3>
-<span style="color:#8DB0BF;font-size:12px" id="count">0 skills</span>
-</div>
-<p style="color:#8DB0BF;font-size:12px;margin:8px 0">Add skills anytime. Your job match score will update instantly in Jobs page.</p>
-
-<div class="skills-wrap" id="skillsWrap"></div>
-
-<div class="add-row">
-<input id="newSkill" class="input" style="margin:0" placeholder="Type skill e.g. Serving, POS, Retail" onkeydown="if(event.key==='Enter') addSkill()">
-<button class="btn-add" onclick="addSkill()">+ Add</button>
-</div>
-
-<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-<button onclick="quickAdd('Serving')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Serving</button>
-<button onclick="quickAdd('POS')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ POS</button>
-<button onclick="quickAdd('Customer Service')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Customer Service</button>
-<button onclick="quickAdd('Retail')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Retail</button>
-<button onclick="quickAdd('Stock')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Stock</button>
-<button onclick="quickAdd('Waiter')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Waiter</button>
-</div>
-
-<div id="saved" class="save-banner">✅ Saved! Your match score updated.</div>
-</div>
-
-<div class="card" style="text-align:center">
-<button class="btn-add" style="width:100%" onclick="location.href='jobs.html'">💼 See My Matched Jobs</button>
-<p style="color:#8DB0BF;font-size:11px;margin-top:8px">Your skills are saved locally and editable anytime. No login needed.</p>
+<h4 style="color:#01F9C6">📎 How CV works:</h4>
+<p style="font-size:12px;color:#8DB0BF;margin-top:6px;line-height:1.5">
+1. Upload CV here once<br>
+2. When you click Apply in Jobs page, your CV is AUTOMATICALLY attached<br>
+3. Employer sees it in employer-dashboard.html<br>
+4. No need to upload again
+</p>
 </div>
 </div>
 
 <script>
-function getProfile(){
- return JSON.parse(localStorage.getItem('jobway_profile')||'{"name":"","email":"","whatsapp":"","location":"","skills":["POS","Customer Service"]}');
-}
-function saveProfile(p){
- localStorage.setItem('jobway_profile',JSON.stringify(p));
- let b=document.getElementById('saved'); b.style.display='block'; setTimeout(()=>b.style.display='none',2000);
- renderSkills();
-}
-function autoSave(){
- let p=getProfile();
- p.name=document.getElementById('name').value;
- p.email=document.getElementById('email').value;
- p.whatsapp=document.getElementById('whatsapp').value;
- p.location=document.getElementById('location').value;
- localStorage.setItem('jobway_profile',JSON.stringify(p));
- let b=document.getElementById('saved'); b.style.display='block'; setTimeout(()=>b.style.display='none',1500);
-}
-
-function renderSkills(){
- let p=getProfile();
- document.getElementById('name').value=p.name||'';
+function loadProfile(){
+ let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
+ document.getElementById('fullName').value=p.fullName||'';
  document.getElementById('email').value=p.email||'';
  document.getElementById('whatsapp').value=p.whatsapp||'';
- document.getElementById('location').value=p.location||'';
- let wrap=document.getElementById('skillsWrap');
- wrap.innerHTML=(p.skills||[]).map((s,i)=>`<div class="skill-tag">${s} <button onclick="removeSkill(${i})">✕</button></div>`).join('');
- document.getElementById('count').innerText=(p.skills||[]).length+' skills';
+ document.getElementById('skills').value=(p.skills||[]).join(', ');
+ document.getElementById('location').value=p.location||'Gauteng';
+ if(p.cvName){document.getElementById('fileName').innerText='✅ '+p.cvName+' ('+p.cvSize+')';}
+ renderSkills();
 }
-function addSkill(){
- let input=document.getElementById('newSkill');
- let val=input.value.trim(); if(!val) return;
- let p=getProfile(); if(!p.skills.includes(val)) p.skills.push(val);
- input.value=''; saveProfile(p);
+function renderSkills(){
+ let val=document.getElementById('skills').value;
+ let arr=val.split(',').map(s=>s.trim()).filter(Boolean);
+ document.getElementById('skillsPreview').innerHTML=arr.map(s=>`<span class="badge-skill">${s}</span>`).join('');
 }
-function quickAdd(s){ let p=getProfile(); if(!p.skills.includes(s)) p.skills.push(s); saveProfile(p); }
-function removeSkill(i){ let p=getProfile(); p.skills.splice(i,1); saveProfile(p); }
+document.getElementById('skills').addEventListener('input',renderSkills);
 
-renderSkills();
+function handleFile(file){
+ if(!file) return;
+ if(file.size>5*1024*1024){alert('File too big! Max 5MB'); return;}
+ let reader=new FileReader();
+ reader.onload=function(e){
+   let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
+   p.cvData=e.target.result; // base64
+   p.cvName=file.name;
+   p.cvSize=(file.size/1024).toFixed(0)+'KB';
+   p.cvType=file.type;
+   localStorage.setItem('jobway_profile',JSON.stringify(p));
+   document.getElementById('fileName').innerText='✅ '+file.name+' ('+p.cvSize+') - Will be auto-saved';
+ };
+ reader.readAsDataURL(file);
+}
+
+let box=document.getElementById('uploadBox');
+box.addEventListener('dragover',e=>{e.preventDefault(); box.classList.add('dragover')});
+box.addEventListener('dragleave',()=>box.classList.remove('dragover'));
+box.addEventListener('drop',e=>{e.preventDefault(); box.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]);});
+
+function saveProfile(){
+ let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
+ p.fullName=document.getElementById('fullName').value;
+ p.email=document.getElementById('email').value;
+ p.whatsapp=document.getElementById('whatsapp').value;
+ p.skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+ p.location=document.getElementById('location').value;
+ localStorage.setItem('jobway_profile',JSON.stringify(p));
+ document.getElementById('savedMsg').style.display='block';
+ setTimeout(()=>{alert('✅ Profile + CV saved!\nNow go to Jobs and Apply - your CV will auto-attach\nYou will get updates from 079 060 8952'); location.href='jobs.html';},500);
+}
+loadProfile();
 </script>
 </body>
 </html>
