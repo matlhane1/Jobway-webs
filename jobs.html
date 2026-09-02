@@ -113,13 +113,36 @@ function addSkill(skill){
  alert('✅ Added '+skill+' to CV! +10% match'); render();
 }
 function applyJob(title,company){
- let name=prompt('Full name?'); if(!name) return;
- let email=prompt('Email?'); let wa=prompt('WhatsApp?');
+ let profile=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
+ // CV CHECK - force upload if missing
+ if(!profile.cvName){
+   if(confirm('⚠️ You need to upload your CV first in Profile.\nGo to Profile now to upload CV?')){
+     location.href='profile.html';
+   }
+   return;
+ }
+ let name=profile.fullName||prompt('Full name?'); if(!name) return;
+ let email=profile.email||prompt('Email?');
+ let wa=profile.whatsapp||prompt('WhatsApp?');
  let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
- apps.unshift({id:Date.now().toString(),job_title:title,company:company,name:name,email:email,whatsapp:wa,date:new Date().toISOString(),status:'Under Review'});
+ apps.unshift({
+   id:Date.now().toString(),
+   job_title:title,
+   company:company,
+   name:name,
+   email:email,
+   whatsapp:wa,
+   date:new Date().toISOString(),
+   status:'Application Received',
+   cvName: profile.cvName,
+   cvSize: profile.cvSize,
+   cvType: profile.cvType,
+   cvData: profile.cvData,
+   hasCV: true
+ });
  localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
  setTimeout(()=>{
-  alert(`✅ Applied for ${title}!\n📧 Email sent: Application Received\n💬 WhatsApp sent from 079 060 8952\n👉 Now click Track Applications to see Under Review status`);
+  alert(`✅ Applied for ${title}!\n📄 CV Attached: ${profile.cvName} (${profile.cvSize})\n📧 Email sent: Application Received\n💬 WhatsApp sent from 079 060 8952\n👉 Now click Track Applications`);
   location.href='seeker-dashboard.html';
  },200);
 }
