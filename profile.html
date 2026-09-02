@@ -2,107 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay Profile</title>
+<title>My Profile | JobWay.co.za</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{background:#0f1f2e;color:#fff;padding:20px}
-.container{max-width:480px;margin:0 auto}
-.logo{font-size:24px;font-weight:800;color:#2ee6a8}
-.btn{padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
-.btn-green{background:#2ee6a8;color:#0f1f2e}
-.btn-dark{background:#1e324a;color:#fff}
-.card{background:#162a3f;border-radius:16px;padding:20px;margin-top:15px}
-label{display:block;font-size:13px;color:#9fb3c8;margin:12px 0 6px}
-input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #2a4360;background:#0f1f2e;color:#fff}
-.pill{background:#2ee6a8;color:#0f1f2e;padding:6px 12px;border-radius:20px;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin:4px}
-.dot{height:6px;flex:1;background:#1e324a;border-radius:10px}.dot.active{background:#2ee6a8}
-.progress{display:flex;gap:6px;margin:15px 0}
-.add-btn{background:#2ee6a8;color:#0f1f2e;border:none;padding:12px 18px;border-radius:10px;font-weight:800;cursor:pointer}
-.skill-row{display:flex;gap:8px;align-items:center}
-.skill-row input{flex:1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
+.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;color:#01F9C6;font-size:20px}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
+.btn-dark{background:#2A3F4E;color:white}
+.btn-green{background:#01F9C6;color:#08231C}
+.container{max-width:600px;margin:0 auto;padding:16px}
+.card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
+.label{color:#8DB0BF;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.input{width:100%;background:#0F2230;border:1px solid #25475A;padding:12px 14px;border-radius:12px;color:white;outline:none;margin-bottom:12px}
+.input:focus{border-color:#01F9C6}
+.skills-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.skill-tag{background:#143E4A;color:#01F9C6;border:1px solid rgba(1,249,198,0.3);padding:8px 12px;border-radius:20px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px}
+.skill-tag button{background:none;border:none;color:#FF8A9D;font-weight:900;cursor:pointer;font-size:14px}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.btn-add{background:#01F9C6;color:#08231C;border:none;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;flex:1}
+.save-banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;padding:12px;border-radius:12px;font-weight:900;text-align:center;margin-top:12px;display:none}
+.important{ background:rgba(1,249,198,0.1); border:1px solid #01F9C6; color:#01F9C6; padding:10px; border-radius:12px; font-size:12px; font-weight:700; text-align:center; margin-bottom:12px }
 </style>
 </head>
 <body>
-<div class="container">
-<div style="display:flex;justify-content:space-between;align-items:center">
+<div class="header">
 <div class="logo">JobWay</div>
-<a href="/index.html" style="color:#fff;text-decoration:none;background:#1e324a;padding:8px 14px;border-radius:8px">Jobs</a>
+<div style="display:flex;gap:8px">
+<button class="btn btn-dark" onclick="location.href='index.html'">🏠 Home</button>
+<button class="btn btn-green" onclick="location.href='jobs.html'">💼 Jobs</button>
+</div>
 </div>
 
-<div class="progress"><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+<div class="container">
+<div class="important">📱 Official WhatsApp: 079 060 8952 - Save it to get alerts!</div>
 
-<div class="card" id="s1"><h3>Step 1: Personal (Legal)</h3>
-<label>Full Name *</label><input id="fullName" placeholder="Thabo Mulaudzi">
-<label>Province *</label>
-<select id="province"><option value="">Select</option><option>Limpopo</option><option>Gauteng</option><option>KZN</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
-<label>City / Town *</label><input id="city" placeholder="Thohoyandou">
-<label>WhatsApp *</label><input id="whatsapp" placeholder="0821234567">
-<button class="btn btn-green" onclick="go2()">Next</button>
+<div class="card">
+<h3 style="margin-bottom:14px">My Profile - Editable Anytime</h3>
+
+<div class="label">Full Name</div>
+<input id="name" class="input" placeholder="e.g. Thabo Ndlovu" oninput="autoSave()">
+
+<div class="label">Email</div>
+<input id="email" class="input" placeholder="e.g. thabo@gmail.com" oninput="autoSave()">
+
+<div class="label">WhatsApp Number</div>
+<input id="whatsapp" class="input" placeholder="e.g. 079 060 8952" oninput="autoSave()">
+
+<div class="label">Location</div>
+<input id="location" class="input" placeholder="e.g. Johannesburg, Gauteng" oninput="autoSave()">
+
 </div>
 
-<div class="card" id="s2" style="display:none"><h3>Step 2: Education</h3>
-<label>School / Institution *</label><input id="school" placeholder="Thohoyandou High">
-<label>Highest Qualification *</label>
-<select id="qualification"><option value="">Select</option><option>Grade 10</option><option>Grade 11</option><option>Matric</option><option>Certificate</option><option>Diploma</option><option>Degree</option></select>
-<label>Year Completed *</label><input id="year" type="number" placeholder="2023">
-<button class="btn btn-green" onclick="go3()">Next</button>
-<button class="btn btn-dark" onclick="show1()">Back</button>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<h3>My Skills - Powers Your Match %</h3>
+<span style="color:#8DB0BF;font-size:12px" id="count">0 skills</span>
+</div>
+<p style="color:#8DB0BF;font-size:12px;margin:8px 0">Add skills anytime. Your job match score will update instantly in Jobs page.</p>
+
+<div class="skills-wrap" id="skillsWrap"></div>
+
+<div class="add-row">
+<input id="newSkill" class="input" style="margin:0" placeholder="Type skill e.g. Serving, POS, Retail" onkeydown="if(event.key==='Enter') addSkill()">
+<button class="btn-add" onclick="addSkill()">+ Add</button>
 </div>
 
-<div class="card" id="s3" style="display:none"><h3>Step 3: Skills</h3>
-<label>Job Title *</label><input id="jobTitle" placeholder="Cashier">
-<label>Skills - Type 1 + Tap + Add *</label>
-<div id="pills" style="margin-bottom:8px"></div>
-<div class="skill-row">
-<input id="skillInput" placeholder="e.g. Customer Service" enterkeyhint="done">
-<button type="button" class="add-btn" onclick="addSkill()">+ Add</button>
-</div>
-<label>Experience</label><textarea id="experience" placeholder="2 years at Shoprite"></textarea>
-<label>Licence</label><select id="licence"><option value="">None</option><option>Code 8 (B)</option><option>Code 10</option><option>Code 14</option></select>
-<button class="btn btn-green" onclick="go4()">Next</button>
-<button class="btn btn-dark" onclick="show2()">Back</button>
+<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+<button onclick="quickAdd('Serving')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Serving</button>
+<button onclick="quickAdd('POS')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ POS</button>
+<button onclick="quickAdd('Customer Service')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Customer Service</button>
+<button onclick="quickAdd('Retail')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Retail</button>
+<button onclick="quickAdd('Stock')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Stock</button>
+<button onclick="quickAdd('Waiter')" style="background:#2A3F4E;color:white;border:none;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">+ Waiter</button>
 </div>
 
-<div class="card" id="s4" style="display:none"><h3>Step 4: CV</h3>
-<label>CV (PDF optional)</label><input id="cv" type="file">
-<button class="btn btn-green" onclick="save()">Save & Show Matches</button>
-<button class="btn btn-dark" onclick="show3()">Back</button>
+<div id="saved" class="save-banner">✅ Saved! Your match score updated.</div>
+</div>
+
+<div class="card" style="text-align:center">
+<button class="btn-add" style="width:100%" onclick="location.href='jobs.html'">💼 See My Matched Jobs</button>
+<p style="color:#8DB0BF;font-size:11px;margin-top:8px">Your skills are saved locally and editable anytime. No login needed.</p>
 </div>
 </div>
 
 <script>
-let skills=[];
-function render(){document.getElementById('pills').innerHTML=skills.map((s,i)=>`<span class="pill">${s} <span onclick="skills.splice(${i},1);render()" style="cursor:pointer;font-weight:800">x</span></span>`).join('')}
-function addSkill(){
-  let input=document.getElementById('skillInput');
-  let v=input.value.trim();
-  if(v && !skills.includes(v)){
-    skills.push(v);
-    render();
-  }
-  input.value='';
-  input.focus();
+function getProfile(){
+ return JSON.parse(localStorage.getItem('jobway_profile')||'{"name":"","email":"","whatsapp":"","location":"","skills":["POS","Customer Service"]}');
 }
-document.getElementById('skillInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){e.preventDefault();addSkill();}
-});
-document.getElementById('skillInput').addEventListener('change',e=>{ // for phone "Next" key
-  if(e.target.value.trim()){ addSkill(); }
-});
+function saveProfile(p){
+ localStorage.setItem('jobway_profile',JSON.stringify(p));
+ let b=document.getElementById('saved'); b.style.display='block'; setTimeout(()=>b.style.display='none',2000);
+ renderSkills();
+}
+function autoSave(){
+ let p=getProfile();
+ p.name=document.getElementById('name').value;
+ p.email=document.getElementById('email').value;
+ p.whatsapp=document.getElementById('whatsapp').value;
+ p.location=document.getElementById('location').value;
+ localStorage.setItem('jobway_profile',JSON.stringify(p));
+ let b=document.getElementById('saved'); b.style.display='block'; setTimeout(()=>b.style.display='none',1500);
+}
 
-function go2(){if(!fullName.value||!province.value||!city.value||!whatsapp.value)return alert('Fill all');s1.style.display='none';s2.style.display='block'}
-function show1(){s2.style.display='none';s1.style.display='block'}
-function go3(){if(!school.value||!qualification.value||!year.value)return alert('Fill school');s2.style.display='none';s3.style.display='block'}
-function show2(){s3.style.display='none';s2.style.display='block'}
-function go4(){if(!jobTitle.value||skills.length<3)return alert('Add job title + at least 3 skills. Tap + Add after each');s3.style.display='none';s4.style.display='block'}
-function show3(){s4.style.display='none';s3.style.display='block'}
-function save(){
-  let p={fullName:fullName.value,province:province.value,city:city.value,whatsapp:whatsapp.value,school:school.value,qualification:qualification.value,year:year.value,jobTitle:jobTitle.value,skills:skills,experience:experience.value,licence:licence.value};
-  localStorage.setItem('jobway_profile',JSON.stringify(p));
-  localStorage.removeItem('idNumber');
-  alert('Saved!');
-  location.href='/index.html?match=1';
+function renderSkills(){
+ let p=getProfile();
+ document.getElementById('name').value=p.name||'';
+ document.getElementById('email').value=p.email||'';
+ document.getElementById('whatsapp').value=p.whatsapp||'';
+ document.getElementById('location').value=p.location||'';
+ let wrap=document.getElementById('skillsWrap');
+ wrap.innerHTML=(p.skills||[]).map((s,i)=>`<div class="skill-tag">${s} <button onclick="removeSkill(${i})">✕</button></div>`).join('');
+ document.getElementById('count').innerText=(p.skills||[]).length+' skills';
 }
+function addSkill(){
+ let input=document.getElementById('newSkill');
+ let val=input.value.trim(); if(!val) return;
+ let p=getProfile(); if(!p.skills.includes(val)) p.skills.push(val);
+ input.value=''; saveProfile(p);
+}
+function quickAdd(s){ let p=getProfile(); if(!p.skills.includes(s)) p.skills.push(s); saveProfile(p); }
+function removeSkill(i){ let p=getProfile(); p.skills.splice(i,1); saveProfile(p); }
+
+renderSkills();
 </script>
 </body>
 </html>
