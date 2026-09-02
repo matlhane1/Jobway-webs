@@ -48,7 +48,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </div>
 
 <div class="container">
-<!-- VERY IMPORTANT NOTICE -->
 <div class="important-banner">
 ⚠️ VERY IMPORTANT FOR ALL CANDIDATES<br>
 All WhatsApp notifications will come from this official number only:
@@ -62,7 +61,7 @@ Save this number to receive job updates!
 <select class="select" id="exp" onchange="render()"><option value="">Experience</option><option>Entry Level</option><option>Mid Level</option><option>Senior</option></select>
 <select class="select" id="salary" onchange="render()"><option value="">Min Salary</option><option>R3000</option><option>R5000</option><option>R10000</option></select>
 <button class="btn-filter btn-wa" onclick="subscribeWA()">📱 WhatsApp Job Alerts</button>
-<button class="btn-filter btn-track" onclick="location.href='track.html'">📊 Track Applications</button>
+<button class="btn-filter btn-track" onclick="location.href='seeker-dashboard.html'">📊 Track Applications</button>
 </div>
 
 <div id="list" style="margin-top:16px"></div>
@@ -121,7 +120,7 @@ function applyJob(title,company){
  localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
  setTimeout(()=>{
   alert(`✅ Applied for ${title}!\n📧 Email sent: Application Received\n💬 WhatsApp sent from 079 060 8952\n👉 Now click Track Applications to see Under Review status`);
-  location.href='track.html';
+  location.href='seeker-dashboard.html';
  },200);
 }
 function subscribeWA(){
