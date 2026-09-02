@@ -70,7 +70,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 1. Upload CV here once<br>
 2. When you click Apply in Jobs page, your CV is AUTOMATICALLY attached<br>
 3. Employer sees it in employer-dashboard.html<br>
-4. No need to upload again
+4. No need to upload again - 1-Click Apply forever
 </p>
 </div>
 </div>
@@ -99,12 +99,12 @@ function handleFile(file){
  let reader=new FileReader();
  reader.onload=function(e){
    let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
-   p.cvData=e.target.result; // base64
+   p.cvData=e.target.result;
    p.cvName=file.name;
    p.cvSize=(file.size/1024).toFixed(0)+'KB';
    p.cvType=file.type;
    localStorage.setItem('jobway_profile',JSON.stringify(p));
-   document.getElementById('fileName').innerText='✅ '+file.name+' ('+p.cvSize+') - Will be auto-saved';
+   document.getElementById('fileName').innerText='✅ '+file.name+' ('+p.cvSize+') - Ready';
  };
  reader.readAsDataURL(file);
 }
@@ -123,7 +123,17 @@ function saveProfile(){
  p.location=document.getElementById('location').value;
  localStorage.setItem('jobway_profile',JSON.stringify(p));
  document.getElementById('savedMsg').style.display='block';
- setTimeout(()=>{alert('✅ Profile + CV saved!\nNow go to Jobs and Apply - your CV will auto-attach\nYou will get updates from 079 060 8952'); location.href='jobs.html';},500);
+ setTimeout(()=>{
+   let pending=JSON.parse(localStorage.getItem('jobway_pending_job')||'null');
+   if(pending){
+     localStorage.removeItem('jobway_pending_job');
+     alert('✅ Profile + CV saved! Now you can 1-Click Apply to '+pending.title+'\nGo to Jobs and press Apply Now - it will send AUTOMATICALLY without asking name/email');
+     location.href='jobs.html';
+     return;
+   }
+   alert('✅ Profile + CV saved!\nNow go to Jobs and Apply - your CV will auto-attach\nYou will get updates from 079 060 8952');
+   location.href='jobs.html';
+ },500);
 }
 loadProfile();
 </script>
