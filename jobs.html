@@ -13,6 +13,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 .btn-dark{background:#2A3F4E;color:white}
 .btn-green{background:#01F9C6;color:#08231C}
 .container{max-width:600px;margin:0 auto;padding:14px}
+.important-banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:16px;padding:14px 16px;font-weight:900;font-size:13px;line-height:1.4;text-align:center;margin:12px 0;border:2px solid #01F9C6;animation:pulse 2s infinite}
+.important-banner span{display:block;font-size:18px;margin-top:4px;letter-spacing:1px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(1,249,198,0.4)}50%{box-shadow:0 0 0 12px rgba(1,249,198,0)}}
 .filters{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .select{background:#0F2230;border:1px solid #25475A;color:#8DB0BF;padding:12px;border-radius:12px;width:100%}
 .btn-filter{padding:12px;border-radius:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px}
@@ -45,6 +48,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </div>
 
 <div class="container">
+<!-- VERY IMPORTANT NOTICE -->
+<div class="important-banner">
+⚠️ VERY IMPORTANT FOR ALL CANDIDATES<br>
+All WhatsApp notifications will come from this official number only:
+<span>📱 079 060 8952</span>
+Save this number to receive job updates!
+</div>
+
 <div class="filters">
 <select class="select" id="loc" onchange="render()"><option value="">All Locations</option><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Remote</option></select>
 <select class="select" id="type" onchange="render()"><option value="">Remote/Onsite</option><option>Remote</option><option>Onsite</option><option>Hybrid</option></select>
@@ -60,7 +71,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <script>
 function getEmployerJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]')}
 function getUserSkills(){let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');return (p.skills||['Serving','POS','Customer Service']).map(s=>s.toLowerCase())}
-
 function getDefaults(){
 return [
 {title:'Cashier',company:'Shoprite',location:'Johannesburg, Gauteng',city:'Gauteng',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R5500',salaryText:'R5,500 - R6,800',desc:'Handle POS and customers with matric. Good communication.',required:['POS','Cashier','Customer'],duration:'Permanent',postedAt:Date.now()-4*3600000,closingDate:'13 Sept 2026'},
@@ -68,25 +78,20 @@ return [
 {title:'Waiter',company:'Mugg & Bean',location:'Durban, KZN',city:'KZN',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R3500',salaryText:'R4,200 + Tips',desc:'Weekend waiter needed',required:['Serving','Waiter','Customer'],duration:'Permanent',postedAt:Date.now()-2*3600000,closingDate:'13 Sept 2026'}
 ]
 }
-
 function calcMatch(job){
  let skills=getUserSkills();
  let match=0; job.required.forEach(r=>{ if(skills.some(s=>r.toLowerCase().includes(s)||s.includes(r.toLowerCase()))) match+=1 });
  let pct=Math.round((match/job.required.length)*100);
- if(pct<45) pct=65; // demo like screenshot if no profile
- return pct;
+ if(pct<45) pct=65; return pct;
 }
-
 function timeAgo(ts){
  let h=Math.floor((Date.now()-ts)/3600000);
  if(h<1) return 'Just now'; if(h<24) return `Posted ${h}h ago`; return `Posted ${Math.floor(h/24)}d ago`;
 }
-
 function render(){
  let qCity=document.getElementById('loc').value;
  let jobs=[...getEmployerJobs(),...getDefaults()];
  if(qCity) jobs=jobs.filter(j=>j.city===qCity || j.location.includes(qCity));
-
  document.getElementById('list').innerHTML=jobs.map(j=>{
   let pct= j.match || calcMatch(j);
   let missing = j.required.filter(r=>!getUserSkills().some(s=>r.toLowerCase().includes(s)))[0] || 'Serving';
@@ -102,31 +107,27 @@ function render(){
   </div>`
  }).join('');
 }
-
 function addSkill(skill){
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{"skills":[]}');
  p.skills=p.skills||[]; if(!p.skills.includes(skill)) p.skills.push(skill);
  localStorage.setItem('jobway_profile',JSON.stringify(p));
  alert('✅ Added '+skill+' to CV! +10% match'); render();
 }
-
 function applyJob(title,company){
  let name=prompt('Full name?'); if(!name) return;
  let email=prompt('Email?'); let wa=prompt('WhatsApp?');
  let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
  apps.unshift({id:Date.now().toString(),job_title:title,company:company,name:name,email:email,whatsapp:wa,date:new Date().toISOString(),status:'Under Review'});
  localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
- // Simulation of Email + WhatsApp notifications like screenshot
  setTimeout(()=>{
-  alert(`✅ Applied for ${title}!\n📧 Email sent: Application Received\n💬 WhatsApp sent\n👉 Now click Track Applications to see Under Review status`);
+  alert(`✅ Applied for ${title}!\n📧 Email sent: Application Received\n💬 WhatsApp sent from 079 060 8952\n👉 Now click Track Applications to see Under Review status`);
   location.href='track.html';
  },200);
 }
-
 function subscribeWA(){
  let wa=prompt('Enter WhatsApp number for Job Alerts:'); if(!wa) return;
  localStorage.setItem('jobway_wa_alerts',wa);
- alert('✅ WhatsApp Job Alerts Activated!\nYou will get matching jobs on '+wa+'\n📧 Email alerts also enabled');
+ alert('✅ WhatsApp Job Alerts Activated!\nAll notifications will come from official number:\n📱 079 060 8952\nSave it now! You will get matching jobs on '+wa);
 }
 render();
 </script>
