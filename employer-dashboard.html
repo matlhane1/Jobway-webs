@@ -2,97 +2,125 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Employer Dashboard — JobWay.co.za</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Employer Dashboard | JobWay</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--deep:#11283A;--deep2:#0A1F2E}
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff;min-height:100vh}
-.top{position:sticky;top:0;z-index:50;background:var(--deep2);border-bottom:1px solid rgba(1,249,198,0.15)}
-.top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
-.header-main{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand-logo svg{height:38px;width:auto;display:block}
-.nav-cta{display:flex;align-items:center;gap:10px}
-.btn{border-radius:999px;height:42px;padding:0 22px;font-size:13.5px;font-weight:800;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
-.btn-login{background:var(--navy);color:#fff}.btn-signup{background:var(--bright);color:var(--navy);font-weight:900}
-.header-nav{height:44px;display:flex;align-items:center;gap:24px;border-top:1px solid rgba(255,255,255,0.08)}
-.header-nav a{color:#8FB3C1;font-size:13px;font-weight:600;text-decoration:none}.header-nav a.active{color:#fff}
-.wrap{max-width:1280px;margin:0 auto;padding:22px 20px}
-.hero{background:linear-gradient(135deg,#0A1F2E 0%,#20576E 60%,#0F6A62 100%);border-radius:24px;padding:22px;border:1px solid rgba(1,249,198,0.15);position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;right:-30px;top:-30px;width:200px;height:200px;background:radial-gradient(circle,var(--bright),transparent 70%);opacity:0.22}
-.badge{display:inline-flex;background:rgba(1,249,198,0.15);border:1px solid rgba(1,249,198,0.35);color:var(--bright);padding:6px 12px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:0.08em;position:relative}
-.hero h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;margin-top:10px;position:relative}
-.hero p{font-size:13px;color:#A8C8D0;margin-top:6px;position:relative;line-height:1.5}
-.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
-.card{border-radius:20px;padding:20px;position:relative;box-shadow:0 14px 32px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);overflow:hidden}
-.card b{font-family:'Space Grotesk',sans-serif;font-size:42px;display:block;line-height:1}
-.card span{font-size:11px;font-weight:800;letter-spacing:0.08em;display:block;margin-top:8px}
-.card small{font-size:11px;opacity:0.85;display:block;margin-top:4px}
-.c1{background:linear-gradient(135deg,#20576E,#0F3A4E);color:#fff}.c1 span{color:var(--bright)}
-.c2{background:linear-gradient(135deg,#30BA8F,#1A7A5D);color:#fff}.c2 span{color:#C8FFF1}
-.c3{background:linear-gradient(135deg,#0F2835,#1F4F63);color:#fff}.c3 span{color:#8FB3C1}
-.c4{background:linear-gradient(135deg,#01F9C6,#0ABF95);color:#0A2A3A}.c4 b{color:#0A2A3A;font-size:20px}.c4 span{color:#0A2A3A}
-.actions{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.box{border-radius:20px;padding:18px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 30px rgba(0,0,0,0.25)}
-.box-navy{background:linear-gradient(135deg,#11283A,#20576E);color:#fff}
-.box-dark{background:linear-gradient(135deg,#0A1F2E,#143645);color:#fff}
-.box h3{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;color:#fff}
-.stack{display:grid;gap:10px}
-.btn-card{width:100%;height:46px;border-radius:999px;border:0;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-.btn-white{background:#fff;color:var(--navy)}.btn-bright{background:var(--bright);color:var(--navy)}.btn-teal{background:var(--mid);color:#fff}.btn-ghost-dark{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15)}
-.explain{margin-top:18px;background:linear-gradient(135deg,#0A1F2E,#12344A);border:1px solid rgba(1,249,198,0.15);border-radius:20px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.explain h4{color:var(--bright);font-size:13px;margin-bottom:6px}.explain p{font-size:12px;line-height:1.6;color:#A8C8D0}
-@media(max-width:900px){.overview{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.explain{grid-template-columns:1fr}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
+.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;color:#01F9C6;font-size:20px}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
+.btn-dark{background:#2A3F4E;color:white}
+.btn-green{background:#01F9C6;color:#08231C}
+.container{max-width:700px;margin:0 auto;padding:16px}
+.card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
+.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:12px;margin-top:8px}
+.label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
+.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}
+.badge-teal{background:#143E4A;color:#01F9C6}
+.badge-cv{background:#01F9C6;color:#08231C}
+.badge-auto{background:#FFD700;color:#000}
+.status-select{background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:12px;border-radius:12px;width:100%;font-weight:800;margin-top:8px}
+.cv-box{background:#0F2230;border:1px dashed #01F9C6;border-radius:12px;padding:12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+.banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:12px;padding:10px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
 </style>
 </head>
 <body>
-<div class="top"><div class="top-inner">
-<div class="header-main">
-<a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
-<div class="nav-cta"><button class="btn btn-login" onclick="location.href='pricing.html'">View Pricing</button><button class="btn btn-signup" onclick="location.href='post-job.html'">+ Post a Job</button></div>
+<div class="header">
+<div class="logo">JobWay — Employer</div>
+<div style="display:flex;gap:8px">
+<button class="btn btn-dark" onclick="location.href='jobs.html'">Jobs</button>
+<button class="btn btn-dark" onclick="location.href='profile.html'">Profile</button>
 </div>
-<div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html" class="active">Employer Dashboard</a></div>
-</div></div>
-
-<div class="wrap">
-<div class="hero">
-<div class="badge">EMPLOYER ACCOUNT OVERVIEW</div>
-<h1 id="welcome">Welcome back, Employer</h1>
-<p>Your hiring power at a glance — 100% brand colours, 100% visible on mobile even in sunlight.</p>
 </div>
 
-<div class="overview">
-<div class="card c1"><b id="stat-posts">0</b><span>JOB POSTS</span><small id="stat-posts-sub">Active listings live</small></div>
-<div class="card c2"><b id="stat-credits">0</b><span>JOB CREDITS</span><small>Bulk posts ready</small></div>
-<div class="card c3"><b id="stat-cvs">0</b><span>CV UNLOCKS</span><small>Proactive search</small></div>
-<div class="card c4"><b id="stat-sub">None</b><span>SUBSCRIPTION</span><small id="stat-sub-sub">Upgrade to scale</small></div>
-</div>
+<div class="container">
+<div class="banner">📱 Notifications from 079 060 8952 | 1-Click CV Auto-Attached</div>
 
-<div class="actions">
-<div class="box box-navy"><h3>Quick Actions</h3><div class="stack"><button class="btn-card btn-bright" onclick="location.href='pricing.html'">📦 Buy Job Credits / Packages</button><button class="btn-card btn-white" onclick="location.href='post-job.html'">➕ Post a New Job — R299</button><button class="btn-card btn-ghost-dark" onclick="location.href='manage.html'">📋 Manage Applications</button><button class="btn-card btn-ghost-dark" onclick="localStorage.clear();location.href='index.html'">🚪 Logout</button></div></div>
-<div class="box box-dark"><h3>Why Brand Colours?</h3><div style="background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);border-radius:14px;padding:12px"><b style="font-size:12px;color:var(--bright)">100% VISIBILITY FIXED</b><p style="font-size:11px;color:#A8C8D0;margin-top:6px;line-height:1.5">Before: white on white = invisible in sun. Now: Navy #20576E, Teal #30BA8F, Bright #01F9C6 on dark #11283A = clear for employers on all phones. Duration & Closing Date now included on every job card.</p></div><button class="btn-card btn-teal" onclick="location.href='jobs.html'" style="margin-top:12px">View Live Jobs →</button></div>
-</div>
+<h3 style="margin:12px 0">📥 Applications (<span id="count">0</span>)</h3>
+<div id="appsList"></div>
 
-<div class="explain">
-<div><h4>✅ Application CVs — FREE</h4><p>When a candidate applies to your job, you get their CV free automatically. No unlock needed. Included in every job post and subscription.</p></div>
-<div><h4>🔍 Candidate Unlocks — PAID</h4><p>When YOU search our CV database and want to contact talent who hasn't applied, you need a Candidate Unlock. Sold separately. Duration & Closing Date help candidates know how long role is open.</p></div>
+<h3 style="margin:20px 0 10px">➕ Post Job</h3>
+<div class="card">
+<label class="label">Title</label><input class="input" id="jobTitle" placeholder="Cashier">
+<label class="label">Company</label><input class="input" id="jobCompany" placeholder="Shoprite">
+<label class="label">Location</label><input class="input" id="jobLocation" placeholder="Johannesburg, Gauteng">
+<button class="btn btn-green" style="width:100%;margin-top:12px;padding:14px" onclick="postJob()">Post Job</button>
 </div>
-
 </div>
-<div style="background:#081824;border-top:1px solid rgba(1,249,198,0.12);color:#6EA3AF;padding:22px;text-align:center;font-size:11px;margin-top:36px">© 2026 JobWay.co.za </div>
 
 <script>
-// SAME BRAND - NOW WITH REAL STATS
-function loadStats(){
- let jobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
- let apps = JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
- document.getElementById('stat-posts').innerText = jobs.length;
- document.getElementById('stat-posts-sub').innerText = jobs.length ? `${jobs.length} live on jobs page` : 'No jobs yet — post one';
- document.getElementById('stat-cvs').innerText = apps.length;
- // user email from login
- let email = localStorage.getItem('jobway_user_email')||'Employer';
- document.getElementById('welcome').innerText = `Welcome back, ${email.split('@')[0]}`;
+const STATUSES=["Application Received","Under Review","Shortlisted","Interview Scheduled","Interview Completed","Assessment","Offer Made","Hired","Not Selected"];
+const OFFICIAL_NUMBER="079 060 8952";
+function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]')}
+function saveApps(a){localStorage.setItem('jobway_all_applications',JSON.stringify(a))}
+function render(){
+ let apps=getApps();
+ document.getElementById('count').innerText=apps.length;
+ if(apps.length==0){
+   document.getElementById('appsList').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No applications yet. Candidate must save CV in Profile then 1-Click Apply.</div>`;
+   return;
+ }
+ document.getElementById('appsList').innerHTML=apps.map(app=>{
+  let cvBox = app.hasCV? `
+   <div class="cv-box">
+    <div><span class="badge badge-cv">📄 CV</span> ${app.autoApplied?'<span class="badge badge-auto">⚡ 1-Click</span>':''}<br>
+    <span style="font-size:13px;font-weight:800">${app.cvName}</span><br>
+    <span style="font-size:11px;color:#8DB0BF">${app.cvSize} • ${app.cvType||'PDF'}</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="btn btn-green" style="padding:8px 12px;font-size:11px" onclick="downloadCV('${app.id}')">⬇️ Download</button>
+      <button class="btn btn-dark" style="padding:8px 12px;font-size:11px" onclick="viewCV('${app.id}')">👁️ View</button>
+    </div>
+   </div>` : `<div style="color:#FF8A9D;font-size:12px;margin-top:8px">⚠️ No CV (old app)</div>`;
+  return `<div class="card">
+   <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><b>${app.job_title} @ ${app.company}</b><span class="badge badge-teal">${app.status}</span></div>
+   <div style="color:#8DB0BF;font-size:12px;margin:6px 0">👤 ${app.name} • 📧 ${app.email} • 📱 ${app.whatsapp}<br>📅 ${new Date(app.date).toLocaleString()}</div>
+   ${cvBox}
+   <label class="label">Update Status → Auto Email + WhatsApp ${OFFICIAL_NUMBER}</label>
+   <select class="status-select" onchange="changeStatus('${app.id}',this.value)">${STATUSES.map(s=>`<option ${app.status==s?'selected':''}>${s}</option>`).join('')}</select>
+   <div id="interview-${app.id}" style="${app.status=='Interview Scheduled'?'':'display:none'}">
+     <label class="label">Date</label><input class="input" type="date" id="date-${app.id}" value="${app.interviewDate||''}" onchange="saveInterview('${app.id}')">
+     <label class="label">Time</label><input class="input" type="time" id="time-${app.id}" value="${app.interviewTime||''}" onchange="saveInterview('${app.id}')">
+     <label class="label">Format</label><select class="input" id="format-${app.id}" onchange="saveInterview('${app.id}')"><option>In-Person</option><option>Online</option></select>
+   </div>
+  </div>`;
+ }).join('');
 }
-loadStats();
+function downloadCV(id){
+ let app=getApps().find(a=>a.id==id);
+ if(!app||!app.cvData){alert('No CV');return;}
+ let a=document.createElement('a'); a.href=app.cvData; a.download=app.cvName||'CV.pdf'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function viewCV(id){
+ let app=getApps().find(a=>a.id==id);
+ if(!app||!app.cvData){alert('No CV');return;}
+ let win=window.open(); win.document.write(`<html><body style="margin:0"><iframe src="${app.cvData}" style="width:100%;height:100vh;border:none"></iframe></body></html>`);
+}
+function changeStatus(id,newStatus){
+ let apps=getApps(); let app=apps.find(a=>a.id==id); let old=app.status; app.status=newStatus;
+ if(newStatus=='Interview Scheduled') document.getElementById('interview-'+id).style.display='block'; else document.getElementById('interview-'+id).style.display='none';
+ saveApps(apps);
+ let logs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
+ logs.unshift({appId:id,text:`${old} → ${newStatus} for ${app.job_title}`,channel:`AUTO ${app.email} + WhatsApp ${OFFICIAL_NUMBER}`,time:Date.now(),auto:true});
+ localStorage.setItem('jobway_notifications',JSON.stringify(logs));
+ alert(`✅ ${newStatus}\n📧 Auto Email to ${app.email}\n💬 WhatsApp from ${OFFICIAL_NUMBER} to ${app.whatsapp}\n📄 CV: ${app.cvName}`);
+ render();
+}
+function saveInterview(id){
+ let apps=getApps(); let app=apps.find(a=>a.id==id);
+ app.interviewDate=document.getElementById('date-'+id).value; app.interviewTime=document.getElementById('time-'+id).value; app.interviewFormat=document.getElementById('format-'+id).value;
+ saveApps(apps);
+ alert(`📅 Interview ${app.interviewDate} ${app.interviewTime} saved + Auto notif from ${OFFICIAL_NUMBER}`);
+}
+function postJob(){
+ let t=document.getElementById('jobTitle').value; let c=document.getElementById('jobCompany').value; let l=document.getElementById('jobLocation').value;
+ if(!t||!c){alert('Fill title & company');return;}
+ let jobs=JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
+ jobs.unshift({title:t,company:c,location:l,city:l.split(',')[0]||'Gauteng',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R5000',salaryText:'R5,000',desc:'New opening',required:['Customer'],duration:'Permanent',postedAt:Date.now(),closingDate:'30 Sept 2026'});
+ localStorage.setItem('jobway_employer_jobs',JSON.stringify(jobs));
+ alert('✅ Job posted'); location.href='jobs.html';
+}
+render();
 </script>
 </body>
 </html>
