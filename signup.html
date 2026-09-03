@@ -38,6 +38,10 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 .note{color:#6EA3AF;font-size:11px;text-align:center;margin-top:14px}
 .note a{color:var(--bright);text-decoration:none;font-weight:800}
 @media(max-width:640px){.role-grid{grid-template-columns:1fr}.h1{font-size:32px}}
+/* WhatsApp opt-in - matches your brand */
+.wa-box{margin-top:16px;padding:12px;border-radius:12px;background:rgba(1,249,198,0.06);border:1px dashed rgba(1,249,198,0.25)}
+.wa-check{display:flex;gap:10px;align-items:flex-start;cursor:pointer;color:#cfe8ef;font-size:13px;line-height:1.4}
+.wa-check input{width:18px;height:18px;margin-top:2px;accent-color:var(--bright)}
 </style>
 </head>
 <body>
@@ -54,7 +58,6 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 <div class="h1">Create account <span style="color:var(--bright)">your way</span></div>
 <div class="sub">Sign up as Candidate or Employer — pricing unlocks only for employers.</div>
 
-<!-- ROLE SELECTION - SAME DESIGN AS HOMEPAGE -->
 <div class="role-grid">
 <div class="role-card active" id="card-seeker" onclick="setRole('seeker')">
 <div class="role-icon">🧑‍💼</div>
@@ -68,7 +71,6 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 </div>
 </div>
 
-<!-- YOUR ORIGINAL FORM - LOGIC KEPT 100% -->
 <div class="card-form">
 <h2>Create JobWay Account</h2>
 <label>Full Name</label><input id="fn" placeholder="Your name">
@@ -80,42 +82,77 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 </div>
 <label>I want to join as:</label>
 <select id="role"><option value="seeker">Job Seeker</option><option value="employer">Employer</option></select>
+
+<!-- NEW: WhatsApp Permission with Brand Design -->
+<div class="wa-box">
+<label class="wa-check">
+<input type="checkbox" id="waOptIn">
+<span>I want to receive job alerts on WhatsApp (optional)</span>
+</label>
+<div id="waField" style="display:none; margin-top:12px;">
+<label>WhatsApp Number</label>
+<input id="waNumber" type="tel" placeholder="e.g. 071 123 4567">
+<div style="font-size:10px; color:#8FB3C1; margin-top:6px;">We’ll only send job alerts if you tick this box. You can opt out anytime.</div>
+</div>
+</div>
+
 <button class="btn-submit" id="btn">Create Account →</button>
 <div class="note">Already have account? <a href="login.html">Log In</a></div>
 </div>
 </div>
 
 <script>
-// YOUR SUPABASE LOGIC - UNTOUCHED
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
 
 function setRole(r){
   document.getElementById('role').value=r;
   document.getElementById('card-seeker').classList.toggle('active', r==='seeker');
   document.getElementById('card-employer').classList.toggle('active', r==='employer');
-  // Save for pricing lock
   localStorage.setItem('pending_role', r);
 }
-
 document.getElementById('role').addEventListener('change', (e)=>setRole(e.target.value));
+
+// WhatsApp toggle
+document.getElementById('waOptIn').addEventListener('change', function(){
+  document.getElementById('waField').style.display = this.checked ? 'block' : 'none';
+});
 
 document.getElementById('btn').onclick=async()=>{
 const full_name=document.getElementById('fn').value.trim();
 const email=document.getElementById('em').value.trim();
 const password=document.getElementById('pw').value;
 const role=document.getElementById('role').value;
+const wantsWhatsApp=document.getElementById('waOptIn').checked;
+const waNumber=document.getElementById('waNumber').value.trim();
+
 if(!full_name||!email||!password){alert('Fill all fields');return;}
+if(wantsWhatsApp && !waNumber){alert('Please enter your WhatsApp number');return;}
+
 const b=document.getElementById('btn');b.textContent='Creating...';b.disabled=true;
 try{
-const {error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name,role}}});
+const {error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name,role, whatsapp: waNumber, whatsapp_opt_in: wantsWhatsApp}}});
 if(error) throw error;
-// SAVE FOR YOUR PRICING LOCK SYSTEM
+
 localStorage.setItem('user_role', role==='employer'?'employer':'candidate');
 localStorage.setItem('employer_email', role==='employer'?email:'');
 localStorage.setItem('candidate_email', role!=='employer'?email:'');
 localStorage.setItem('employer_id', email);
+
+// If opted in, send WhatsApp OTP / welcome
+if(wantsWhatsApp && waNumber){
+  try{
+    const otp = Math.floor(1000 + Math.random()*9000);
+    await fetch('/api/send-otp', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({phone: waNumber, otp: String(otp)})
+    });
+    localStorage.setItem('wa_verified_pending', waNumber);
+  }catch(e){console.log('WA send failed', e)}
+}
+
 alert('Account created! Now login');
-location.href='login.html?v=38';
+location.href='login.html?v=39';
 }catch(e){alert('Error: '+e.message);b.textContent='Create Account →';b.disabled=false;}
 };
 </script>
