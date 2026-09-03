@@ -2,7 +2,7 @@ export async function onRequestPost(context) {
   const { phone, otp } = await context.request.json();
   
   const PHONE_ID = "1340338765820659";
-  const TOKEN = EAAUVcL4HmMoBSZAnlxzNuqQAiEBKwQCPy9sOeQNeuLlJQdcInuwrQllDrSu5xfjKCJT9gnNSeERnru2ATBgd7lrzDmyXWLVV0D9pGtdyFpxFfw10xP2YvbU4MZBWvqJxMtfdSGZBwk871qIU9noEZCvKZCZBjEdpc9tTF6ykqdaOtAu0PI7WcruDkPawZBgeXLaqZCtuHjizpjJqOceRErIXhOvHJMAiGPtR1VHAtQ3q5LpCbZCeEoyvhMqryCehdaa66sEbLEYZBSKQTVmxu6wktjD6s1MwZDZD// get from developers.facebook.com
+  const TOKEN = EAAUVcL4HmMoBSXzZBXZCKaAER2rO7GZCnLpPOHBrDOIn4RsxJCG4o7njgka8LWt0uFGSDdWCF7ZCXFvwmUx8ud1ToOII7SV7o8NfBJ6tZAaV5kbGKE81rNI4CFh6ZCaG97bhwMFGcp1VHpvPQ0hdkoYEhYZChZC1h21sXuH74lOONGRZAjxOXFXF6AGZBOu25JF8gjHcD4F4ZBcGISH1dZBePDkxyZB9tutHZBbPeU2xhRZBmyQ2qZAHa8auHZBJBjivKIFdlcFAwEWQZAfzi4ZBfC3TQpfBa659bxhBEUZD get from developers.facebook.com
   
   const cleanPhone = phone.replace(/[^0-9]/g, "");
 
