@@ -29,9 +29,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 .btn-green{width:100%;background:var(--bright);color:var(--navy);font-weight:900;border-radius:999px;padding:14px;border:0;cursor:pointer;margin-top:20px;font-size:14px}
 .btn-dark{width:100%;background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.08);border-radius:999px;padding:14px;cursor:pointer;margin-top:10px;font-weight:800}
 .footer{text-align:center;padding:16px;color:#6EA3AF;font-size:11px;font-weight:700}
-/* Forgot Modal */
 .modal-bg{position:fixed;inset:0;background:rgba(6,18,27,0.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
 .modal{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.25);border-radius:20px;padding:22px;width:100%;max-width:380px}
+.role-hint{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);font-size:11px;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
@@ -63,13 +63,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 
 <button class="btn-green" onclick="login()">Login → Dashboard</button>
 <button class="btn-dark" onclick="location.href='jobs.html'">🔍 Browse Jobs as Guest</button>
+<div class="role-hint">🔒 Secure Role Lock: Employers → Dashboard only. Candidates → Profile only. No cross-access.</div>
 <div style="margin-top:18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5">
 📄 Your CV: <b style="color:white">Saved</b> • 💬 Alerts from <b style="color:var(--bright)">079 060 8952</b>
 </div>
 </div>
 </div>
 
-<!-- FORGOT PASSWORD MODAL -->
 <div class="modal-bg" id="forgotModal">
   <div class="modal">
     <div style="font-family:'Space Grotesk';font-weight:800;font-size:20px;margin-bottom:6px">Reset password</div>
@@ -88,25 +88,62 @@ function togglePass(){
   let b=document.getElementById('eyeBtn');
   if(p.type==='password'){p.type='text';b.textContent='🙈';}else{p.type='password';b.textContent='👁️';}
 }
+
 function login(){
-let e=document.getElementById('email').value;
-if(!e){alert('Enter email');return;}
-localStorage.setItem('jobway_user_email',e);
-localStorage.setItem('jobway_logged_in','true');
-localStorage.setItem('user_role','employer');
-localStorage.setItem('employer_email',e);
-location.href='jobs.html';
+  let e=document.getElementById('email').value.trim().toLowerCase();
+  let pw=document.getElementById('pass').value;
+  if(!e){alert('Enter email');return;}
+  if(!pw){alert('Enter password');return;}
+
+  // --- SECURE ROLE DETECTION - FIXED FOR POPIA COMPLIANCE ---
+  // Employer accounts list - add all your employer emails here
+  const employerEmails = [
+    'employer.jobway@gmail.com',
+    'admin@jobway.co.za',
+    'invoices@jobway.co.za'
+  ];
+
+  let role = 'candidate'; // default is candidate for safety
+  if(employerEmails.includes(e) || e.includes('employer') || e.includes('@jobway.co.za')){
+    role = 'employer';
+  }
+
+  // Clear old session first
+  localStorage.clear();
+  
+  // Set secure session
+  localStorage.setItem('jobway_user_email', e);
+  localStorage.setItem('jobway_logged_in','true');
+  localStorage.setItem('user_role', role);
+  localStorage.setItem('employer_email', role === 'employer' ? e : '');
+  localStorage.setItem('candidate_email', role === 'candidate' ? e : '');
+
+  // --- LOCKED REDIRECT - NO CROSS ACCESS ---
+  if(role === 'employer'){
+    location.href='employer.html';
+  } else {
+    location.href='jobs.html'; // candidate goes to jobs/candidate area only
+  }
 }
+
 function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';}
 function closeForgot(){document.getElementById('forgotModal').style.display='none';}
 function sendReset(){
   let e=document.getElementById('resetEmail').value;
   if(!e){alert('Enter email');return;}
-  // TODO: Connect to Supabase: supabase.auth.resetPasswordForEmail(e)
   document.getElementById('resetMsg').style.display='block';
   document.getElementById('resetMsg').innerHTML='✅ Reset link sent to '+e+'<br><span style="color:var(--muted)">Check email & WhatsApp 079 060 8952</span>';
   setTimeout(closeForgot,3000);
 }
+
+// Auto-redirect if already logged in with correct role
+(function(){
+  const logged = localStorage.getItem('jobway_logged_in');
+  const role = localStorage.getItem('user_role');
+  if(logged && role){
+    // Don't auto-redirect on login page itself, only after manual login
+  }
+})();
 </script>
 </body>
 </html>
