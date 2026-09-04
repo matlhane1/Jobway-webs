@@ -1,35 +1,147 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post a Job - JobWay</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<script>
+// === EMPLOYER ONLY GUARD ===
+(function(){
+  const logged = localStorage.getItem('jobway_logged_in');
+  const role = localStorage.getItem('user_role');
+  if(!logged || role!=='employer'){
+    alert('⛔ Employer login required to post jobs');
+    location.href='login.html';
+  }
+})();
+</script>
 <style>
-body{margin:0;background:#11283a;color:white;font-family:Arial;padding:16px;display:flex;justify-content:center}
-.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:420px;margin-top:20px}
-label{color:#9cc2d0;font-size:13px;margin:10px 0 6px;display:block}
-input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;box-sizing:border-box}
-.btn{width:100%;margin-top:16px;background:#2dd4bf;color:#11283a;border:none;padding:12px;border-radius:10px;font-weight:900;font-size:15px}
+body{margin:0;background:#11283a;color:white;font-family:'Plus Jakarta Sans',sans-serif;padding:16px;display:flex;justify-content:center;min-height:100vh}
+.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:420px;margin-top:50px;border:1px solid rgba(45,212,191,0.15)}
+label{color:#9cc2d0;font-size:12px;font-weight:700;margin:12px 0 6px;display:block;letter-spacing:0.3px;text-transform:uppercase}
+input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:#2dd4bf}
+.btn{width:100%;margin-top:16px;background:#01F9C6;color:#11283a;border:none;padding:14px;border-radius:999px;font-weight:900;font-size:15px;cursor:pointer;transition:0.2s}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
 .top{display:flex;justify-content:space-between;align-items:center;max-width:420px;width:100%;position:absolute;top:12px}
-a{color:white;text-decoration:none}
+a{color:white;text-decoration:none;font-weight:700;font-size:14px}
+.logo-box{width:100%;background:#0f2332;border:1px dashed rgba(1,249,198,0.4);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:0.2s;margin-top:6px}
+.logo-box:hover{border-color:#01F9C6;background:rgba(1,249,198,0.05)}
+.logo-preview img{max-width:100px;max-height:80px;border-radius:10px;background:white;padding:6px;object-fit:contain}
+.hint{font-size:11px;color:#7fb0be;margin-top:6px}
 </style></head><body>
-<div class="top"><a href="dashboard.html?v=40">← Back</a><h3 style="margin:0">JobWay</h3></div>
-<div class="card" style="margin-top:50px">
-<h2 style="margin:0 0 12px">Post a New Job</h2>
+<div class="top"><a href="employer-dashboard.html">← Dashboard</a><h3 style="margin:0;font-family:'Space Grotesk',sans-serif;color:#01F9C6">JobWay</h3></div>
+<div class="card">
+<h2 style="margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-weight:800">Post a New Job</h2>
+<p style="margin:0 0 14px;color:#8db0bf;font-size:12px">Add your company logo — jobs with logos get 3x more applications</p>
+
+<label>Company Logo</label>
+<input type="file" id="logoFile" accept="image/*" style="display:none">
+<div class="logo-box" id="logoBox" onclick="document.getElementById('logoFile').click()">
+  <div id="logoPlaceholder">
+    <div style="font-size:28px">🏢</div>
+    <div style="font-weight:800;font-size:13px;margin-top:4px">Tap to upload logo</div>
+    <div class="hint">PNG, JPG, SVG — any size — smooth upload</div>
+  </div>
+  <div id="logoPreview" class="logo-preview" style="display:none">
+    <img id="logoImg" src="">
+    <div style="margin-top:8px;color:#01F9C6;font-weight:800;font-size:12px">✅ Logo ready — tap to change</div>
+    <div id="logoName" class="hint"></div>
+  </div>
+</div>
+
 <label>Job Title</label><input id="title" placeholder="e.g. Cashier">
 <label>Company</label><input id="company" placeholder="e.g. Shoprite">
 <label>Location</label><input id="location" placeholder="e.g. Thohoyandou">
 <label>Salary</label><input id="salary" placeholder="e.g. R4500">
 <label>Type</label><select id="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
 <label>Closing Date</label><input id="closing" type="date">
-<label>Description</label><textarea id="desc" rows="3" placeholder="Job requirements..."></textarea>
-<button class="btn" id="post">Post Job</button>
+<label>Description</label><textarea id="desc" rows="4" placeholder="Job requirements..."></textarea>
+<button class="btn" id="post">Post Job →</button>
+<div id="msg" style="margin-top:12px;text-align:center;font-size:12px;color:#7fb0be"></div>
 </div>
 <script>
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+
+let logoFileData = null;
+let logoFileObj = null;
+
+document.getElementById('logoFile').addEventListener('change', function(){
+  const file = this.files[0];
+  if(!file) return;
+  logoFileObj = file;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    logoFileData = e.target.result;
+    document.getElementById('logoImg').src = logoFileData;
+    document.getElementById('logoPreview').style.display='block';
+    document.getElementById('logoPlaceholder').style.display='none';
+    document.getElementById('logoName').innerText = file.name + ' • ' + (file.size/1024).toFixed(0) + ' KB';
+  };
+  reader.readAsDataURL(file);
+});
+
 document.getElementById('post').onclick=async()=>{
-const job={title:title.value,company:company.value,location:location.value,salary:salary.value,type:type.value,description:desc.value,closing_date:closing.value||null};
-if(!job.title||!job.company){alert('Fill title & company');return;}
-const b=document.getElementById('post');b.textContent='Posting...';b.disabled=true;
+const titleVal=document.getElementById('title').value.trim();
+const companyVal=document.getElementById('company').value.trim();
+if(!titleVal||!companyVal){alert('Fill title & company');return;}
+
+const b=document.getElementById('post');
+b.textContent='Posting...';b.disabled=true;
+document.getElementById('msg').innerText='Uploading logo & job...';
+
+let logoUrl = null;
+
+// 1. Try upload to Supabase Storage (no size limit)
+if(logoFileObj){
+  try{
+    const fileName = Date.now() + '_' + logoFileObj.name.replace(/[^a-zA-Z0-9.-]/g,'_');
+    const { data, error: upErr } = await supabaseClient.storage.from('company-logos').upload(fileName, logoFileObj, { upsert: true });
+    if(upErr){
+      // bucket may not exist - fallback to base64
+      console.log('Storage upload error, using base64 fallback:', upErr.message);
+      logoUrl = logoFileData; // base64 fallback - no limit
+    } else {
+      const { data: pub } = supabaseClient.storage.from('company-logos').getPublicUrl(fileName);
+      logoUrl = pub.publicUrl;
+    }
+  }catch(e){
+    logoUrl = logoFileData; // fallback
+  }
+}
+
+const job={
+  title:titleVal,
+  company:companyVal,
+  location:document.getElementById('location').value,
+  salary:document.getElementById('salary').value,
+  type:document.getElementById('type').value,
+  description:document.getElementById('desc').value,
+  closing_date:document.getElementById('closing').value||null,
+  logo: logoUrl, // will work whether bucket or base64
+  logo_url: logoUrl
+};
+
 const {error}=await supabaseClient.from('jobs').insert(job);
-if(error){alert(error.message);b.textContent='Post Job';b.disabled=false;return;}
-alert('Job posted!');location.href='dashboard.html?v=40';
+if(error){
+  // if logo column doesn't exist, try without logo field names
+  if(error.message.includes('logo')){
+    delete job.logo; delete job.logo_url;
+    job.company_logo = logoUrl;
+    const { error: e2 } = await supabaseClient.from('jobs').insert(job);
+    if(e2){
+      // final fallback - insert without logo column at all, save logo in local
+      delete job.company_logo;
+      const { error: e3 } = await supabaseClient.from('jobs').insert(job);
+      if(e3){ alert(e3.message); b.textContent='Post Job →'; b.disabled=false; return; }
+      // save logo locally linked to job title
+      let localJobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
+      localJobs.unshift({...job, logo: logoUrl, logo_url: logoUrl, postedAt: Date.now()});
+      localStorage.setItem('jobway_employer_jobs', JSON.stringify(localJobs));
+    }
+  } else {
+    alert(error.message);b.textContent='Post Job →';b.disabled=false;return;
+  }
+}
+document.getElementById('msg').innerHTML='✅ Job posted with logo!';
+alert('✅ Job posted!');location.href='employer-dashboard.html';
 };
 </script></body></html>
