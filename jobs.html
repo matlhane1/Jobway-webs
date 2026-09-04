@@ -3,44 +3,48 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Find Jobs | JobWay.co.za</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
 .header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
-.logo-text{font-weight:900;color:#01F9C6;font-size:20px}
-.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
+.logo-text{font-weight:900;color:#01F9C6;font-size:20px;font-family:'Space Grotesk',sans-serif}
+.btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap}
 .btn-dark{background:#2A3F4E;color:white}
 .btn-green{background:#01F9C6;color:#08231C}
+.nav-cta{display:flex;flex-direction:row;gap:8px;align-items:center}
 .container{max-width:600px;margin:0 auto;padding:14px}
 .important-banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:16px;padding:14px 16px;font-weight:900;font-size:13px;text-align:center;margin:12px 0;border:2px solid #01F9C6}
 .important-banner span{display:block;font-size:18px;margin-top:4px}
 .filters{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .select{background:#0F2230;border:1px solid #25475A;color:#8DB0BF;padding:12px;border-radius:12px;width:100%}
-.btn-filter{padding:12px;border-radius:12px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px}
+.btn-filter{padding:12px;border-radius:999px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px}
 .btn-wa{background:#01F9C6;color:#08231C}
 .btn-track{background:#D9E3E8;color:#0F2230}
-.card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
-.job-top{display:flex;justify-content:space-between;align-items:center}
-.job-title{font-size:20px;font-weight:800}
-.match{background:#01F9C6;color:#08231C;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:900}
-.job-meta{color:#8DB0BF;font-size:13px;margin:8px 0}
+.card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px;position:relative}
+.job-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.job-title{font-size:18px;font-weight:800;line-height:1.2}
+.match{background:#01F9C6;color:#08231C;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:900;white-space:nowrap}
+.job-meta{color:#8DB0BF;font-size:12px;margin:6px 0}
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.badge-teal{background:#143E4A;color:#01F9C6;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700}
-.badge-red{background:#4A1E2A;color:#FF8A9D;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700}
-.badge-level{background:#143E4A;color:#01F9C6;padding:5px 10px;border-radius:14px;font-size:11px;font-weight:700}
-.badge-salary{background:#3A2E;color:#FF8A9D;padding:5px 10px;border-radius:14px;font-size:11px;font-weight:700}
-.desc{color:#E6F2F5;font-size:13px;margin:8px 0}
-.btn-apply{background:#01F9C6;color:#08231C;border:none;border-radius:12px;padding:12px 18px;font-weight:900;cursor:pointer;flex:1}
-.btn-detail{background:#2A3F4E;color:white;border:none;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer;flex:1}
+.badge-teal{background:#143E4A;color:#01F9C6;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-red{background:#4A1E2A;color:#FF8A9D;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700}
+.desc{color:#E6F2F5;font-size:13px;margin:8px 0;line-height:1.4}
+.btn-apply{background:#01F9C6;color:#08231C;border:none;border-radius:999px;padding:12px 18px;font-weight:900;cursor:pointer;flex:1}
+.btn-detail{background:#2A3F4E;color:white;border:none;border-radius:999px;padding:12px 18px;font-weight:800;cursor:pointer;flex:1}
+.company-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.logo-img{width:48px;height:48px;object-fit:contain;background:white;border-radius:12px;padding:6px;border:1px solid rgba(255,255,255,0.1)}
+.logo-fallback{width:48px;height:48px;background:#11283A;border:1px solid #25475A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
 </style>
 </head>
 <body>
 <div class="header">
 <div class="logo-text">JobWay</div>
-<div style="display:flex;gap:8px">
+<div class="nav-cta">
+<button class="btn btn-dark" onclick="location.href='pricing.html'">Pricing</button>
 <button class="btn btn-dark" onclick="location.href='profile.html'">My Profile</button>
-<button class="btn btn-green" onclick="location.href='employer-dashboard.html'">Employer</button>
+<button class="btn btn-green" id="empBtn" onclick="handleEmployer()">Employer</button>
 </div>
 </div>
 
@@ -58,23 +62,80 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </div>
 
 <script>
+const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+
+function handleEmployer(){
+  const role = localStorage.getItem('user_role');
+  const logged = localStorage.getItem('jobway_logged_in');
+  if(logged && role==='employer'){ location.href='employer-dashboard.html'; }
+  else if(logged && role==='candidate'){ alert('⛔ Employer access only. You are logged in as candidate.'); location.href='seeker-dashboard.html'; }
+  else { location.href='login.html'; }
+}
+
 function getEmployerJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]')}
 function getUserSkills(){let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');return (p.skills||['Serving','POS','Customer Service']).map(s=>s.toLowerCase())}
-function getDefaults(){return [{title:'Cashier',company:'Shoprite',location:'Johannesburg, Gauteng',city:'Gauteng',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R5500',salaryText:'R5,500 - R6,800',desc:'Handle POS and customers with matric.',required:['POS','Cashier'],duration:'Permanent',postedAt:Date.now()-4*3600000,closingDate:'13 Sept 2026'},{title:'Retail Assistant',company:'Boxer',location:'Cape Town, Western Cape',city:'Western Cape',type:'Part-time',remote:'Onsite',level:'Entry Level',salary:'R4600',salaryText:'R4,600',desc:'Assist shoppers',required:['Retail','Stock'],duration:'3 Months',postedAt:Date.now()-6*3600000,closingDate:'15 Sept 2026'},{title:'Waiter',company:'Mugg & Bean',location:'Durban, KZN',city:'KZN',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R3500',salaryText:'R4,200 + Tips',desc:'Weekend waiter',required:['Serving'],duration:'Permanent',postedAt:Date.now()-2*3600000,closingDate:'13 Sept 2026'}]}
+function getDefaults(){return [{title:'Cashier',company:'Shoprite',location:'Johannesburg, Gauteng',city:'Gauteng',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R5500',salaryText:'R5,500 - R6,800',desc:'Handle POS and customers with matric.',required:['POS','Cashier'],duration:'Permanent',postedAt:Date.now()-4*3600000,closingDate:'13 Sept 2026',logo:null},{title:'Retail Assistant',company:'Boxer',location:'Cape Town, Western Cape',city:'Western Cape',type:'Part-time',remote:'Onsite',level:'Entry Level',salary:'R4600',salaryText:'R4,600',desc:'Assist shoppers',required:['Retail','Stock'],duration:'3 Months',postedAt:Date.now()-6*3600000,closingDate:'15 Sept 2026',logo:null},{title:'Waiter',company:'Mugg & Bean',location:'Durban, KZN',city:'KZN',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R3500',salaryText:'R4,200 + Tips',desc:'Weekend waiter',required:['Serving'],duration:'Permanent',postedAt:Date.now()-2*3600000,closingDate:'13 Sept 2026',logo:null}]}
+
 function calcMatch(job){let skills=getUserSkills();let m=0;job.required.forEach(r=>{if(skills.some(s=>r.toLowerCase().includes(s)))m++});let pct=Math.round((m/job.required.length)*100);if(pct<45)pct=65;return pct;}
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Just now';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)}d ago`;}
-function render(){
+
+let allJobs = [];
+
+async function fetchSupabaseJobs(){
+  try{
+    const { data, error } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
+    if(error){ console.log('Supabase error', error.message); return []; }
+    return data.map(j=>({
+      title: j.title,
+      company: j.company,
+      location: j.location,
+      city: (j.location||'').split(',')[0]||'Gauteng',
+      type: j.type||'Full-time',
+      remote: 'Onsite',
+      level: 'Entry Level',
+      salary: j.salary||'R5000',
+      salaryText: j.salary||'R5000',
+      desc: j.description||'',
+      required: ['Customer'],
+      duration: 'Permanent',
+      postedAt: j.created_at? new Date(j.created_at).getTime() : Date.now(),
+      closingDate: j.closing_date? new Date(j.closing_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}) : '30 Sept 2026',
+      logo: j.logo || j.logo_url || j.company_logo || null,
+      id: j.id
+    }));
+  }catch(e){ return []; }
+}
+
+async function render(){
  let qCity=document.getElementById('loc').value;
- let jobs=[...getEmployerJobs(),...getDefaults()];
- if(qCity)jobs=jobs.filter(j=>j.city===qCity||j.location.includes(qCity));
+ let supaJobs = await fetchSupabaseJobs();
+ let localJobs = getEmployerJobs();
+ let jobs=[...supaJobs,...localJobs,...getDefaults()];
+ // dedupe by title+company
+ let seen = new Set();
+ jobs = jobs.filter(j=>{ const k=j.title+'|'+j.company; if(seen.has(k)) return false; seen.add(k); return true; });
+ if(qCity)jobs=jobs.filter(j=>j.city===qCity|| (j.location||'').includes(qCity));
+
  document.getElementById('list').innerHTML=jobs.map(j=>{
   let pct=j.match||calcMatch(j);let posted=timeAgo(j.postedAt||Date.now());
-  return `<div class="card"><div class="job-top"><div class="job-title">${j.title}</div><div class="match">${pct}% Match</div></div><div class="job-meta">${j.company} • ${j.location} • ${j.type}</div><div class="badges"><span class="badge-teal">${posted}</span><span class="badge-red">Closes: ${j.closingDate}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:10px;margin-top:10px"><button class="btn-apply" onclick="applyJob('${j.title}','${j.company}')">Apply Now - 1 Click</button><button class="btn-detail" onclick="alert('${j.title}')">Details</button></div></div>`
+  let logoHtml = j.logo? `<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">🏢</div>` : `<div class="logo-fallback">🏢</div>`;
+  return `<div class="card">
+    <div class="company-row">
+      ${logoHtml}
+      <div style="flex:1"><div style="font-weight:800;font-size:14px">${j.company}</div><div class="job-meta" style="margin:0">${j.location} • ${j.type}</div></div>
+      <div class="match">${pct}% Match</div>
+    </div>
+    <div class="job-top"><div class="job-title">${j.title}</div></div>
+    <div class="badges"><span class="badge-teal">${posted}</span><span class="badge-red">Closes: ${j.closingDate}</span></div>
+    <div class="desc">${j.desc}</div>
+    <div style="display:flex;gap:10px;margin-top:12px"><button class="btn-apply" onclick="applyJob('${j.title.replace(/'/g,"\\'")}','${j.company.replace(/'/g,"\\'")}')">Apply Now - 1 Click</button><button class="btn-detail" onclick="alert('${j.title.replace(/'/g,"\\'")} at ${j.company.replace(/'/g,"\\'")}\\n${j.desc.replace(/'/g,"\\'")}')">Details</button></div>
+  </div>`
  }).join('');
+ if(jobs.length===0){ document.getElementById('list').innerHTML='<div class="card" style="text-align:center;color:#8DB0BF">No jobs found. Be first to post!</div>'; }
 }
 function applyJob(title,company){
  let profile=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
- if(!profile.cvName || !profile.fullName || !profile.email){
+ if(!profile.cvName ||!profile.fullName ||!profile.email){
    if(confirm('⚠️ First time? You need to upload CV once in Profile.\nGo to Profile now?')){
      localStorage.setItem('jobway_pending_job',JSON.stringify({title,company}));
      location.href='profile.html';
@@ -86,7 +147,6 @@ function applyJob(title,company){
    alert(`⚠️ Already applied for ${title} at ${company}\nCheck Track Applications`);
    location.href='seeker-dashboard.html'; return;
  }
- // AUTOMATIC 1-CLICK - NO PROMPTS
  apps.unshift({
    id:Date.now().toString(),
    job_title:title,company:company,
