@@ -3,40 +3,60 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile | JobWay</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<script>
+// === CANDIDATE ONLY LOCK - POPIA ===
+(function(){
+  const logged = localStorage.getItem('jobway_logged_in');
+  const role = localStorage.getItem('user_role');
+  if(!logged){
+    location.href = 'login.html';
+    return;
+  }
+  if(role === 'employer'){
+    alert('⛔ This is Candidate Profile. Employer cannot upload CV.');
+    location.href = 'employer-dashboard.html';
+  }
+})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
-.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0}
-.logo{font-weight:900;color:#01F9C6;font-size:20px}
-.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
+.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;color:#01F9C6;font-size:20px;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;gap:8px}
+.btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap}
 .btn-dark{background:#2A3F4E;color:white}
-.btn-green{background:#01F9C6;color:#08231C;width:100%;padding:14px;margin-top:12px;font-size:15px}
+.btn-green{background:#01F9C6;color:#08231C;width:100%;padding:14px;margin-top:12px;font-size:15px;border-radius:999px;font-weight:900}
+.nav-cta{display:flex;flex-direction:row;gap:8px;align-items:center}
 .container{max-width:600px;margin:0 auto;padding:16px}
 .card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
-.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:12px;margin-top:8px}
-.label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
-.upload-box{border:2px dashed #01F9C6;border-radius:16px;padding:20px;text-align:center;margin-top:10px;background:rgba(1,249,198,0.05);cursor:pointer}
-.upload-box.dragover{background:rgba(1,249,198,0.15)}
+.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:12px;margin-top:8px;font-family:'Plus Jakarta Sans',sans-serif}
+.input:focus{border-color:#01F9C6;outline:none}
+.label{font-size:11px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700;letter-spacing:0.3px;text-transform:uppercase}
+.upload-box{border:2px dashed #01F9C6;border-radius:16px;padding:20px;text-align:center;margin-top:10px;background:rgba(1,249,198,0.05);cursor:pointer;transition:0.2s}
+.upload-box.dragover{background:rgba(1,249,198,0.15);border-color:#01F9C6}
 .file-name{color:#01F9C6;font-size:12px;margin-top:8px;font-weight:800}
-.badge-skill{background:#143E4A;color:#01F9C6;padding:6px 10px;border-radius:20px;font-size:11px;margin:4px;display:inline-block}
+.badge-skill{background:#143E4A;color:#01F9C6;padding:6px 10px;border-radius:20px;font-size:11px;margin:4px;display:inline-block;font-weight:700}
 .banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:16px;padding:12px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
 </style>
 </head>
 <body>
 <div class="header">
-<div class="logo">JobWay</div>
-<div style="display:flex;gap:8px">
+<div class="logo">JobWay <span style="font-size:10px;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:3px 8px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif">CANDIDATE ONLY</span></div>
+<div class="nav-cta">
+<button class="btn btn-dark" onclick="location.href='pricing.html'">Pricing</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">💼 Jobs</button>
 <button class="btn btn-dark" onclick="location.href='seeker-dashboard.html'">📊 Track</button>
+<button class="btn btn-green" style="width:auto;padding:10px 14px;margin-top:0" onclick="logout()">Log Out</button>
 </div>
 </div>
 
 <div class="container">
-<div class="banner">📱 Official WhatsApp: 079 060 8952 — CV attached to all applications</div>
+<div class="banner">📱 Official WhatsApp: 079 060 8952 — CV attached to all applications<br><small id="candEmail" style="font-size:11px;opacity:0.9"></small></div>
 
 <div class="card">
-<h3>👤 My Profile</h3>
+<h3 style="font-family:'Space Grotesk',sans-serif">👤 My Profile</h3>
+<p style="font-size:11px;color:#8DB0BF;margin-top:4px">Upload CV once — 1-Click Apply everywhere</p>
 <label class="label">Full Name</label>
 <input class="input" id="fullName" placeholder="e.g. Thabo Molefe">
 <label class="label">Email (for automatic notifications)</label>
@@ -65,25 +85,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </div>
 
 <div class="card">
-<h4 style="color:#01F9C6">📎 How CV works:</h4>
+<h4 style="color:#01F9C6;font-family:'Space Grotesk',sans-serif">📎 How CV works:</h4>
 <p style="font-size:12px;color:#8DB0BF;margin-top:6px;line-height:1.5">
 1. Upload CV here once<br>
 2. When you click Apply in Jobs page, your CV is AUTOMATICALLY attached<br>
-3. Employer sees it in employer-dashboard.html<br>
-4. No need to upload again - 1-Click Apply forever
+3. Employer sees it in employer dashboard<br>
+4. No need to upload again - 1-Click Apply forever<br><br>
+<span style="color:#01F9C6">👁️ Employer sees your CV + profile only after you Apply - not before.</span>
 </p>
 </div>
 </div>
 
 <script>
+function logout(){ localStorage.clear(); location.href='index.html'; }
+
 function loadProfile(){
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  document.getElementById('fullName').value=p.fullName||'';
- document.getElementById('email').value=p.email||'';
+ document.getElementById('email').value=p.email||localStorage.getItem('jobway_user_email')||'';
  document.getElementById('whatsapp').value=p.whatsapp||'';
  document.getElementById('skills').value=(p.skills||[]).join(', ');
  document.getElementById('location').value=p.location||'Gauteng';
  if(p.cvName){document.getElementById('fileName').innerText='✅ '+p.cvName+' ('+p.cvSize+')';}
+ document.getElementById('candEmail').innerText='🔒 '+(localStorage.getItem('jobway_user_email')||p.email||'');
  renderSkills();
 }
 function renderSkills(){
@@ -121,13 +145,15 @@ function saveProfile(){
  p.whatsapp=document.getElementById('whatsapp').value;
  p.skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean);
  p.location=document.getElementById('location').value;
+ if(!p.fullName||!p.email){ alert('Fill name & email'); return; }
  localStorage.setItem('jobway_profile',JSON.stringify(p));
+ localStorage.setItem('jobway_user_email', p.email);
  document.getElementById('savedMsg').style.display='block';
  setTimeout(()=>{
    let pending=JSON.parse(localStorage.getItem('jobway_pending_job')||'null');
    if(pending){
      localStorage.removeItem('jobway_pending_job');
-     alert('✅ Profile + CV saved! Now you can 1-Click Apply to '+pending.title+'\nGo to Jobs and press Apply Now - it will send AUTOMATICALLY without asking name/email');
+     alert('✅ Profile + CV saved! Now 1-Click Apply to '+pending.title+'\nGo to Jobs and press Apply Now');
      location.href='jobs.html';
      return;
    }
