@@ -3,15 +3,33 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Employer Dashboard | JobWay</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<script>
+// === POPIA LAWSUIT PROTECTION - ROLE LOCK AT TOP ===
+(function(){
+  const logged = localStorage.getItem('jobway_logged_in');
+  const role = localStorage.getItem('user_role');
+  if(!logged || role!== 'employer'){
+    alert('⛔ Access denied: Employer login required. You will be redirected.');
+    // Don't clear if candidate, just redirect to their dashboard
+    if(role === 'candidate'){
+      location.href = 'seeker-dashboard.html';
+    } else {
+      localStorage.clear();
+      location.href = 'login.html';
+    }
+  }
+})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
 .header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
-.logo{font-weight:900;color:#01F9C6;font-size:20px}
-.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
+.logo{font-weight:900;color:#01F9C6;font-size:20px;display:flex;align-items:center;gap:8px}
+.btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap}
 .btn-dark{background:#2A3F4E;color:white}
 .btn-green{background:#01F9C6;color:#08231C}
+.nav-cta{display:flex;flex-direction:row;gap:8px;align-items:center}
 .container{max-width:700px;margin:0 auto;padding:16px}
 .card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
 .input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:12px;margin-top:8px}
@@ -27,15 +45,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </head>
 <body>
 <div class="header">
-<div class="logo">JobWay — Employer</div>
-<div style="display:flex;gap:8px">
+<div class="logo">JobWay — Employer <span style="font-size:10px;background:#01F9C6;color:#08231C;padding:3px 8px;border-radius:999px">EMPLOYER ONLY</span></div>
+<div class="nav-cta">
+<button class="btn btn-dark" onclick="location.href='pricing.html'">Pricing</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">Jobs</button>
-<button class="btn btn-dark" onclick="location.href='profile.html'">Profile</button>
+<button class="btn btn-green" onclick="logout()">Log Out</button>
 </div>
 </div>
 
 <div class="container">
-<div class="banner">📱 Notifications from 079 060 8952 | 1-Click CV Auto-Attached</div>
+<div class="banner">📱 Notifications from 079 060 8952 | 1-Click CV Auto-Attached | 🔒 Employer Session: <span id="empEmail"></span></div>
 
 <h3 style="margin:12px 0">📥 Applications (<span id="count">0</span>)</h3>
 <div id="appsList"></div>
@@ -45,18 +64,26 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <label class="label">Title</label><input class="input" id="jobTitle" placeholder="Cashier">
 <label class="label">Company</label><input class="input" id="jobCompany" placeholder="Shoprite">
 <label class="label">Location</label><input class="input" id="jobLocation" placeholder="Johannesburg, Gauteng">
-<button class="btn btn-green" style="width:100%;margin-top:12px;padding:14px" onclick="postJob()">Post Job</button>
+<button class="btn btn-green" style="width:100%;margin-top:12px;padding:14px;border-radius:999px" onclick="postJob()">Post Job</button>
 </div>
 </div>
 
 <script>
 const STATUSES=["Application Received","Under Review","Shortlisted","Interview Scheduled","Interview Completed","Assessment","Offer Made","Hired","Not Selected"];
 const OFFICIAL_NUMBER="079 060 8952";
+
+function logout(){
+  localStorage.clear();
+  location.href='index.html';
+}
+
 function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]')}
 function saveApps(a){localStorage.setItem('jobway_all_applications',JSON.stringify(a))}
+
 function render(){
  let apps=getApps();
  document.getElementById('count').innerText=apps.length;
+ document.getElementById('empEmail').innerText = localStorage.getItem('jobway_user_email') || '';
  if(apps.length==0){
    document.getElementById('appsList').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No applications yet. Candidate must save CV in Profile then 1-Click Apply.</div>`;
    return;
