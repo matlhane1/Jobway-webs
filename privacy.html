@@ -11,22 +11,57 @@ h1{font-family:'Space Grotesk',sans-serif;font-size:32px;margin-bottom:12px}
 h3{color:var(--bright);margin:24px 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:0.06em}
 p,li{color:var(--muted);line-height:1.7;font-size:14px;margin-bottom:8px}
 .card{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.2);border-radius:20px;padding:24px;margin-top:20px}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th{color:var(--bright);text-align:left;font-size:12px;padding:8px;border-bottom:1px solid rgba(1,249,198,0.2)}
+td{color:var(--muted);font-size:13px;padding:8px;border-bottom:1px solid rgba(255,255,255,0.08)}
 a{color:var(--bright)}</style>
 </head><body>
 <div class="top"><a href="index.html">← Back to JobWay</a><span style="color:var(--muted);font-size:12px">hello@jobway.co.za | 079 060 8952</span></div>
 <div class="wrap">
 <h1>Privacy Policy</h1>
-<p>Last updated: 3 Sept 2026 • JobWay.co.za • Pretoria, South Africa</p>
+<p>Last updated: 5 September 2026 • JobWay.co.za • Pretoria, South Africa • POPIA Compliant</p>
+
 <div class="card">
 <h3>1. What we collect</h3>
-<p>We collect email, CV, job applications, and WhatsApp number 079 060 8952 alerts you opt into.</p>
+<p>We collect email, CV (from storage bucket `cvs`), profile data (from `avatars`), company logos (`company-logos`), job applications, and WhatsApp alerts you opt into via 079 060 8952.</p>
+
 <h3>2. POPIA Compliant</h3>
-<p>We comply with POPIA. Your data is stored in South Africa (Cloudflare). You can request deletion: hello@jobway.co.za</p>
-<h3>3. How we use</h3>
+<p>We comply with the Protection of Personal Information Act (POPIA). Your data is stored securely via Supabase / Cloudflare (SA region where possible). You can request access, correction or deletion: hello@jobway.co.za. We retain active accounts for duration of account + 12 months.</p>
+
+<h3>3. How we use your data</h3>
 <li>Match you to jobs, 1-Click Apply, send alerts via 079 060 8952</li>
-<li>Employers see only CVs you applied with</li>
-<h3>4. Contact</h3>
-<p>Email: hello@jobway.co.za<br>WhatsApp: 079 060 8952<br>Support: support@jobway.co.za</p>
+<li>Employers see only CVs you applied with — we do not sell your data</li>
+<li>Secure file hosting via Supabase Storage with RLS policies</li>
+
+<h3>4. Cookies, Pixels & Tracking Technologies (NEW)</h3>
+<p>We use cookies and similar tracking to operate JobWay and improve your job search. We use Google Consent Mode v2 — non-essential pixels only run after you click "Accept".</p>
+
+<table>
+<tr><th>Category</th><th>Purpose</th><th>Provider</th><th>Duration</th></tr>
+<tr><td>Strictly Necessary</td><td>Login, security, CV upload</td><td>JobWay</td><td>Session</td></tr>
+<tr><td>Analytics</td><td>Measure usage, popular jobs in Pretoria/Gauteng</td><td>Google Analytics 4 (GA4) - _ga, _gid</td><td>14 months</td></tr>
+<tr><td>Marketing</td><td>Retarget relevant jobs on Facebook/Instagram</td><td>Meta Pixel</td><td>12 months</td></tr>
+<tr><td>Conversion</td><td>Track job application after Google Ad click</td><td>Google Ads Conversion Tracking</td><td>90 days</td></tr>
+</table>
+
+<p><b>Meta Pixel:</b> Tracks PageView, ViewContent (job viewed), Lead (started apply), CompleteRegistration (applied). Collects IP, browser, actions. Data transferred to Meta Platforms Inc., USA under POPIA s72.</p>
+<p><b>Google Analytics 4:</b> Collects anonymized IP, device, pages visited, referral source. Used for aggregate insights only.</p>
+<p><b>Google Ads Conversion:</b> Tracks if you apply after clicking our ad to optimize ad spend. No sensitive data shared.</p>
+
+<h3>5. Your Choices & Opt-Out</h3>
+<li>Manage anytime via "Cookie Settings" in footer</li>
+<li>Google: <a href="https://tools.google.com/dlpage/gaoptout">GA Opt-Out</a> & <a href="https://myadcenter.google.com">My Ad Center</a></li>
+<li>Meta: <a href="https://www.facebook.com/adpreferences">Facebook Ad Preferences</a></li>
+<li>Browser: Block cookies in settings — some features (CV upload) may break</li>
+
+<h3>6. Who We Share With</h3>
+<p>We do NOT sell data. We share only with: Recruiters (CVs you applied with), Supabase (hosting), Cloudflare (CDN), Google LLC (analytics/ads), Meta Platforms Inc. (ads) — all under data processing agreements.</p>
+
+<h3>7. Cross-Border Transfers</h3>
+<p>Primary storage in South Africa. Analytics/ads data may be transferred to USA for processing under POPIA Section 72 (consent + contractual necessity). You consent to this by accepting cookies.</p>
+
+<h3>8. Contact</h3>
+<p>Email: hello@jobway.co.za<br>WhatsApp: 079 060 8952<br>Support: support@jobway.co.za<br>Information Officer: hello@jobway.co.za</p>
 </div>
 </div>
 </body></html>
