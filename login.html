@@ -21,7 +21,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 .input{width:100%;background:rgba(10,31,46,0.8);border:1px solid rgba(255,255,255,0.1);color:white;padding:14px 16px;border-radius:999px;font-size:14px;outline:none}
 .input:focus{border-color:var(--bright)}
 .pass-wrap{position:relative;display:flex;align-items:center}
-.pass-wrap.input{padding-right:48px}
 .eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);width:36px;height:36px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
 .row-between{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 .forgot{color:var(--bright);font-size:12px;font-weight:800;text-decoration:none;letter-spacing:0.2px}
@@ -78,6 +77,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 <div class="footer">© 2026 JobWay.co.za • Your Job, Your Way • Built in Pretoria</div>
 <script>
 const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
+const HYPER_WORKER_URL = "https://bzbsqouohsylnhrsjhhy.supabase.co/functions/v1/clever-responder";
+
 function togglePass(){
   let p=document.getElementById('pass');
   let b=document.getElementById('eyeBtn');
@@ -97,11 +98,7 @@ function login(){
   localStorage.setItem('user_role', role);
   localStorage.setItem('employer_email', role === 'employer'? e : '');
   localStorage.setItem('candidate_email', role === 'candidate'? e : '');
-  if(role === 'employer'){
-    location.href='employer-dashboard.html';
-  } else {
-    location.href='seeker-dashboard.html';
-  }
+  if(role === 'employer'){ location.href='employer-dashboard.html'; } else { location.href='seeker-dashboard.html'; }
 }
 function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';document.getElementById('resetMsg').style.display='none';}
 function closeForgot(){document.getElementById('forgotModal').style.display='none';}
@@ -120,22 +117,20 @@ async function sendReset(){
   resets[token] = { email: e, time: Date.now() };
   localStorage.setItem('jobway_password_resets', JSON.stringify(resets));
 
-  // Hardcoded domain so link works on phone Gmail
-  const resetLink = 'https://jobway.co.za/reset-password.html?token=' + token;
+  const resetLink = 'https://jobway.co.za/reset-password.html?token=' + token + '&email=' + encodeURIComponent(e);
 
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
   try{
-    const res = await fetch('https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker',{
+    const res = await fetch(HYPER_WORKER_URL,{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
       },
-      // ONLY send to + resetLink - worker builds the HTML itself, this fixes "undefined"
-      body: JSON.stringify({ to: e, resetLink: resetLink })
+      body: JSON.stringify({ to: e, resetLink: resetLink, email: e })
     });
 
     const text = await res.text();
@@ -144,14 +139,14 @@ async function sendReset(){
 
     if(res.ok){
       msgEl.style.color='#01F9C6';
-      msgEl.innerHTML = '✅ Real email sent to '+e+'<br><span style="font-size:11px;color:#A8C8D0">Check inbox & SPAM<br>Link also saved, opens on any device</span>';
+      msgEl.innerHTML = '✅ Email sent to '+e+'<br><span style="font-size:11px;color:#A8C8D0">Check inbox & SPAM. Link valid 24h.<br>If you open on another phone, token is in link.</span>';
       btn.textContent = 'Sent! ✓';
     } else {
       throw new Error(data.error || data.message || text || 'Failed');
     }
   }catch(err){
     msgEl.style.color='#ff8a8a';
-    msgEl.textContent='❌ Error: '+err.message;
+    msgEl.textContent='❌ Error: '+err.message + '\n\nCheck that you added RESEND_API_KEY in Supabase > clever-responder > Settings';
     btn.disabled=false;
     btn.textContent='Send reset link';
   }
