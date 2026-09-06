@@ -76,8 +76,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 </div>
 <div class="footer">© 2026 JobWay.co.za • Your Job, Your Way • Built in Pretoria</div>
 <script>
-const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
-const HYPER_WORKER_URL = "https://bzbsqouohsylnhrsjhhy.supabase.co/functions/v1/clever-responder";
+const HYPER_WORKER_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker";
 function togglePass(){
   let p=document.getElementById('pass');
   let b=document.getElementById('eyeBtn');
@@ -119,12 +118,8 @@ async function sendReset(){
   try{
     const res = await fetch(HYPER_WORKER_URL,{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify({ to: e, resetLink: resetLink, email: e })
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ to: e, resetLink: resetLink })
     });
     const text = await res.text();
     let data;
@@ -138,7 +133,7 @@ async function sendReset(){
     }
   }catch(err){
     msgEl.style.color='#ff8a8a';
-    msgEl.textContent='❌ Error: '+err.message + '\n\nCheck ZEPTOMAIL_API_KEY in Supabase Secrets';
+    msgEl.textContent='❌ Error: '+err.message;
     btn.disabled=false;
     btn.textContent='Send reset link';
   }
