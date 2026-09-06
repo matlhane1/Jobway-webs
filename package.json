@@ -1,0 +1,7 @@
+{
+  "name": "jobway-webs",
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^6.9.15"
+  }
+}
