@@ -67,7 +67,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 <div class="modal-bg" id="forgotModal">
   <div class="modal">
     <div style="font-family:'Space Grotesk';font-weight:800;font-size:20px;margin-bottom:6px">Reset password</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">We'll send a reset link to your email and WhatsApp.</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">We'll send a reset link to your email.</div>
     <input class="input" id="resetEmail" type="email" placeholder="you@gmail.com">
     <button class="btn-green" id="sendBtn" onclick="sendReset()">Send reset link</button>
     <button class="btn-dark" onclick="closeForgot()">Cancel</button>
@@ -78,7 +78,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 <script>
 const SUPABASE_ANON_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const HYPER_WORKER_URL = "https://bzbsqouohsylnhrsjhhy.supabase.co/functions/v1/clever-responder";
-
 function togglePass(){
   let p=document.getElementById('pass');
   let b=document.getElementById('eyeBtn');
@@ -92,7 +91,6 @@ function login(){
   const employerEmails = ['employer.jobway@gmail.com','admin@jobway.co.za','invoices@jobway.co.za'];
   let role = 'candidate';
   if(employerEmails.includes(e) || e.includes('employer') || e.includes('@jobway.co.za')){ role = 'employer'; }
-  localStorage.clear();
   localStorage.setItem('jobway_user_email', e);
   localStorage.setItem('jobway_logged_in','true');
   localStorage.setItem('user_role', role);
@@ -102,7 +100,6 @@ function login(){
 }
 function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';document.getElementById('resetMsg').style.display='none';}
 function closeForgot(){document.getElementById('forgotModal').style.display='none';}
-
 async function sendReset(){
   const e = document.getElementById('resetEmail').value.trim().toLowerCase();
   const msgEl = document.getElementById('resetMsg');
@@ -111,17 +108,14 @@ async function sendReset(){
   msgEl.style.display='block';
   msgEl.style.color='#A8C8D0';
   msgEl.textContent='⏳ Generating secure link...';
-
   const token = Math.random().toString(36).substring(2,15) + Date.now().toString(36);
   let resets = JSON.parse(localStorage.getItem('jobway_password_resets')||'{}');
   resets[token] = { email: e, time: Date.now() };
   localStorage.setItem('jobway_password_resets', JSON.stringify(resets));
-
+  localStorage.setItem('jobway_user_email', e);
   const resetLink = 'https://jobway.co.za/reset-password.html?token=' + token + '&email=' + encodeURIComponent(e);
-
   btn.disabled = true;
   btn.textContent = 'Sending...';
-
   try{
     const res = await fetch(HYPER_WORKER_URL,{
       method:'POST',
@@ -132,21 +126,19 @@ async function sendReset(){
       },
       body: JSON.stringify({ to: e, resetLink: resetLink, email: e })
     });
-
     const text = await res.text();
     let data;
     try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
     if(res.ok){
       msgEl.style.color='#01F9C6';
-      msgEl.innerHTML = '✅ Email sent to '+e+'<br><span style="font-size:11px;color:#A8C8D0">Check inbox & SPAM. Link valid 24h.<br>If you open on another phone, token is in link.</span>';
+      msgEl.innerHTML = '✅ Email sent to '+e+'<br><span style="font-size:11px;color:#A8C8D0">Check inbox & SPAM. From no-reply@jobway.co.za via ZeptoMail<br>Link valid 24h</span>';
       btn.textContent = 'Sent! ✓';
     } else {
       throw new Error(data.error || data.message || text || 'Failed');
     }
   }catch(err){
     msgEl.style.color='#ff8a8a';
-    msgEl.textContent='❌ Error: '+err.message + '\n\nCheck that you added RESEND_API_KEY in Supabase > clever-responder > Settings';
+    msgEl.textContent='❌ Error: '+err.message + '\n\nCheck ZEPTOMAIL_API_KEY in Supabase Secrets';
     btn.disabled=false;
     btn.textContent='Send reset link';
   }
