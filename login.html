@@ -21,7 +21,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 .input{width:100%;background:rgba(10,31,46,0.8);border:1px solid rgba(255,255,255,0.1);color:white;padding:14px 16px;border-radius:999px;font-size:14px;outline:none}
 .input:focus{border-color:var(--bright)}
 .pass-wrap{position:relative;display:flex;align-items:center}
-.pass-wrap .input{padding-right:48px}
+.pass-wrap.input{padding-right:48px}
 .eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);width:36px;height:36px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
 .row-between{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 .forgot{color:var(--bright);font-size:12px;font-weight:800;text-decoration:none;letter-spacing:0.2px}
@@ -75,9 +75,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
     <div style="font-family:'Space Grotesk';font-weight:800;font-size:20px;margin-bottom:6px">Reset password</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:16px">We'll send a reset link to your email and WhatsApp.</div>
     <input class="input" id="resetEmail" type="email" placeholder="you@gmail.com">
-    <button class="btn-green" onclick="sendReset()">Send reset link</button>
+    <button class="btn-green" id="sendBtn" onclick="sendReset()">Send reset link</button>
     <button class="btn-dark" onclick="closeForgot()">Cancel</button>
-    <div id="resetMsg" style="display:none;margin-top:12px;font-size:12px;color:var(--bright);font-weight:700;text-align:center"></div>
+    <div id="resetMsg" style="display:none;margin-top:12px;font-size:12px;color:var(--bright);font-weight:700;text-align:center;white-space:pre-line"></div>
   </div>
 </div>
 
@@ -100,23 +100,60 @@ function login(){
   localStorage.setItem('jobway_user_email', e);
   localStorage.setItem('jobway_logged_in','true');
   localStorage.setItem('user_role', role);
-  localStorage.setItem('employer_email', role === 'employer' ? e : '');
-  localStorage.setItem('candidate_email', role === 'candidate' ? e : '');
-  // POPIA - 100% SEPARATE REDIRECTS
+  localStorage.setItem('employer_email', role === 'employer'? e : '');
+  localStorage.setItem('candidate_email', role === 'candidate'? e : '');
   if(role === 'employer'){
     location.href='employer-dashboard.html';
   } else {
     location.href='seeker-dashboard.html';
   }
 }
-function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';}
+function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';document.getElementById('resetMsg').style.display='none';}
 function closeForgot(){document.getElementById('forgotModal').style.display='none';}
-function sendReset(){
-  let e=document.getElementById('resetEmail').value;
+
+async function sendReset(){
+  const e = document.getElementById('resetEmail').value.trim().toLowerCase();
+  const msgEl = document.getElementById('resetMsg');
+  const btn = document.getElementById('sendBtn');
   if(!e){alert('Enter email');return;}
-  document.getElementById('resetMsg').style.display='block';
-  document.getElementById('resetMsg').innerHTML='✅ Reset link sent to '+e+'<br><span style="color:var(--muted)">Check email & WhatsApp 079 060 8952</span>';
-  setTimeout(closeForgot,3000);
+  msgEl.style.display='block';
+  msgEl.style.color='#A8C8D0';
+  msgEl.textContent='⏳ Generating secure link...';
+
+  const token = Math.random().toString(36).substring(2,15) + Date.now().toString(36);
+  let resets = JSON.parse(localStorage.getItem('jobway_password_resets')||'{}');
+  resets[token] = { email: e, time: Date.now() };
+  localStorage.setItem('jobway_password_resets', JSON.stringify(resets));
+
+  const resetLink = window.location.origin + '/reset-password.html?token=' + token;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try{
+    const res = await fetch('/api/send-email',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        to: e,
+        subject: 'Reset your JobWay password',
+        html: `<div style="font-family:sans-serif;max-width:600px"><h2 style="color:#20576E">JobWay — Password Reset</h2><p>Hi, you requested a password reset.</p><p><a href="${resetLink}" style="background:#01F9C6;color:#0F2835;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:800;display:inline-block">Reset Password →</a></p><p>Or copy this link: ${resetLink}</p><p style="font-size:12px;color:#666">Valid for 1 hour. If you did not request this, ignore. Need help? WhatsApp 079 060 8952</p></div>`
+      })
+    });
+    const data = await res.json();
+    if(data.ok){
+      msgEl.style.color='#01F9C6';
+      msgEl.innerHTML = '✅ Real email sent to '+e+'<br><span style="color:#A8C8D0">Check inbox & SPAM • WhatsApp 079 060 8952</span>';
+    } else {
+      msgEl.style.color='#ff8a8a';
+      msgEl.textContent='❌ Failed: '+(data.error||'Unknown');
+      btn.disabled=false; btn.textContent='Send reset link';
+    }
+  }catch(err){
+    msgEl.style.color='#ff8a8a';
+    msgEl.textContent='❌ Error: '+err.message+' (check Vercel logs)';
+    btn.disabled=false; btn.textContent='Send reset link';
+  }
 }
 </script>
 </body>
