@@ -5,19 +5,14 @@
 <title>Employer Dashboard | JobWay</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <script>
-// === POPIA LAWSUIT PROTECTION - ROLE LOCK AT TOP ===
+// === POPIA - EMPLOYER ONLY - 100% SEPARATE ===
 (function(){
   const logged = localStorage.getItem('jobway_logged_in');
   const role = localStorage.getItem('user_role');
   if(!logged || role!== 'employer'){
-    alert('⛔ Access denied: Employer login required. You will be redirected.');
-    // Don't clear if candidate, just redirect to their dashboard
-    if(role === 'candidate'){
-      location.href = 'seeker-dashboard.html';
-    } else {
-      localStorage.clear();
-      location.href = 'login.html';
-    }
+    alert('⛔ Access denied: Employer login required.');
+    localStorage.clear();
+    location.href = 'login.html';
   }
 })();
 </script>
