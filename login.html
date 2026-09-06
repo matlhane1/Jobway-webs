@@ -1,143 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobWay — Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
-<style>
-:root{--navy:#20576E;--mid:#30BA8F;--bright:#01F9C6;--dark:#0F2835;--deep:#11283A;--deep2:#0A1F2E;--muted:#A8C8D0}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#fff;min-height:100vh;display:flex;flex-direction:column}
-.top{position:sticky;top:0;z-index:50;background:var(--deep2);border-bottom:1px solid rgba(1,249,198,0.15)}
-.top-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column}
-.header-main{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand-logo svg{height:38px;width:auto;display:block}
-.container{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px}
-.card{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.2);border-radius:24px;padding:28px 22px;width:100%;max-width:420px;box-shadow:0 18px 40px rgba(0,0,0,0.3)}
-.badge{display:inline-flex;background:var(--bright);color:var(--navy);font-weight:900;font-size:10px;padding:6px 12px;border-radius:20px;margin-bottom:14px;letter-spacing:0.06em}
-.h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;text-align:center}
-.sub{font-size:13px;color:var(--muted);text-align:center;margin:6px 0 20px;font-weight:600}
-.label{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:0.5px;margin:14px 0 6px;display:block;text-transform:uppercase}
-.input{width:100%;background:rgba(10,31,46,0.8);border:1px solid rgba(255,255,255,0.1);color:white;padding:14px 16px;border-radius:999px;font-size:14px;outline:none}
-.input:focus{border-color:var(--bright)}
-.pass-wrap{position:relative;display:flex;align-items:center}
-.eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);width:36px;height:36px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
-.row-between{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-.forgot{color:var(--bright);font-size:12px;font-weight:800;text-decoration:none;letter-spacing:0.2px}
-.forgot:hover{text-decoration:underline}
-.btn-green{width:100%;background:var(--bright);color:var(--navy);font-weight:900;border-radius:999px;padding:14px;border:0;cursor:pointer;margin-top:20px;font-size:14px}
-.btn-dark{width:100%;background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.08);border-radius:999px;padding:14px;cursor:pointer;margin-top:10px;font-weight:800}
-.footer{text-align:center;padding:16px;color:#6EA3AF;font-size:11px;font-weight:700}
-.modal-bg{position:fixed;inset:0;background:rgba(6,18,27,0.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
-.modal{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.25);border-radius:20px;padding:22px;width:100%;max-width:380px}
-.role-hint{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);font-size:11px;color:var(--muted);text-align:center}
-</style>
-</head>
-<body>
-<div class="top"><div class="top-inner"><div class="header-main">
-<a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
-<div><span style="font-size:11px;color:var(--muted);font-weight:700">Jobs via 079 060 8952</span></div>
-</div></div></div>
-<div class="container">
-<div class="card">
-<div style="text-align:center">
-<div class="badge">⚡ 1-CLICK APPLY ACTIVE</div>
-<div class="h1">Welcome Back</div>
-<div class="sub">Login to track your applications & CV</div>
-</div>
-<label class="label">Email Address</label>
-<input class="input" id="email" type="email" value="employer.jobway@gmail.com" placeholder="you@gmail.com">
-<label class="label">Password</label>
-<div class="pass-wrap">
-<input class="input" id="pass" type="password" value="123456" placeholder="••••••">
-<button type="button" class="eye-btn" id="eyeBtn" onclick="togglePass()">👁️</button>
-</div>
-<div class="row-between">
-<span style="font-size:11px;color:var(--muted)"></span>
-<a href="#" class="forgot" onclick="openForgot(event)">Forgot password?</a>
-</div>
-<button class="btn-green" onclick="login()">Login → Dashboard</button>
-<button class="btn-dark" onclick="location.href='jobs.html'">🔍 Browse Jobs as Guest</button>
-<div class="role-hint">🔒 Secure Role Lock: Employers → Dashboard only. Candidates → Profile only.</div>
-<div style="margin-top:18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5">
-📄 Your CV: <b style="color:white">Saved</b> • 💬 Alerts from <b style="color:var(--bright)">079 060 8952</b>
-</div>
-</div>
-</div>
-<div class="modal-bg" id="forgotModal">
-  <div class="modal">
-    <div style="font-family:'Space Grotesk';font-weight:800;font-size:20px;margin-bottom:6px">Reset password</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">We'll send a reset link to your email.</div>
-    <input class="input" id="resetEmail" type="email" placeholder="you@gmail.com">
-    <button class="btn-green" id="sendBtn" onclick="sendReset()">Send reset link</button>
-    <button class="btn-dark" onclick="closeForgot()">Cancel</button>
-    <div id="resetMsg" style="display:none;margin-top:12px;font-size:12px;color:var(--bright);font-weight:700;text-align:center;white-space:pre-line"></div>
-  </div>
-</div>
-<div class="footer">© 2026 JobWay.co.za • Your Job, Your Way • Built in Pretoria</div>
-<script>
-const HYPER_WORKER_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker";
-function togglePass(){
-  let p=document.getElementById('pass');
-  let b=document.getElementById('eyeBtn');
-  if(p.type==='password'){p.type='text';b.textContent='🙈';}else{p.type='password';b.textContent='👁️';}
+function getRoleFromEmail(email){
+  const e = email.toLowerCase();
+  const employerEmails = ['employer.jobway@gmail.com','admin@jobway.co.za','invoices@jobway.co.za'];
+  if(employerEmails.includes(e)) return 'employer';
+  if(e.endsWith('@jobway.co.za')) return 'employer';
+  if(e.startsWith('employer.')) return 'employer';
+  return 'candidate';
 }
 function login(){
   let e=document.getElementById('email').value.trim().toLowerCase();
   let pw=document.getElementById('pass').value;
   if(!e){alert('Enter email');return;}
   if(!pw){alert('Enter password');return;}
-  const employerEmails = ['employer.jobway@gmail.com','admin@jobway.co.za','invoices@jobway.co.za'];
-  let role = 'candidate';
-  if(employerEmails.includes(e) || e.includes('employer') || e.includes('@jobway.co.za')){ role = 'employer'; }
+  let role = getRoleFromEmail(e);
+  localStorage.removeItem('employer_email');
+  localStorage.removeItem('candidate_email');
   localStorage.setItem('jobway_user_email', e);
   localStorage.setItem('jobway_logged_in','true');
   localStorage.setItem('user_role', role);
-  localStorage.setItem('employer_email', role === 'employer'? e : '');
-  localStorage.setItem('candidate_email', role === 'candidate'? e : '');
-  if(role === 'employer'){ location.href='employer-dashboard.html'; } else { location.href='seeker-dashboard.html'; }
-}
-function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';document.getElementById('resetMsg').style.display='none';}
-function closeForgot(){document.getElementById('forgotModal').style.display='none';}
-async function sendReset(){
-  const e = document.getElementById('resetEmail').value.trim().toLowerCase();
-  const msgEl = document.getElementById('resetMsg');
-  const btn = document.getElementById('sendBtn');
-  if(!e){alert('Enter email');return;}
-  msgEl.style.display='block';
-  msgEl.style.color='#A8C8D0';
-  msgEl.textContent='⏳ Generating secure link...';
-  const token = Math.random().toString(36).substring(2,15) + Date.now().toString(36);
-  let resets = JSON.parse(localStorage.getItem('jobway_password_resets')||'{}');
-  resets[token] = { email: e, time: Date.now() };
-  localStorage.setItem('jobway_password_resets', JSON.stringify(resets));
-  localStorage.setItem('jobway_user_email', e);
-  const resetLink = 'https://jobway.co.za/reset-password.html?token=' + token + '&email=' + encodeURIComponent(e);
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  try{
-    const res = await fetch(HYPER_WORKER_URL,{
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ to: e, resetLink: resetLink })
-    });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
-    if(res.ok){
-      msgEl.style.color='#01F9C6';
-      msgEl.innerHTML = '✅ Email sent to '+e+'<br><span style="font-size:11px;color:#A8C8D0">Check inbox & SPAM. From no-reply@jobway.co.za via ZeptoMail<br>Link valid 24h</span>';
-      btn.textContent = 'Sent! ✓';
-    } else {
-      throw new Error(data.error || data.message || text || 'Failed');
-    }
-  }catch(err){
-    msgEl.style.color='#ff8a8a';
-    msgEl.textContent='❌ Error: '+err.message;
-    btn.disabled=false;
-    btn.textContent='Send reset link';
+  if(role === 'employer'){
+    localStorage.setItem('employer_email', e);
+    location.href='employer-dashboard.html';
+  } else {
+    localStorage.setItem('candidate_email', e);
+    location.href='seeker-dashboard.html';
   }
 }
-</script>
-</body>
-</html>
