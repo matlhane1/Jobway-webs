@@ -102,11 +102,11 @@ function login(){
   localStorage.setItem('user_role', role);
   localStorage.setItem('employer_email', role === 'employer' ? e : '');
   localStorage.setItem('candidate_email', role === 'candidate' ? e : '');
-  // FIXED REDIRECTS - THESE FILES EXIST
+  // POPIA - 100% SEPARATE REDIRECTS
   if(role === 'employer'){
     location.href='employer-dashboard.html';
   } else {
-    location.href='jobs.html';
+    location.href='seeker-dashboard.html';
   }
 }
 function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';}
