@@ -131,22 +131,23 @@ async function sendReset(){
   btn.textContent = 'Sending...';
 
   try{
-    const res = await fetch('/api/send-email',{
+    const res = await fetch('https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         to: e,
+        resetLink: resetLink,
         subject: 'Reset your JobWay password',
         html: `<div style="font-family:sans-serif;max-width:600px"><h2 style="color:#20576E">JobWay — Password Reset</h2><p>Hi, you requested a password reset.</p><p><a href="${resetLink}" style="background:#01F9C6;color:#0F2835;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:800;display:inline-block">Reset Password →</a></p><p>Or copy this link: ${resetLink}</p><p style="font-size:12px;color:#666">Valid for 1 hour. If you did not request this, ignore. Need help? WhatsApp 079 060 8952</p></div>`
       })
     });
     const data = await res.json();
-    if(data.ok){
+    if(res.ok){
       msgEl.style.color='#01F9C6';
       msgEl.innerHTML = '✅ Real email sent to '+e+'<br><span style="color:#A8C8D0">Check inbox & SPAM • WhatsApp 079 060 8952</span>';
     } else {
       msgEl.style.color='#ff8a8a';
-      msgEl.textContent='❌ Failed: '+(data.error||'Unknown');
+      msgEl.textContent='❌ Failed: '+(data.error||data.message||'Unknown');
       btn.disabled=false; btn.textContent='Send reset link';
     }
   }catch(err){
