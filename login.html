@@ -63,7 +63,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--deep);color:#ff
 
 <button class="btn-green" onclick="login()">Login → Dashboard</button>
 <button class="btn-dark" onclick="location.href='jobs.html'">🔍 Browse Jobs as Guest</button>
-<div class="role-hint">🔒 Secure Role Lock: Employers → Dashboard only. Candidates → Profile only. No cross-access.</div>
+<div class="role-hint">🔒 Secure Role Lock: Employers → Dashboard only. Candidates → Profile only.</div>
 <div style="margin-top:18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5">
 📄 Your CV: <b style="color:white">Saved</b> • 💬 Alerts from <b style="color:var(--bright)">079 060 8952</b>
 </div>
@@ -88,44 +88,27 @@ function togglePass(){
   let b=document.getElementById('eyeBtn');
   if(p.type==='password'){p.type='text';b.textContent='🙈';}else{p.type='password';b.textContent='👁️';}
 }
-
 function login(){
   let e=document.getElementById('email').value.trim().toLowerCase();
   let pw=document.getElementById('pass').value;
   if(!e){alert('Enter email');return;}
   if(!pw){alert('Enter password');return;}
-
-  // --- SECURE ROLE DETECTION - FIXED FOR POPIA COMPLIANCE ---
-  // Employer accounts list - add all your employer emails here
-  const employerEmails = [
-    'employer.jobway@gmail.com',
-    'admin@jobway.co.za',
-    'invoices@jobway.co.za'
-  ];
-
-  let role = 'candidate'; // default is candidate for safety
-  if(employerEmails.includes(e) || e.includes('employer') || e.includes('@jobway.co.za')){
-    role = 'employer';
-  }
-
-  // Clear old session first
+  const employerEmails = ['employer.jobway@gmail.com','admin@jobway.co.za','invoices@jobway.co.za'];
+  let role = 'candidate';
+  if(employerEmails.includes(e) || e.includes('employer') || e.includes('@jobway.co.za')){ role = 'employer'; }
   localStorage.clear();
-  
-  // Set secure session
   localStorage.setItem('jobway_user_email', e);
   localStorage.setItem('jobway_logged_in','true');
   localStorage.setItem('user_role', role);
   localStorage.setItem('employer_email', role === 'employer' ? e : '');
   localStorage.setItem('candidate_email', role === 'candidate' ? e : '');
-
-  // --- LOCKED REDIRECT - NO CROSS ACCESS ---
+  // FIXED REDIRECTS - THESE FILES EXIST
   if(role === 'employer'){
-    location.href='employer.html';
+    location.href='employer-dashboard.html';
   } else {
-    location.href='jobs.html'; // candidate goes to jobs/candidate area only
+    location.href='jobs.html';
   }
 }
-
 function openForgot(ev){ev.preventDefault();document.getElementById('resetEmail').value=document.getElementById('email').value;document.getElementById('forgotModal').style.display='flex';}
 function closeForgot(){document.getElementById('forgotModal').style.display='none';}
 function sendReset(){
@@ -135,15 +118,6 @@ function sendReset(){
   document.getElementById('resetMsg').innerHTML='✅ Reset link sent to '+e+'<br><span style="color:var(--muted)">Check email & WhatsApp 079 060 8952</span>';
   setTimeout(closeForgot,3000);
 }
-
-// Auto-redirect if already logged in with correct role
-(function(){
-  const logged = localStorage.getItem('jobway_logged_in');
-  const role = localStorage.getItem('user_role');
-  if(logged && role){
-    // Don't auto-redirect on login page itself, only after manual login
-  }
-})();
 </script>
 </body>
 </html>
