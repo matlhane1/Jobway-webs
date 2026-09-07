@@ -1,112 +1,641 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Login | JobWay</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
-.card{background:#1A3341;border:1px solid #25475A;border-radius:24px;padding:24px;width:100%;max-width:380px}
-.label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
-.input{
-  width:100%;background:#0F2230 !important;
-  border:1px solid #25475A;color:white !important;
-  padding:14px 46px 14px 14px;border-radius:12px;margin-top:8px;
-  -webkit-text-fill-color:white !important;
-  caret-color:#01F9C6;outline:none;
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
 }
-.input:focus{border-color:#01F9C6}
+
+body{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    background:#0F2230;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:16px;
+}
+
+.card{
+    background:#1A3341;
+    border:1px solid #25475A;
+    border-radius:24px;
+    padding:24px;
+    width:100%;
+    max-width:380px;
+}
+
+.logo{
+    font-weight:900;
+    color:#01F9C6;
+    font-size:26px;
+    text-align:center;
+    margin-bottom:16px;
+}
+
+.label{
+    font-size:12px;
+    color:#8DB0BF;
+    margin-top:12px;
+    display:block;
+    font-weight:700;
+}
+
+.input{
+    width:100%;
+    background:#0F2230 !important;
+    border:1px solid #25475A;
+    color:white !important;
+    padding:14px 46px 14px 14px;
+    border-radius:12px;
+    margin-top:8px;
+    -webkit-text-fill-color:white !important;
+    caret-color:#01F9C6;
+    outline:none;
+    font-family:inherit;
+    font-size:14px;
+}
+
+.input::placeholder{
+    color:#6F8E9B;
+}
+
+.input:focus{
+    border-color:#01F9C6;
+}
+
 /* FIX CHROME WHITE AUTOFILL - KEEPS BRAND DARK */
 .input:-webkit-autofill,
 .input:-webkit-autofill:hover,
 .input:-webkit-autofill:focus,
 .input:-webkit-autofill:active{
-  -webkit-box-shadow:0 0 0 1000px #0F2230 inset !important;
-  -webkit-text-fill-color:white !important;
-  transition:background-color 9999s ease-in-out 0s;
+    -webkit-box-shadow:0 0 0 1000px #0F2230 inset !important;
+    -webkit-text-fill-color:white !important;
+    transition:background-color 9999s ease-in-out 0s;
 }
-.btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer;font-size:15px}
-.logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:16px}
-.pass-wrap{position:relative}
-.eye{position:absolute;right:10px;top:50%;transform:translateY(-8%);cursor:pointer;background:#11283A;border:1px solid #25475A;border-radius:8px;padding:6px 8px;font-size:11px;color:#01F9C6;font-weight:800}
-.small{font-size:11px;color:#8DB0BF;text-align:center;margin-top:12px;line-height:1.4}
-.link{color:#01F9C6;font-size:12px;text-decoration:none;font-weight:700;cursor:pointer}
+
+.btn{
+    width:100%;
+    background:#01F9C6;
+    color:#08231C;
+    border:none;
+    padding:14px;
+    border-radius:999px;
+    font-weight:900;
+    margin-top:16px;
+    cursor:pointer;
+    font-size:15px;
+    font-family:inherit;
+}
+
+.btn:hover{
+    opacity:0.92;
+}
+
+.btn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+}
+
+.pass-wrap{
+    position:relative;
+}
+
+.eye{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-8%);
+    cursor:pointer;
+    background:#11283A;
+    border:1px solid #25475A;
+    border-radius:8px;
+    padding:6px 8px;
+    font-size:11px;
+    color:#01F9C6;
+    font-weight:800;
+    user-select:none;
+}
+
+.small{
+    font-size:11px;
+    color:#8DB0BF;
+    text-align:center;
+    margin-top:12px;
+    line-height:1.4;
+}
+
+.link{
+    color:#01F9C6;
+    font-size:12px;
+    text-decoration:none;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.link:hover{
+    text-decoration:underline;
+}
+
+.message{
+    display:none;
+    margin-top:12px;
+    padding:10px;
+    border-radius:10px;
+    font-size:12px;
+    text-align:center;
+    line-height:1.4;
+}
+
+.message.error{
+    display:block;
+    background:#3A2025;
+    border:1px solid #7A3540;
+    color:#FFB4BE;
+}
+
+.message.success{
+    display:block;
+    background:#123A31;
+    border:1px solid #1D705D;
+    color:#9CFFE9;
+}
 </style>
 </head>
+
 <body>
+
 <div class="card">
-<div class="logo">JobWay</div>
-<h3 style="text-align:center;margin-bottom:12px">Login to Continue</h3>
 
-<label class="label">Email</label>
-<input class="input" id="email" type="email" placeholder="you@gmail.com" autocomplete="email">
+    <div class="logo">JobWay</div>
 
-<label class="label">Password</label>
-<div class="pass-wrap">
-<input class="input" id="pass" type="password" placeholder="••••••••" autocomplete="current-password">
-<span class="eye" onclick="togglePass()">👁️ Show</span>
-</div>
+    <h3 style="text-align:center;margin-bottom:12px;">
+        Login to Continue
+    </h3>
 
-<button class="btn" onclick="login()">Log In</button>
+    <label class="label" for="email">Email</label>
 
-<div style="display:flex;justify-content:space-between;margin-top:12px">
-<a class="link" onclick="forgot()">Forgot Password?</a>
-<a class="link" href="signup.html">Create account</a>
-</div>
+    <input
+        class="input"
+        id="email"
+        type="email"
+        placeholder="you@gmail.com"
+        autocomplete="email"
+        autocapitalize="none"
+        spellcheck="false"
+    >
 
-<p class="small">🔒 Secure — Wrong password = Blocked<br>No auto-login — Must have account</p>
+    <label class="label" for="pass">Password</label>
+
+    <div class="pass-wrap">
+
+        <input
+            class="input"
+            id="pass"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+        >
+
+        <span
+            class="eye"
+            id="eyeButton"
+            onclick="togglePass()"
+            role="button"
+            tabindex="0"
+        >
+            👁️ Show
+        </span>
+
+    </div>
+
+    <button
+        class="btn"
+        id="loginButton"
+        onclick="login()"
+    >
+        Log In
+    </button>
+
+    <div
+        style="display:flex;justify-content:space-between;margin-top:12px;"
+    >
+        <a
+            class="link"
+            onclick="forgot()"
+        >
+            Forgot Password?
+        </a>
+
+        <a
+            class="link"
+            href="signup.html"
+        >
+            Create account
+        </a>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <p class="small">
+        🔒 Secure login<br>
+        No account = No access
+    </p>
+
 </div>
 
 <script>
+
+/* =========================
+   PASSWORD SHOW / HIDE
+========================= */
+
 function togglePass(){
- let p=document.getElementById('pass');
- let b=document.querySelector('.eye');
- if(p.type==='password'){p.type='text'; b.textContent='🙈 Hide';}
- else{p.type='password'; b.textContent='👁️ Show';}
+
+    const password = document.getElementById('pass');
+    const eye = document.getElementById('eyeButton');
+
+    if(password.type === 'password'){
+
+        password.type = 'text';
+        eye.textContent = '🙈 Hide';
+
+    }else{
+
+        password.type = 'password';
+        eye.textContent = '👁️ Show';
+
+    }
 }
-function getUsers(){return JSON.parse(localStorage.getItem('jobway_users')||'[]')}
+
+
+/* =========================
+   GET USERS
+========================= */
+
+function getUsers(){
+
+    try{
+
+        const users =
+            JSON.parse(
+                localStorage.getItem('jobway_users') || '[]'
+            );
+
+        return Array.isArray(users) ? users : [];
+
+    }catch(error){
+
+        console.error('Unable to read users:', error);
+
+        return [];
+
+    }
+}
+
+
+/* =========================
+   SHOW MESSAGE
+========================= */
+
+function showMessage(text,type='error'){
+
+    const message = document.getElementById('message');
+
+    message.textContent = text;
+
+    message.className = 'message ' + type;
+
+}
+
+
+/* =========================
+   LOGIN
+========================= */
 
 function login(){
- let e=document.getElementById('email').value.trim().toLowerCase();
- let pw=document.getElementById('pass').value;
- if(!e||!pw){alert('Enter email & password');return;}
- let users=getUsers();
- let found=users.find(u=>u.email.toLowerCase()===e);
- 
- // SECURE: Must have account, password must match
- if(!found){
-   alert('⛔ No account found for '+e+'\nPlease click Create account first.');
-   return;
- }
- if(found.password!==pw){
-   alert('⛔ Wrong password. Access denied.');
-   return;
- }
- // Password correct — allow
- localStorage.setItem('jobway_user_email',e);
- localStorage.setItem('jobway_logged_in','true');
- localStorage.setItem('user_role',found.role);
- localStorage.setItem('jobway_logged_in','true');
- if(found.role==='employer'){
-   location.href='employer-dashboard.html';
- }else{
-   location.href='seeker-dashboard.html';
- }
+
+    const emailInput =
+        document.getElementById('email');
+
+    const passwordInput =
+        document.getElementById('pass');
+
+    const button =
+        document.getElementById('loginButton');
+
+    const email =
+        emailInput.value.trim().toLowerCase();
+
+    const password =
+        passwordInput.value;
+
+    /* Clear old message */
+
+    document.getElementById('message').className = 'message';
+
+
+    /* Validate */
+
+    if(!email || !password){
+
+        showMessage(
+            'Please enter your email and password.'
+        );
+
+        return;
+    }
+
+
+    /* Basic email validation */
+
+    const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if(!emailPattern.test(email)){
+
+        showMessage(
+            'Please enter a valid email address.'
+        );
+
+        return;
+    }
+
+
+    /* Get registered users */
+
+    const users = getUsers();
+
+
+    /* Find account */
+
+    const found =
+        users.find(function(user){
+
+            return (
+                user &&
+                typeof user.email === 'string' &&
+                user.email.toLowerCase() === email
+            );
+
+        });
+
+
+    /* Account does not exist */
+
+    if(!found){
+
+        showMessage(
+            'No account found for this email. Please create an account first.'
+        );
+
+        return;
+    }
+
+
+    /* Check password */
+
+    if(
+        typeof found.password !== 'string' ||
+        found.password !== password
+    ){
+
+        showMessage(
+            'Wrong password. Access denied.'
+        );
+
+        return;
+    }
+
+
+    /* Check user role */
+
+    const role =
+        String(found.role || '')
+        .trim()
+        .toLowerCase();
+
+
+    if(role !== 'employer' && role !== 'candidate' && role !== 'seeker'){
+
+        showMessage(
+            'Your account role is missing or invalid. Please contact JobWay support.'
+        );
+
+        return;
+    }
+
+
+    /* Prevent double clicking */
+
+    button.disabled = true;
+    button.textContent = 'Logging in...';
+
+
+    /* Store login state */
+
+    localStorage.setItem(
+        'jobway_user_email',
+        email
+    );
+
+    localStorage.setItem(
+        'jobway_logged_in',
+        'true'
+    );
+
+    localStorage.setItem(
+        'user_role',
+        role
+    );
+
+
+    /*
+       IMPORTANT:
+       Employers ONLY go to employer dashboard.
+       Candidates / seekers ONLY go to candidate dashboard.
+    */
+
+    if(role === 'employer'){
+
+        window.location.href =
+            'employer-dashboard.html';
+
+        return;
+    }
+
+
+    if(role === 'candidate' || role === 'seeker'){
+
+        window.location.href =
+            'seeker-dashboard.html';
+
+        return;
+    }
+
 }
 
+
+/* =========================
+   FORGOT PASSWORD
+========================= */
+
 function forgot(){
- let e=document.getElementById('email').value.trim().toLowerCase();
- if(!e){alert('Enter your email first');return;}
- let users=getUsers();
- let f=users.find(u=>u.email.toLowerCase()===e);
- if(!f){alert('No account found. Create account first.');return;}
- let np=prompt('Reset password for '+e+'\nEnter NEW password:');
- if(!np) return;
- f.password=np;
- localStorage.setItem('jobway_users',JSON.stringify(users));
- alert('✅ Password updated! Login with new password.');
+
+    const email =
+        document.getElementById('email')
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    if(!email){
+
+        showMessage(
+            'Enter your email address first.'
+        );
+
+        document.getElementById('email').focus();
+
+        return;
+    }
+
+
+    const users = getUsers();
+
+
+    const found =
+        users.find(function(user){
+
+            return (
+                user &&
+                typeof user.email === 'string' &&
+                user.email.toLowerCase() === email
+            );
+
+        });
+
+
+    if(!found){
+
+        showMessage(
+            'No account found for this email. Please create an account first.'
+        );
+
+        return;
+    }
+
+
+    /*
+       NOTE:
+       This browser-only password reset is NOT suitable
+       for a production website.
+
+       Your production version should send a secure
+       password-reset link/OTP through your backend
+       or Supabase Auth.
+
+       The prompt below is retained only so the existing
+       localStorage system continues working while testing.
+    */
+
+    const newPassword =
+        prompt(
+            'Enter your NEW password for ' + email
+        );
+
+
+    if(newPassword === null){
+
+        return;
+    }
+
+
+    if(newPassword.length < 8){
+
+        showMessage(
+            'Password must contain at least 8 characters.'
+        );
+
+        return;
+    }
+
+
+    found.password = newPassword;
+
+
+    try{
+
+        localStorage.setItem(
+            'jobway_users',
+            JSON.stringify(users)
+        );
+
+    }catch(error){
+
+        console.error(
+            'Password update failed:',
+            error
+        );
+
+        showMessage(
+            'Password could not be updated. Please try again.'
+        );
+
+        return;
+    }
+
+
+    showMessage(
+        'Password updated successfully. You can now log in.',
+        'success'
+    );
+
 }
+
+
+/* =========================
+   ENTER KEY LOGIN
+========================= */
+
+document
+    .getElementById('pass')
+    .addEventListener('keydown',function(event){
+
+        if(event.key === 'Enter'){
+
+            login();
+
+        }
+
+    });
+
+
+document
+    .getElementById('email')
+    .addEventListener('keydown',function(event){
+
+        if(event.key === 'Enter'){
+
+            document
+                .getElementById('pass')
+                .focus();
+
+        }
+
+    });
+
 </script>
+
 </body>
 </html>
