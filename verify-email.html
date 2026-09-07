@@ -1,96 +1,59 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verify Email — JobWay</title>
+<title>Verify — JobWay</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>body{margin:0;background:#0A1F2E;color:white;font-family:sans-serif;display:grid;place-items:center;min-height:100vh;padding:20px}
-.card{max-width:400px;width:100%;background:#1A3341;border:1px solid rgba(1,249,198,0.3);border-radius:22px;padding:26px;text-align:center}
-input{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:#0f2332;color:white;font-size:22px;text-align:center;letter-spacing:6px;margin:16px 0}
+.card{max-width:400px;width:100%;background:#1A3341;border:2px solid #01F9C6;border-radius:22px;padding:26px;text-align:center}
+input{width:100%;padding:16px;border-radius:12px;background:#0f2332;color:white;font-size:24px;text-align:center;letter-spacing:6px;margin:16px 0;border:1px solid #01F9C6}
 button{width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;font-size:16px;cursor:pointer}
-#msg2{font-size:12px;color:#FF9B9B;margin-top:10px}
 </style></head><body>
 <div class="card">
 <h2>Enter OTP Code</h2>
-<p style="color:#8DB0BF;font-size:13px">Code sent to <b id="em" style="color:white"></b></p>
-<p style="font-size:11px;color:#8DB0BF">Use testing code from popup</p>
-<input id="otp" maxlength="6" placeholder="000000" inputmode="numeric">
-<button id="btn" onclick="verify()">Verify & Create Account →</button>
+<p style="color:#8DB0BF">Code sent to <b id="em" style="color:#01F9C6"></b></p>
+<div style="background:#0f2332;padding:10px;border-radius:8px;margin:10px 0">Your Code: <b id="showCode" style="color:#01F9C6;font-size:18px"></b></div>
+<input id="otp" maxlength="6" placeholder="000000" type="tel">
+<button onclick="verify()">Verify & Create Account →</button>
+<p id="msg" style="color:#FF9B9B;font-size:13px;margin-top:12px"></p>
 <p style="font-size:11px;color:#8DB0BF;margin-top:12px;cursor:pointer" onclick="resend()">Resend code</p>
-<p id="msg2"></p>
 </div>
 <script>
-const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
-const SUPABASE_ANON="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-// FIX: Get email from URL OR localStorage (URL gets cut on mobile)
-let email = new URLSearchParams(location.search).get('email');
-if(!email || !email.includes('@')){
-  email = localStorage.getItem('jobway_otp_email');
-  try{
-    const p = JSON.parse(localStorage.getItem('jobway_pending_signup')||'{}');
-    if(p.email) email = p.email;
-  }catch(e){}
-}
-document.getElementById('em').innerText = email || 'your email';
-console.log('VERIFY EMAIL:', email);
+const supabase = window.supabase.createClient("https://bzbsqouohsylnhrsjhhy.supabase.co","sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2");
+const email = localStorage.getItem('jobway_otp_email') || new URLSearchParams(location.search).get('email');
+const savedCode = localStorage.getItem('jobway_otp_code') || new URLSearchParams(location.search).get('code');
+document.getElementById('em').innerText = email || '';
+document.getElementById('showCode').innerText = savedCode || 'check alert';
+document.getElementById('otp').value = savedCode || '781129';
 
 async function verify(){
-  const code=document.getElementById('otp').value.trim();
-  const btn=document.getElementById('btn');
-  const msg2=document.getElementById('msg2');
-  if(code.length!==6){msg2.innerText='Enter 6 digits';return;}
+  const input = document.getElementById('otp').value.trim();
+  const realCode = localStorage.getItem('jobway_otp_code');
+  const msg = document.getElementById('msg');
+  if(input !== realCode){ msg.innerText = '❌ Wrong code. Correct is: '+realCode; return; }
   
-  const pending=JSON.parse(localStorage.getItem('jobway_pending_signup')||'null');
-  if(!pending){msg2.innerText='Session expired. Signup again';setTimeout(()=>location.href='signup.html',1000);return;}
-  
-  btn.textContent='Verifying...'; btn.disabled=true; msg2.innerText='Checking code...';
+  const pending = JSON.parse(localStorage.getItem('jobway_pending_signup'));
+  msg.innerText = '✅ Correct! Creating account...';
   
   try{
-    const {data, error} = await supabase.from('email_otps').select('*').eq('email', email).maybeSingle();
-    console.log('OTP data', data, error);
-    if(!data){msg2.innerText='No OTP found. Click Resend.'; btn.textContent='Verify & Create Account →'; btn.disabled=false; return;}
-    if(data.otp!==code){msg2.innerText='❌ Wrong code. Expected: '+data.otp; btn.textContent='Verify & Create Account →'; btn.disabled=false; return;}
-    if(new Date(data.expires_at) < new Date()){msg2.innerText='Code expired. Resend.'; btn.textContent='Verify & Create Account →'; btn.disabled=false; return;}
-
-    // OTP CORRECT → CREATE
-    msg2.innerText='✅ Code correct! Creating account...';
-    const {error: signErr} = await supabase.auth.signUp({
+    const {data, error} = await supabase.auth.signUp({
       email: pending.email,
       password: pending.password,
-      options:{data:{full_name:pending.full_name, role:pending.role}}
+      options:{data:{full_name: pending.full_name, role: pending.role}}
     });
-    if(signErr && !signErr.message.includes('already registered')){
-      throw signErr;
-    }
-    // Auto login
-    const {error: loginErr} = await supabase.auth.signInWithPassword({email:pending.email, password:pending.password});
-    if(loginErr){
-      msg2.innerText='Verified! Go to login';
-      setTimeout(()=>location.href='login.html',1000);
-      return;
-    }
-
+    if(error && !error.message.includes('already')) throw error;
+    
+    await supabase.auth.signInWithPassword({email: pending.email, password: pending.password});
     localStorage.setItem('jobway_user_email', pending.email);
-    localStorage.setItem('user_role', pending.role==='employer'?'employer':'candidate');
-    localStorage.setItem('supabase_user_email', pending.email);
-    localStorage.removeItem('jobway_pending_signup');
-    await supabase.from('email_otps').delete().eq('email', email);
-
-    msg2.innerText='✅ Account created! Redirecting...';
-    setTimeout(()=>location.href='employer-dashboard.html',1000);
-
+    localStorage.setItem('user_role', pending.role);
+    msg.innerText = '✅ Success! Logging in...';
+    setTimeout(()=>location.href='login.html',1200);
   }catch(e){
-    console.error(e);
-    msg2.innerText='Error: '+e.message;
-    btn.textContent='Verify & Create Account →'; btn.disabled=false;
+    msg.innerText = 'Error: '+e.message;
   }
 }
-
-async function resend(){
-  const msg2=document.getElementById('msg2');
-  const otp=Math.floor(100000+Math.random()*900000).toString();
-  await supabase.from('email_otps').delete().eq('email', email);
-  await supabase.from('email_otps').insert({email, otp, expires_at: new Date(Date.now()+10*60*1000).toISOString()});
-  msg2.innerText='New code: '+otp+' (testing mode)';
-  alert('New testing code: '+otp);
+function resend(){
+  const newCode = Math.floor(100000+Math.random()*900000).toString();
+  localStorage.setItem('jobway_otp_code', newCode);
+  document.getElementById('showCode').innerText = newCode;
+  document.getElementById('otp').value = newCode;
+  alert('New code: '+newCode);
 }
 </script></body></html>
