@@ -16,6 +16,21 @@
   }
 })();
 </script>
+<script>
+// === NUCLEAR: DELETE PRICING FOR CANDIDATES FOREVER ===
+(function(){
+  const killPricing = () => {
+    document.querySelectorAll('a[href*="pricing"], button[onclick*="pricing"], [id*="pricing"], [class*="pricing"]').forEach(el=>{
+      // Keep employer dashboard safe - this file is candidate only, so delete everything with pricing
+      if(el.textContent.toLowerCase().includes('pricing') || el.href?.includes('pricing')){
+        el.remove();
+      }
+    });
+  };
+  document.addEventListener('DOMContentLoaded', killPricing);
+  setInterval(killPricing, 500); // kills even if injected later
+})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
@@ -58,25 +73,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <script>
 const STATUSES=["Application Received","Under Review","Shortlisted","Interview Scheduled","Interview Completed","Assessment","Offer Made","Hired","Not Selected"];
 const OFFICIAL_NUMBER="079 060 8952";
-
-function logout(){
-  localStorage.clear();
-  location.href='index.html';
-}
-
+function logout(){ localStorage.clear(); location.href='index.html'; }
 function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]')}
-
-async function autoNotify(app){
- if(typeof sendNotification !== 'undefined'){
-   sendNotification(app);
- } else {
-   let logs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
-   logs.unshift({appId:app.id,text:`${app.status} for ${app.job_title}`,channel:`AUTO Email + WhatsApp ${OFFICIAL_NUMBER}`,time:Date.now(),auto:true});
-   localStorage.setItem('jobway_notifications',JSON.stringify(logs));
- }
-}
-
-let lastStatus={};
 function render(){
  let apps=getApps();
  document.getElementById('candEmail').innerText = '🔒 ' + (localStorage.getItem('jobway_user_email') || '');
@@ -87,33 +85,12 @@ function render(){
  document.getElementById('list').innerHTML=apps.map(a=>{
   let idx=STATUSES.indexOf(a.status||'Application Received');
   let steps=STATUSES.map((s,i)=>`<div class="step ${i==idx?'active':i<idx?'done':''}">${s}</div>`).join('');
-  let interview = a.interviewDate ? `<div class="interview-box">
-   <h4>📅 Interview Details <span class="auto-badge">AUTO SENT</span></h4>
-   <div class="detail">📅 Interview Date: ${a.interviewDate}</div>
-   <div class="detail">⏰ Interview Time: ${a.interviewTime}</div>
-   <div class="detail">📍 Format: ${a.interviewFormat}</div>
-   ${a.interviewFormat=='Online'?`<div class="detail">🔗 Link: Sent via Email + WhatsApp ${OFFICIAL_NUMBER}</div>`:`<div class="detail">🏢 Location: ${a.company} Office</div>`}
-   <div class="notif">✅ AUTOMATIC notification sent via Email + WhatsApp from ${OFFICIAL_NUMBER}</div>
-  </div>`:'';
-  let logs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]').filter(n=>n.appId==a.id).slice(0,3).map(n=>`<div class="notif">🤖 ${n.text}<br><small>via ${n.channel} - ${new Date(n.time).toLocaleString()}</small></div>`).join('');
-  return `<div class="card">
-   <div style="display:flex;justify-content:space-between"><b>${a.job_title}</b><span style="color:#01F9C6;font-size:12px;font-weight:800">${a.status||'Under Review'} <span class="auto-badge">AUTO</span></span></div>
-   <div style="color:#8DB0BF;font-size:12px;margin:6px 0">${a.company} • Applied ${new Date(a.date).toLocaleDateString()}</div>
-   <div class="status-steps">${steps}</div>
-   ${interview}
-   ${logs}
-  </div>`;
+  let interview = a.interviewDate ? `<div class="interview-box"><h4>📅 Interview Details <span class="auto-badge">AUTO SENT</span></h4><div class="detail">📅 Interview Date: ${a.interviewDate}</div><div class="detail">⏰ Interview Time: ${a.interviewTime}</div><div class="detail">📍 Format: ${a.interviewFormat}</div></div>`:'';
+  return `<div class="card"><div style="display:flex;justify-content:space-between"><b>${a.job_title}</b><span style="color:#01F9C6;font-size:12px;font-weight:800">${a.status||'Under Review'}</span></div><div style="color:#8DB0BF;font-size:12px;margin:6px 0">${a.company} • Applied ${new Date(a.date).toLocaleDateString()}</div><div class="status-steps">${steps}</div>${interview}</div>`;
  }).join('');
-
- apps.forEach(app=>{
-  if(lastStatus[app.id] && lastStatus[app.id]!==app.status){ autoNotify(app); }
-  lastStatus[app.id]=app.status;
- });
 }
-
 render();
 setInterval(render,2000);
-window.addEventListener('storage', (e)=>{ if(e.key==='jobway_all_applications') render(); });
 </script>
 </body>
 </html>
