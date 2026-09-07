@@ -8,10 +8,30 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
 .card{background:#1A3341;border:1px solid #25475A;border-radius:24px;padding:24px;width:100%;max-width:380px}
-.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:14px;border-radius:12px;margin-top:10px}
-.btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer}
-.logo{font-weight:900;color:#01F9C6;font-size:24px;text-align:center;margin-bottom:16px}
 .label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
+.input{
+  width:100%;background:#0F2230 !important;
+  border:1px solid #25475A;color:white !important;
+  padding:14px 46px 14px 14px;border-radius:12px;margin-top:8px;
+  -webkit-text-fill-color:white !important;
+  caret-color:#01F9C6;outline:none;
+}
+.input:focus{border-color:#01F9C6}
+/* FIX CHROME WHITE AUTOFILL - KEEPS BRAND DARK */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active{
+  -webkit-box-shadow:0 0 0 1000px #0F2230 inset !important;
+  -webkit-text-fill-color:white !important;
+  transition:background-color 9999s ease-in-out 0s;
+}
+.btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer;font-size:15px}
+.logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:16px}
+.pass-wrap{position:relative}
+.eye{position:absolute;right:10px;top:50%;transform:translateY(-8%);cursor:pointer;background:#11283A;border:1px solid #25475A;border-radius:8px;padding:6px 8px;font-size:11px;color:#01F9C6;font-weight:800}
+.small{font-size:11px;color:#8DB0BF;text-align:center;margin-top:12px;line-height:1.4}
+.link{color:#01F9C6;font-size:12px;text-decoration:none;font-weight:700;cursor:pointer}
 </style>
 </head>
 <body>
@@ -20,50 +40,72 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <h3 style="text-align:center;margin-bottom:12px">Login to Continue</h3>
 
 <label class="label">Email</label>
-<input class="input" id="email" type="email" placeholder="you@gmail.com">
+<input class="input" id="email" type="email" placeholder="you@gmail.com" autocomplete="email">
 
 <label class="label">Password</label>
-<input class="input" id="pass" type="password" placeholder="••••••••">
+<div class="pass-wrap">
+<input class="input" id="pass" type="password" placeholder="••••••••" autocomplete="current-password">
+<span class="eye" onclick="togglePass()">👁️ Show</span>
+</div>
 
 <button class="btn" onclick="login()">Log In</button>
 
-<p style="font-size:11px;color:#8DB0BF;text-align:center;margin-top:12px">
-Employer emails: employer.jobway@gmail.com, @jobway.co.za, employer.*<br>
-All others = Candidate
-</p>
+<div style="display:flex;justify-content:space-between;margin-top:12px">
+<a class="link" onclick="forgot()">Forgot Password?</a>
+<a class="link" href="signup.html">Create account</a>
+</div>
+
+<p class="small">🔒 Secure — Wrong password = Blocked<br>No auto-login — Must have account</p>
 </div>
 
 <script>
-function getRoleFromEmail(email){
-  const e = email.toLowerCase();
-  const employerEmails = ['employer.jobway@gmail.com','admin@jobway.co.za','invoices@jobway.co.za'];
-  if(employerEmails.includes(e)) return 'employer';
-  if(e.endsWith('@jobway.co.za')) return 'employer';
-  if(e.startsWith('employer.')) return 'employer';
-  return 'candidate';
+function togglePass(){
+ let p=document.getElementById('pass');
+ let b=document.querySelector('.eye');
+ if(p.type==='password'){p.type='text'; b.textContent='🙈 Hide';}
+ else{p.type='password'; b.textContent='👁️ Show';}
 }
+function getUsers(){return JSON.parse(localStorage.getItem('jobway_users')||'[]')}
 
 function login(){
-  let e = document.getElementById('email').value.trim().toLowerCase();
-  let pw = document.getElementById('pass').value;
-  if(!e){ alert('Enter email'); return; }
-  if(!pw){ alert('Enter password'); return; }
-  
-  let role = getRoleFromEmail(e);
-  
-  localStorage.removeItem('employer_email');
-  localStorage.removeItem('candidate_email');
-  localStorage.setItem('jobway_user_email', e);
-  localStorage.setItem('jobway_logged_in','true');
-  localStorage.setItem('user_role', role);
-  
-  if(role === 'employer'){
-    localStorage.setItem('employer_email', e);
-    location.href='employer-dashboard.html';
-  } else {
-    localStorage.setItem('candidate_email', e);
-    location.href='seeker-dashboard.html';
-  }
+ let e=document.getElementById('email').value.trim().toLowerCase();
+ let pw=document.getElementById('pass').value;
+ if(!e||!pw){alert('Enter email & password');return;}
+ let users=getUsers();
+ let found=users.find(u=>u.email.toLowerCase()===e);
+ 
+ // SECURE: Must have account, password must match
+ if(!found){
+   alert('⛔ No account found for '+e+'\nPlease click Create account first.');
+   return;
+ }
+ if(found.password!==pw){
+   alert('⛔ Wrong password. Access denied.');
+   return;
+ }
+ // Password correct — allow
+ localStorage.setItem('jobway_user_email',e);
+ localStorage.setItem('jobway_logged_in','true');
+ localStorage.setItem('user_role',found.role);
+ localStorage.setItem('jobway_logged_in','true');
+ if(found.role==='employer'){
+   location.href='employer-dashboard.html';
+ }else{
+   location.href='seeker-dashboard.html';
+ }
+}
+
+function forgot(){
+ let e=document.getElementById('email').value.trim().toLowerCase();
+ if(!e){alert('Enter your email first');return;}
+ let users=getUsers();
+ let f=users.find(u=>u.email.toLowerCase()===e);
+ if(!f){alert('No account found. Create account first.');return;}
+ let np=prompt('Reset password for '+e+'\nEnter NEW password:');
+ if(!np) return;
+ f.password=np;
+ localStorage.setItem('jobway_users',JSON.stringify(users));
+ alert('✅ Password updated! Login with new password.');
 }
 </script>
 </body>
