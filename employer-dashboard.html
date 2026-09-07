@@ -5,7 +5,7 @@
 <title>Employer Dashboard | JobWay</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <script>
-// === POPIA - EMPLOYER ONLY - 100% SEPARATE ===
+// === POPIA - EMPLOYER ONLY ===
 (function(){
   const logged = localStorage.getItem('jobway_logged_in');
   const role = localStorage.getItem('user_role');
@@ -17,11 +17,10 @@
 })();
 </script>
 <script>
-// === NUCLEAR: DELETE CV UPLOAD FOR EMPLOYERS FOREVER - POPIA SAFE ===
+// === KILL CV UPLOAD FOR EMPLOYERS - POPIA ===
 (function(){
   const killUpload = () => {
     document.querySelectorAll('input[type="file"]').forEach(el=>{
-      // Only kill if it's an UPLOAD (not the CV view box)
       const html = (el.outerHTML + ' ' + (el.id||'') + ' ' + (el.className||'')).toLowerCase();
       if(html.includes('upload') || el.id === 'cvFile'){
         el.remove();
@@ -57,9 +56,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 .status-select{background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:12px;border-radius:12px;width:100%;font-weight:800;margin-top:8px}
 .cv-box{background:#0F2230;border:1px dashed #01F9C6;border-radius:12px;padding:12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center}
 .banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:12px;padding:10px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
+.paywall{position:fixed;inset:0;z-index:99;background:rgba(15,34,48,0.96);display:none;place-items:center;padding:20px}
+.paywall-inner{max-width:420px;width:100%;background:#1A3341;border:1px solid rgba(1,249,198,0.3);border-radius:22px;padding:26px;text-align:center}
 </style>
 </head>
 <body>
+
+<div id="paywall" class="paywall">
+<div class="paywall-inner">
+<div style="font-size:10px;background:#01F9C6;color:#08231C;padding:5px 10px;border-radius:999px;display:inline-block;font-weight:800">EMPLOYER ONLY - POPIA - PAY REQUIRED</div>
+<h2 style="font-family:'Space Grotesk';font-size:24px;font-weight:800;margin:14px 0 8px">Unlock Post Job & CVs</h2>
+<p style="color:#8DB0BF;font-size:13px;margin-bottom:14px">This page (Applications + Post Job from your screenshot) comes AFTER payment. Buy credits to unlock.</p>
+<div id="payInfo" style="background:#0F2230;border-radius:12px;padding:12px;font-size:12px;color:#8DB0BF;margin-bottom:16px;text-align:left"></div>
+<button class="btn btn-green" style="width:100%;padding:14px;font-size:15px" onclick="location.href='pricing.html'">Go to Pricing → Buy Credits</button>
+<button class="btn btn-dark" style="width:100%;margin-top:10px;padding:12px" onclick="location.href='index.html'">Back Home</button>
+<div style="margin-top:12px;font-size:10px;color:#6EA3AF">Already paid? Click <a href="#" onclick="forceCheckPaid();return false" style="color:#01F9C6">Refresh Payment</a></div>
+</div>
+</div>
+
 <div class="header">
 <div class="logo">JobWay — Employer <span style="font-size:10px;background:#01F9C6;color:#08231C;padding:3px 8px;border-radius:999px">EMPLOYER ONLY - POPIA</span></div>
 <div class="nav-cta">
@@ -72,15 +86,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <div class="container">
 <div class="banner">📱 Notifications from 079 060 8952 | 1-Click CV Auto-Attached | 🔒 Employer Session: <span id="empEmail"></span></div>
 
-<h3 style="margin:12px 0">📥 Applications (<span id="count">0</span>)</h3>
+<h3 style="margin:12px 0">📥 Applications (<span id="count">0</span>) <span id="creditBadge" style="float:right;font-size:11px"></span></h3>
 <div id="appsList"></div>
 
 <h3 style="margin:20px 0 10px">➕ Post Job</h3>
-<div class="card">
+<div class="card" id="postJobCard">
 <label class="label">Title</label><input class="input" id="jobTitle" placeholder="Cashier">
 <label class="label">Company</label><input class="input" id="jobCompany" placeholder="Shoprite">
 <label class="label">Location</label><input class="input" id="jobLocation" placeholder="Johannesburg, Gauteng">
 <button class="btn btn-green" style="width:100%;margin-top:12px;padding:14px;border-radius:999px" onclick="postJob()">Post Job</button>
+<div id="jobLimitInfo" style="font-size:11px;color:#8DB0BF;margin-top:8px;text-align:center"></div>
 </div>
 </div>
 
@@ -90,10 +105,45 @@ const OFFICIAL_NUMBER="079 060 8952";
 function logout(){ localStorage.clear(); location.href='index.html'; }
 function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]')}
 function saveApps(a){localStorage.setItem('jobway_all_applications',JSON.stringify(a))}
+
+// === PAYWALL LOGIC - THIS PUTS PAGE AFTER PAY ===
+function isPaid(){
+  let email = localStorage.getItem('jobway_user_email')||'';
+  let paid = localStorage.getItem('employer_paid_'+email) || localStorage.getItem('jobway_paid') || localStorage.getItem('employer_paid');
+  let credits = parseInt(localStorage.getItem('employer_credits_'+email) || localStorage.getItem('employer_credits') || '0');
+  // Also check users list for status
+  return {paid:!!paid, credits: credits, email: email};
+}
+function forceCheckPaid(){
+  let s=isPaid();
+  if(s.paid) {document.getElementById('paywall').style.display='none'; render();}
+  else {alert('No payment found for '+s.email+'\nGo to Pricing and pay.'); location.href='pricing.html';}
+}
+function showPaywall(){
+  let s=isPaid();
+  document.getElementById('paywall').style.display='grid';
+  document.getElementById('payInfo').innerHTML = `Email: ${s.email||'employer'}<br>Paid: ${s.paid?'YES ✅':'NO ❌'}<br>Credits: ${s.credits}<br><br>This Post Job page from your screenshot will unlock AFTER payment.`;
+}
+
 function render(){
+ let s=isPaid();
+ document.getElementById('empEmail').innerText = s.email;
+ document.getElementById('creditBadge').innerText = s.paid? `✅ ${s.credits} credits` : '❌ No credits';
+ document.getElementById('jobLimitInfo').innerText = s.paid? `${s.credits} job credits left` : 'Buy credits to post';
+
+ // IF NOT PAID -> SHOW PAYWALL AND STOP
+ if(!s.paid || s.credits<=0){
+   showPaywall();
+   // still show empty list behind
+   document.getElementById('count').innerText='0';
+   document.getElementById('appsList').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">🔒 Locked — Pay first to see Applications</div>`;
+   return;
+ } else {
+   document.getElementById('paywall').style.display='none';
+ }
+
  let apps=getApps();
  document.getElementById('count').innerText=apps.length;
- document.getElementById('empEmail').innerText = localStorage.getItem('jobway_user_email') || '';
  if(apps.length==0){
    document.getElementById('appsList').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No applications yet. Candidate must save CV in Profile then 1-Click Apply.</div>`;
    return;
@@ -129,19 +179,28 @@ function viewCV(id){
  let win=window.open(); win.document.write(`<html><body style="margin:0"><iframe src="${app.cvData}" style="width:100%;height:100vh;border:none"></iframe></body></html>`);
 }
 function changeStatus(id,newStatus){
+ let s=isPaid(); if(!s.paid){showPaywall();return;}
  let apps=getApps(); let app=apps.find(a=>a.id==id); app.status=newStatus; saveApps(apps);
  alert(`✅ ${newStatus}\n📧 Auto Email to ${app.email}\n💬 WhatsApp from ${OFFICIAL_NUMBER}`);
  render();
 }
 function postJob(){
+ let s=isPaid(); if(!s.paid || s.credits<=0){showPaywall();return;}
  let t=document.getElementById('jobTitle').value; let c=document.getElementById('jobCompany').value; let l=document.getElementById('jobLocation').value;
  if(!t||!c){alert('Fill title & company');return;}
  let jobs=JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
  jobs.unshift({title:t,company:c,location:l,city:l.split(',')[0]||'Gauteng',type:'Full-time',remote:'Onsite',level:'Entry Level',salary:'R5000',salaryText:'R5,000',desc:'New opening',required:['Customer'],duration:'Permanent',postedAt:Date.now(),closingDate:'30 Sept 2026'});
  localStorage.setItem('jobway_employer_jobs',JSON.stringify(jobs));
- alert('✅ Job posted'); location.href='jobs.html';
+ // Deduct 1 credit
+ let email=s.email;
+ let current=parseInt(localStorage.getItem('employer_credits_'+email)||'0');
+ localStorage.setItem('employer_credits_'+email, String(current-1));
+ localStorage.setItem('employer_credits', String(current-1));
+ alert('✅ Job posted - 1 credit used'); location.href='jobs.html';
 }
 render();
+// Auto check on load
+(function(){ let s=isPaid(); if(!s.paid || s.credits<=0){ setTimeout(showPaywall,400);} })();
 </script>
 </body>
 </html>
