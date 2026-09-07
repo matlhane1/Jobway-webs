@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Failed | JobWay</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@800&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0F2230;color:white;font-family:'Plus Jakarta Sans',sans-serif;display:grid;place-items:center;min-height:100vh;padding:20px}
+.card{max-width:420px;width:100%;background:#1A3341;border:1px solid rgba(255,138,157,0.4);border-radius:22px;padding:26px;text-align:center}</style>
+</head><body>
+<div class="card">
+<div style="width:60px;height:60px;background:#FF8A9D;border-radius:999px;display:grid;place-items:center;margin:0 auto 14px;font-size:30px">✕</div>
+<h2 style="font-family:'Space Grotesk';font-size:24px">Payment Failed / Cancelled</h2>
+<p style="color:#8DB0BF;font-size:13px;margin:10px 0" id="msg">No worries — your card was NOT charged.<br>Your Post Job page is still locked.</p>
+<div style="background:#0F2230;border-radius:12px;padding:10px;font-size:11px;color:#8DB0BF;margin:12px 0" id="info"></div>
+<button style="width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900" onclick="location.href='pricing.html'">Try Again → Go to Pricing</button>
+<button style="width:100%;margin-top:10px;background:#2A3F4E;color:white;border:none;padding:12px;border-radius:999px;font-weight:800" onclick="location.href='employer-dashboard.html'">Back to Dashboard (Locked)</button>
+<p style="font-size:10px;color:#5f8a95;margin-top:12px">Need help? WhatsApp 079 060 8952 • invoices@jobway.co.za</p>
+</div>
+<script>
+let p=JSON.parse(localStorage.getItem('jobway_pending_payment')||'null');
+let email=localStorage.getItem('jobway_user_email')||'';
+document.getElementById('info').innerHTML=`Email: ${email}<br>Attempt: ${p? p.item+' - '+p.amount : 'No pending payment'}<br>Status: ❌ NOT PAID - 0 credits<br>Action: Pay again to unlock Post Job`;
+// IMPORTANT: Do NOT set paid, keep locked
+// Clear pending so next try is fresh but keep paid false
+localStorage.setItem('jobway_last_failed', JSON.stringify({email, date:new Date().toISOString(), pending:p}));
+</script>
+</body></html>
