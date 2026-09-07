@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><body style="background:#06151d;color:#fff;font-family:sans-serif;padding:20px">
+<h2>Testing hyper-worker JWT</h2><button id="btn" style="padding:15px 20px;background:#01F9C6;border:none;border-radius:10px;font-weight:800">CLICK TO TEST</button>
+<pre id="out" style="margin-top:20px;white-space:pre-wrap;background:#0a202a;padding:15px;border-radius:10px"></pre>
+<script>
+document.getElementById('btn').onclick=async()=>{
+  const out=document.getElementById('out'); out.textContent='Testing...';
+  try{
+    const res=await fetch("https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email:"xneelojobway@gmail.com",code:"209546",type:"verify"})
+    });
+    const txt=await res.text();
+    out.textContent="STATUS: "+res.status+"\n\nResponse:\n"+txt+"\n\n"+(res.status===200?"✅ JWT IS OFF - WORKING!":"❌ JWT STILL ON - 401");
+  }catch(e){out.textContent="ERROR: "+e.message}
+}
+</script></body></html>
