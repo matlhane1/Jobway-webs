@@ -32,14 +32,7 @@
 label{color:#9cc2d0;font-size:13px;margin:12px 0 6px;display:block}
 input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white !important;font-size:15px;outline:none;box-sizing:border-box;-webkit-text-fill-color:white !important}
 input:focus,select:focus{border-color:var(--bright)}
-/* FIX WHITE AUTOFILL - BRAND PROTECTION */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus{
-  -webkit-box-shadow:0 0 0 1000px #0f2332 inset !important;
-  -webkit-text-fill-color:white !important;
-  transition:background-color 9999s ease-in-out 0s;
-}
+input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px #0f2332 inset !important;-webkit-text-fill-color:white !important;transition:background-color 9999s ease-in-out 0s}
 .input-wrap{position:relative}
 .input-wrap input{padding-right:70px}
 .eye{position:absolute;right:6px;top:6px;bottom:6px;width:58px;border:none;border-radius:9px;background:rgba(255,255,255,0.12);color:#cfe8ef;font-weight:800;font-size:11px;cursor:pointer}
@@ -109,14 +102,15 @@ input:-webkit-autofill:focus{
 </div>
 
 <script>
-const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+const SUPABASE_URL = "https://bzbsqouohsylnhrsjhhy.supabase.co";
+const SUPABASE_ANON = "sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 function setRole(r){
   document.getElementById('role').value=r;
   document.getElementById('card-seeker').classList.toggle('active', r==='seeker');
   document.getElementById('card-employer').classList.toggle('active', r==='employer');
   localStorage.setItem('pending_role', r);
-  // POPIA: Hide Pricing for Candidate selection
   const pricing = document.getElementById('pricingLink');
   if(pricing){ pricing.style.display = r==='seeker' ? 'none' : 'inline'; }
 }
@@ -124,54 +118,48 @@ document.getElementById('role').addEventListener('change', (e)=>setRole(e.target
 document.getElementById('waOptIn').addEventListener('change', function(){
   document.getElementById('waField').style.display = this.checked ? 'block' : 'none';
 });
-// Init
 setRole('seeker');
 
-document.getElementById('btn').onclick=async()=>{
-const full_name=document.getElementById('fn').value.trim();
-const email=document.getElementById('em').value.trim().toLowerCase();
-const password=document.getElementById('pw').value;
-const role=document.getElementById('role').value;
-const wantsWhatsApp=document.getElementById('waOptIn').checked;
-const waNumber=document.getElementById('waNumber').value.trim();
+document.getElementById('btn').onclick = async () => {
+  const full_name = document.getElementById('fn').value.trim();
+  const email = document.getElementById('em').value.trim().toLowerCase();
+  const password = document.getElementById('pw').value;
+  const role = document.getElementById('role').value;
+  const wantsWhatsApp = document.getElementById('waOptIn').checked;
+  const waNumber = document.getElementById('waNumber').value.trim();
 
-if(!full_name||!email||!password){alert('Fill all fields');return;}
-if(password.length<6){alert('Password must be 6+ characters for security');return;}
-if(wantsWhatsApp && !waNumber){alert('Please enter your WhatsApp number');return;}
+  if(!full_name||!email||!password){alert('Fill all fields');return;}
+  if(password.length<6){alert('Password must be 6+ characters');return;}
 
-const b=document.getElementById('btn');b.textContent='Creating...';b.disabled=true;
-try{
-const {error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name,role, whatsapp: waNumber, whatsapp_opt_in: wantsWhatsApp}}});
-if(error) throw error;
+  const b=document.getElementById('btn');b.textContent='Sending OTP...';b.disabled=true;
 
-// SAVE LOCALLY FOR SECURE LOGIN (fixes your "No account found" bug)
-let users=JSON.parse(localStorage.getItem('jobway_users')||'[]');
-let existing=users.find(u=>u.email.toLowerCase()===email);
-if(!existing){
-  users.push({email:email,password:password,role: role==='employer'?'employer':'candidate'});
-  localStorage.setItem('jobway_users', JSON.stringify(users));
-}
-
-localStorage.setItem('user_role', role==='employer'?'employer':'candidate');
-localStorage.setItem('employer_email', role==='employer'?email:'');
-localStorage.setItem('candidate_email', role!=='employer'?email:'');
-localStorage.setItem('jobway_user_email', email);
-
-if(wantsWhatsApp && waNumber){
   try{
-    const otp = Math.floor(1000 + Math.random()*9000);
-    await fetch('/api/send-otp', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({phone: waNumber, otp: String(otp)})
-    });
-    localStorage.setItem('wa_verified_pending', waNumber);
-  }catch(e){console.log('WA send failed', e)}
-}
+    const otp = Math.floor(100000 + Math.random()*900000).toString();
+    const expires_at = new Date(Date.now()+10*60*1000).toISOString();
 
-alert('✅ Account created! Now login with your password.');
-location.href='login.html';
-}catch(e){alert('Error: '+e.message);b.textContent='Create Account →';b.disabled=false;}
+    await supabaseClient.from('email_otps').delete().eq('email', email);
+    await supabaseClient.from('email_otps').insert({email, otp, expires_at});
+
+    localStorage.setItem('jobway_pending_signup', JSON.stringify({full_name,email,password,role,waNumber,wantsWhatsApp}));
+    localStorage.setItem('jobway_otp_email', email);
+    
+    try{
+      await fetch(`${SUPABASE_URL}/functions/v1/send-otp-email`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON},
+        body: JSON.stringify({email, otp, name: full_name})
+      });
+    }catch(e){}
+    
+    await supabaseClient.auth.signInWithOtp({email, options:{shouldCreateUser:false}});
+
+    alert(`✅ 6-digit code sent to ${email}\n\nTesting code: ${otp}`);
+    location.href = `verify-email.html?email=${encodeURIComponent(email)}`;
+
+  }catch(e){
+    alert('Error: '+e.message);
+    b.textContent='Create Account →';b.disabled=false;
+  }
 };
 </script>
 </body>
