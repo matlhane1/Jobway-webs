@@ -30,7 +30,16 @@
 .card-form{background:linear-gradient(180deg,#1e3a4f,#152c3f);border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:26px 22px;width:100%;max-width:420px;margin:0 auto}
 .card-form h2{color:white;text-align:center;font-size:20px;font-weight:800;margin:0 0 18px}
 label{color:#9cc2d0;font-size:13px;margin:12px 0 6px;display:block}
-input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;font-size:15px;outline:none;box-sizing:border-box}
+input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white !important;font-size:15px;outline:none;box-sizing:border-box;-webkit-text-fill-color:white !important}
+input:focus,select:focus{border-color:var(--bright)}
+/* FIX WHITE AUTOFILL - BRAND PROTECTION */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 1000px #0f2332 inset !important;
+  -webkit-text-fill-color:white !important;
+  transition:background-color 9999s ease-in-out 0s;
+}
 .input-wrap{position:relative}
 .input-wrap input{padding-right:70px}
 .eye{position:absolute;right:6px;top:6px;bottom:6px;width:58px;border:none;border-radius:9px;background:rgba(255,255,255,0.12);color:#cfe8ef;font-weight:800;font-size:11px;cursor:pointer}
@@ -38,7 +47,6 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 .note{color:#6EA3AF;font-size:11px;text-align:center;margin-top:14px}
 .note a{color:var(--bright);text-decoration:none;font-weight:800}
 @media(max-width:640px){.role-grid{grid-template-columns:1fr}.h1{font-size:32px}}
-/* WhatsApp opt-in - matches your brand */
 .wa-box{margin-top:16px;padding:12px;border-radius:12px;background:rgba(1,249,198,0.06);border:1px dashed rgba(1,249,198,0.25)}
 .wa-check{display:flex;gap:10px;align-items:flex-start;cursor:pointer;color:#cfe8ef;font-size:13px;line-height:1.4}
 .wa-check input{width:18px;height:18px;margin-top:2px;accent-color:var(--bright)}
@@ -50,7 +58,7 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 <a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
 <div><button class="btn btn-login" onclick="location.href='login.html'">Log In</button></div>
 </div>
-<div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
+<div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a id="pricingLink" href="pricing.html">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
 </div></div>
 
 <div class="wrap">
@@ -74,16 +82,15 @@ input,select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rg
 <div class="card-form">
 <h2>Create JobWay Account</h2>
 <label>Full Name</label><input id="fn" placeholder="Your name">
-<label>Email</label><input id="em" type="email" placeholder="you@email.com">
+<label>Email</label><input id="em" type="email" placeholder="you@email.com" autocomplete="email">
 <label>Password</label>
 <div class="input-wrap">
-<input id="pw" type="password" placeholder="Create password">
+<input id="pw" type="password" placeholder="Create password" autocomplete="new-password">
 <button class="eye" type="button" onclick="let i=document.getElementById('pw');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'SHOW':'HIDE'">SHOW</button>
 </div>
 <label>I want to join as:</label>
 <select id="role"><option value="seeker">Job Seeker</option><option value="employer">Employer</option></select>
 
-<!-- NEW: WhatsApp Permission with Brand Design -->
 <div class="wa-box">
 <label class="wa-check">
 <input type="checkbox" id="waOptIn">
@@ -109,23 +116,27 @@ function setRole(r){
   document.getElementById('card-seeker').classList.toggle('active', r==='seeker');
   document.getElementById('card-employer').classList.toggle('active', r==='employer');
   localStorage.setItem('pending_role', r);
+  // POPIA: Hide Pricing for Candidate selection
+  const pricing = document.getElementById('pricingLink');
+  if(pricing){ pricing.style.display = r==='seeker' ? 'none' : 'inline'; }
 }
 document.getElementById('role').addEventListener('change', (e)=>setRole(e.target.value));
-
-// WhatsApp toggle
 document.getElementById('waOptIn').addEventListener('change', function(){
   document.getElementById('waField').style.display = this.checked ? 'block' : 'none';
 });
+// Init
+setRole('seeker');
 
 document.getElementById('btn').onclick=async()=>{
 const full_name=document.getElementById('fn').value.trim();
-const email=document.getElementById('em').value.trim();
+const email=document.getElementById('em').value.trim().toLowerCase();
 const password=document.getElementById('pw').value;
 const role=document.getElementById('role').value;
 const wantsWhatsApp=document.getElementById('waOptIn').checked;
 const waNumber=document.getElementById('waNumber').value.trim();
 
 if(!full_name||!email||!password){alert('Fill all fields');return;}
+if(password.length<6){alert('Password must be 6+ characters for security');return;}
 if(wantsWhatsApp && !waNumber){alert('Please enter your WhatsApp number');return;}
 
 const b=document.getElementById('btn');b.textContent='Creating...';b.disabled=true;
@@ -133,12 +144,19 @@ try{
 const {error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name,role, whatsapp: waNumber, whatsapp_opt_in: wantsWhatsApp}}});
 if(error) throw error;
 
+// SAVE LOCALLY FOR SECURE LOGIN (fixes your "No account found" bug)
+let users=JSON.parse(localStorage.getItem('jobway_users')||'[]');
+let existing=users.find(u=>u.email.toLowerCase()===email);
+if(!existing){
+  users.push({email:email,password:password,role: role==='employer'?'employer':'candidate'});
+  localStorage.setItem('jobway_users', JSON.stringify(users));
+}
+
 localStorage.setItem('user_role', role==='employer'?'employer':'candidate');
 localStorage.setItem('employer_email', role==='employer'?email:'');
 localStorage.setItem('candidate_email', role!=='employer'?email:'');
-localStorage.setItem('employer_id', email);
+localStorage.setItem('jobway_user_email', email);
 
-// If opted in, send WhatsApp OTP / welcome
 if(wantsWhatsApp && waNumber){
   try{
     const otp = Math.floor(1000 + Math.random()*9000);
@@ -151,8 +169,8 @@ if(wantsWhatsApp && waNumber){
   }catch(e){console.log('WA send failed', e)}
 }
 
-alert('Account created! Now login');
-location.href='login.html?v=39';
+alert('✅ Account created! Now login with your password.');
+location.href='login.html';
 }catch(e){alert('Error: '+e.message);b.textContent='Create Account →';b.disabled=false;}
 };
 </script>
