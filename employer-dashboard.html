@@ -16,6 +16,27 @@
   }
 })();
 </script>
+<script>
+// === NUCLEAR: DELETE CV UPLOAD FOR EMPLOYERS FOREVER - POPIA SAFE ===
+(function(){
+  const killUpload = () => {
+    document.querySelectorAll('input[type="file"]').forEach(el=>{
+      // Only kill if it's an UPLOAD (not the CV view box)
+      const html = (el.outerHTML + ' ' + (el.id||'') + ' ' + (el.className||'')).toLowerCase();
+      if(html.includes('upload') || el.id === 'cvFile'){
+        el.remove();
+      }
+    });
+    document.querySelectorAll('button').forEach(b=>{
+      if(b.textContent.toLowerCase().includes('upload cv') &&!b.textContent.toLowerCase().includes('download')){
+        b.remove();
+      }
+    });
+  };
+  document.addEventListener('DOMContentLoaded', killUpload);
+  setInterval(killUpload, 500);
+})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
@@ -40,7 +61,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </head>
 <body>
 <div class="header">
-<div class="logo">JobWay — Employer <span style="font-size:10px;background:#01F9C6;color:#08231C;padding:3px 8px;border-radius:999px">EMPLOYER ONLY</span></div>
+<div class="logo">JobWay — Employer <span style="font-size:10px;background:#01F9C6;color:#08231C;padding:3px 8px;border-radius:999px">EMPLOYER ONLY - POPIA</span></div>
 <div class="nav-cta">
 <button class="btn btn-dark" onclick="location.href='pricing.html'">Pricing</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">Jobs</button>
@@ -66,15 +87,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <script>
 const STATUSES=["Application Received","Under Review","Shortlisted","Interview Scheduled","Interview Completed","Assessment","Offer Made","Hired","Not Selected"];
 const OFFICIAL_NUMBER="079 060 8952";
-
-function logout(){
-  localStorage.clear();
-  location.href='index.html';
-}
-
+function logout(){ localStorage.clear(); location.href='index.html'; }
 function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]')}
 function saveApps(a){localStorage.setItem('jobway_all_applications',JSON.stringify(a))}
-
 function render(){
  let apps=getApps();
  document.getElementById('count').innerText=apps.length;
@@ -100,11 +115,6 @@ function render(){
    ${cvBox}
    <label class="label">Update Status → Auto Email + WhatsApp ${OFFICIAL_NUMBER}</label>
    <select class="status-select" onchange="changeStatus('${app.id}',this.value)">${STATUSES.map(s=>`<option ${app.status==s?'selected':''}>${s}</option>`).join('')}</select>
-   <div id="interview-${app.id}" style="${app.status=='Interview Scheduled'?'':'display:none'}">
-     <label class="label">Date</label><input class="input" type="date" id="date-${app.id}" value="${app.interviewDate||''}" onchange="saveInterview('${app.id}')">
-     <label class="label">Time</label><input class="input" type="time" id="time-${app.id}" value="${app.interviewTime||''}" onchange="saveInterview('${app.id}')">
-     <label class="label">Format</label><select class="input" id="format-${app.id}" onchange="saveInterview('${app.id}')"><option>In-Person</option><option>Online</option></select>
-   </div>
   </div>`;
  }).join('');
 }
@@ -119,20 +129,9 @@ function viewCV(id){
  let win=window.open(); win.document.write(`<html><body style="margin:0"><iframe src="${app.cvData}" style="width:100%;height:100vh;border:none"></iframe></body></html>`);
 }
 function changeStatus(id,newStatus){
- let apps=getApps(); let app=apps.find(a=>a.id==id); let old=app.status; app.status=newStatus;
- if(newStatus=='Interview Scheduled') document.getElementById('interview-'+id).style.display='block'; else document.getElementById('interview-'+id).style.display='none';
- saveApps(apps);
- let logs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
- logs.unshift({appId:id,text:`${old} → ${newStatus} for ${app.job_title}`,channel:`AUTO ${app.email} + WhatsApp ${OFFICIAL_NUMBER}`,time:Date.now(),auto:true});
- localStorage.setItem('jobway_notifications',JSON.stringify(logs));
- alert(`✅ ${newStatus}\n📧 Auto Email to ${app.email}\n💬 WhatsApp from ${OFFICIAL_NUMBER} to ${app.whatsapp}\n📄 CV: ${app.cvName}`);
+ let apps=getApps(); let app=apps.find(a=>a.id==id); app.status=newStatus; saveApps(apps);
+ alert(`✅ ${newStatus}\n📧 Auto Email to ${app.email}\n💬 WhatsApp from ${OFFICIAL_NUMBER}`);
  render();
-}
-function saveInterview(id){
- let apps=getApps(); let app=apps.find(a=>a.id==id);
- app.interviewDate=document.getElementById('date-'+id).value; app.interviewTime=document.getElementById('time-'+id).value; app.interviewFormat=document.getElementById('format-'+id).value;
- saveApps(apps);
- alert(`📅 Interview ${app.interviewDate} ${app.interviewTime} saved + Auto notif from ${OFFICIAL_NUMBER}`);
 }
 function postJob(){
  let t=document.getElementById('jobTitle').value; let c=document.getElementById('jobCompany').value; let l=document.getElementById('jobLocation').value;
