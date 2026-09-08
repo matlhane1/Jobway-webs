@@ -1,25 +1,65 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment Failed | JobWay</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@800&display=swap" rel="stylesheet">
-<style>body{margin:0;background:#0F2230;color:white;font-family:'Plus Jakarta Sans',sans-serif;display:grid;place-items:center;min-height:100vh;padding:20px}
-.card{max-width:420px;width:100%;background:#1A3341;border:1px solid rgba(255,138,157,0.4);border-radius:22px;padding:26px;text-align:center}</style>
-</head><body>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Not Completed | JobWay.co.za</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0F2835;color:white;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px}
+.card{max-width:440px;width:100%;background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden}
+.head{padding:22px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.icon{width:52px;height:52px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;font-size:22px}
+.h2{font-family:'Space Grotesk';font-size:20px;font-weight:800}
+.p{color:#A8C8D0;font-size:13px;margin-top:6px;line-height:1.5}
+.body{padding:18px}
+.box{background:#0F2230;border-radius:12px;padding:12px;font-size:12px;color:#8DB0BF;margin:12px 0;line-height:1.6}
+.btn{width:100%;padding:13px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:13px}
+.btn-green{background:#01F9C6;color:#0A1F2E}
+.btn-dark{background:#1A3E52;color:#fff}
+</style>
+</head>
+<body>
 <div class="card">
-<div style="width:60px;height:60px;background:#FF8A9D;border-radius:999px;display:grid;place-items:center;margin:0 auto 14px;font-size:30px">✕</div>
-<h2 style="font-family:'Space Grotesk';font-size:24px">Payment Failed / Cancelled</h2>
-<p style="color:#8DB0BF;font-size:13px;margin:10px 0" id="msg">No worries — your card was NOT charged.<br>Your Post Job page is still locked.</p>
-<div style="background:#0F2230;border-radius:12px;padding:10px;font-size:11px;color:#8DB0BF;margin:12px 0" id="info"></div>
-<button style="width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900" onclick="location.href='pricing.html'">Try Again → Go to Pricing</button>
-<button style="width:100%;margin-top:10px;background:#2A3F4E;color:white;border:none;padding:12px;border-radius:999px;font-weight:800" onclick="location.href='employer-dashboard.html'">Back to Dashboard (Locked)</button>
-<p style="font-size:10px;color:#5f8a95;margin-top:12px">Need help? WhatsApp 079 060 8952 • invoices@jobway.co.za</p>
+<div class="head">
+<div class="icon">!</div>
+<div class="h2">Payment not completed</div>
+<div class="p">No worries — your card was <b style="color:#fff">not charged</b>. Your employer dashboard is still locked until payment is complete.</div>
 </div>
+<div class="body">
+<div class="box" id="info">
+Loading details...
+</div>
+<div style="font-size:12px;color:#C8DDE3;margin:8px 0">
+<b style="color:#fff">What happened?</b><br>
+• You cancelled on PayFast, or<br>
+• Card declined / 3D Secure not completed, or<br>
+• Internet dropped during payment
+</div>
+<div style="font-size:12px;color:#C8DDE3;margin:12px 0">
+<b style="color:#fff">What next?</b><br>
+1. Try again — takes 30 seconds<br>
+2. Try Instant EFT if card fails<br>
+3. Still stuck? WhatsApp us: 079 060 8952
+</div>
+
+<button class="btn btn-green" onclick="location.href='pricing.html'">Try again — Go to pricing</button>
+<button class="btn btn-dark" style="margin-top:8px" onclick="location.href='employer-dashboard.html'">Back to dashboard</button>
+<p style="font-size:11px;color:#6EA3AF;text-align:center;margin-top:12px">invoices@jobway.co.za • PayFast Secure • No charge was made</p>
+</div>
+</div>
+
 <script>
-let p=JSON.parse(localStorage.getItem('jobway_pending_payment')||'null');
-let email=localStorage.getItem('jobway_user_email')||'';
-document.getElementById('info').innerHTML=`Email: ${email}<br>Attempt: ${p? p.item+' - '+p.amount : 'No pending payment'}<br>Status: ❌ NOT PAID - 0 credits<br>Action: Pay again to unlock Post Job`;
-// IMPORTANT: Do NOT set paid, keep locked
-// Clear pending so next try is fresh but keep paid false
+let p = JSON.parse(localStorage.getItem('jobway_pending_payment')||'null');
+let email = (localStorage.getItem('jobway_user_email')||'').toLowerCase();
+document.getElementById('info').innerHTML = `
+Email: ${email || 'not set'}<br>
+Last attempt: ${p ? p.item+' — R'+p.amount : 'No recent attempt'}<br>
+Status: <b style="color:#FF8A9D">Not paid — 0 credits</b><br>
+<span style="font-size:11px">You need to pay again to unlock Post Job & CVs</span>
+`;
 localStorage.setItem('jobway_last_failed', JSON.stringify({email, date:new Date().toISOString(), pending:p}));
+// Do NOT set paid — keep locked
 </script>
-</body></html>
+</body>
+</html>
