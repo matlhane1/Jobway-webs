@@ -12,13 +12,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:#fff}
 input,textarea,select{width:100%;background:#0F2230;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px;color:#fff;margin:6px 0}
 label{font-size:11px;color:#8FB3C1;font-weight:800;letter-spacing:0.08em;margin-top:10px;display:block}
 </style></head><body>
-<div class="top"><div style="font-family:'Space Grotesk';font-weight:800;font-size:20px">JobWay Employer</div><div><span id="emailTxt" style="font-size:11px;color:#8FB3C1"></span> <button class="btn btn-white" style="margin-left:10px" onclick="localStorage.clear();location.href='index.html'">Logout</button></div></div>
+<div class="top"><div style="font-family:'Space Grotesk';font-weight:800;font-size:20px">JobWay Employer</div><div><span id="emailTxt" style="font-size:11px;color:#8FB3C1"></span> <button class="btn btn-white" style="margin-left:10px" onclick="localStorage.clear();sessionStorage.clear();location.href='index.html'">Logout</button></div></div>
+
+<div id="status" style="margin:20px;padding:12px;background:#11283A;border-radius:10px;font-size:12px;color:#8DB0BF;display:none"></div>
+
 <div id="paywall" class="paywall" style="display:none">
 <h2 style="font-family:'Space Grotesk';font-size:24px">🔒 Post Job Locked — Pay to Unlock</h2>
 <p style="color:#8DB0BF;font-size:13px;margin:10px 0">Pay R299 to unlock Post Job page. Credits added only by PayFast server — cannot be faked.</p>
 <div id="credInfo" style="font-size:12px;color:#01F9C6;margin:8px 0"></div>
 <button class="btn btn-bright" onclick="location.href='pricing.html'">Go to Pricing — From R299 →</button>
 </div>
+
 <div id="dashboard" style="display:none">
 <div class="card">
 <h3 style="font-family:'Space Grotesk'">Post a Job — Uses 1 Credit</h3>
@@ -30,40 +34,94 @@ label{font-size:11px;color:#8FB3C1;font-weight:800;letter-spacing:0.08em;margin-
 <label>Description</label><textarea id="desc" rows="4" placeholder="Job description"></textarea>
 <button class="btn btn-bright" style="width:100%;margin-top:12px;padding:14px" onclick="postJob()">Post Job — 1 Credit →</button>
 </div>
-<div class="card"><h3>My Jobs (Global — visible to all on jobway.co.za)</h3><div id="jobsList" style="margin-top:10px"></div></div>
+<div class="card"><h3>My Jobs (Global — visible to all on jobway.co.za)</h3><div id="jobsList" style="margin-top:10px">Loading...</div></div>
 </div>
+
 <script>
 const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentEmail = (localStorage.getItem('jobway_user_email')||"").toLowerCase();
-document.getElementById('emailTxt').innerText=currentEmail;
+let currentEmail = (localStorage.getItem('jobway_user_email') || localStorage.getItem('jobway_otp_email') || sessionStorage.getItem('jobway_signup_email') || "").toLowerCase().trim();
+document.getElementById('emailTxt').innerText = currentEmail || "";
+
+function showStatus(msg){
+  const el = document.getElementById('status');
+  el.style.display='block';
+  el.textContent = msg;
+}
+
 async function checkAuth(){
-  if(!currentEmail){ location.href='login.html'; return; }
-  let {data: credits} = await supabase.from('employer_credits').select('*').eq('email', currentEmail).single();
-  if(!credits || !credits.paid || credits.job_credits<=0){
+  try{
+    if(!currentEmail){
+      showStatus("No email found in storage. Redirecting to login...");
+      setTimeout(()=> location.href='login.html', 1500);
+      return;
+    }
+    const {data: credits, error} = await supabase.from('employer_credits').select('*').eq('email', currentEmail).maybeSingle();
+    
+    if(error){
+      console.warn("Credits error:", error.message);
+      showStatus("Credits check: " + error.message + " — showing paywall");
+    }
+
+    if(!credits || !credits.paid || (credits.job_credits||0) <= 0){
+      document.getElementById('paywall').style.display='block';
+      document.getElementById('dashboard').style.display='none';
+      document.getElementById('credInfo').innerText=`Current: ${credits?.job_credits||0} job credits — need 1 to post.`;
+      return;
+    }
+
+    // HAS CREDITS
+    document.getElementById('paywall').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('creditsTxt').innerText=`✅ Paid: ${credits.job_credits} Job Credits + ${credits.cv_credits||0} CV Credits`;
+    loadJobs();
+
+  } catch(err){
+    console.error(err);
+    showStatus("Error: " + err.message);
+    // FAIL SAFE - SHOW PAYWALL SO PAGE NOT BLANK
     document.getElementById('paywall').style.display='block';
-    document.getElementById('credInfo').innerText=`Current: ${credits?.job_credits||0} job credits — need 1 to post.`;
-    return;
+    document.getElementById('credInfo').innerText = `Error loading credits. Please pay to unlock.`;
   }
-  document.getElementById('dashboard').style.display='block';
-  document.getElementById('creditsTxt').innerText=`✅ Paid: ${credits.job_credits} Job Credits + ${credits.cv_credits} CV Credits`;
-  loadJobs();
 }
+
 async function loadJobs(){
-  let {data} = await supabase.from('jobs').select('*').eq('employer_email', currentEmail).order('created_at',{ascending:false});
-  document.getElementById('jobsList').innerHTML = (data||[]).map(j=>`<div style="padding:10px;border-bottom:1px solid rgba(255,255,255,0.08)"><b>${escapeHtml(j.title)}</b> — ${escapeHtml(j.company)} (${escapeHtml(j.location||'')})<br><span style="font-size:11px;color:#8DB0BF">${new Date(j.created_at).toLocaleString()}</span></div>`).join('') || "No jobs yet";
+  try{
+    let {data, error} = await supabase.from('jobs').select('*').eq('employer_email', currentEmail).order('created_at',{ascending:false});
+    if(error) throw error;
+    document.getElementById('jobsList').innerHTML = (data||[]).map(j=>`<div style="padding:10px;border-bottom:1px solid rgba(255,255,255,0.08)"><b>${escapeHtml(j.title)}</b> — ${escapeHtml(j.company)} (${escapeHtml(j.location||'')})<br><span style="font-size:11px;color:#8DB0BF">${new Date(j.created_at).toLocaleString()}</span></div>`).join('') || "No jobs yet — post your first job above";
+  } catch(e){
+    document.getElementById('jobsList').innerText = "Could not load jobs: " + e.message;
+  }
 }
+
 async function postJob(){
-  let title=document.getElementById('title').value.trim(); let company=document.getElementById('company').value.trim();
+  let title=document.getElementById('title').value.trim(); 
+  let company=document.getElementById('company').value.trim();
   if(!title||!company){ alert('Title + Company required'); return; }
-  let {data: credits} = await supabase.from('employer_credits').select('*').eq('email', currentEmail).single();
-  if(!credits || credits.job_credits<=0){ alert('No credits'); location.href='pricing.html'; return; }
-  let {error} = await supabase.from('jobs').insert({employer_email: currentEmail, title, company, location: document.getElementById('location').value, salary_text: document.getElementById('salary').value});
+  
+  let {data: credits} = await supabase.from('employer_credits').select('*').eq('email', currentEmail).maybeSingle();
+  if(!credits || (credits.job_credits||0)<=0){ alert('No credits'); location.href='pricing.html'; return; }
+
+  const payload = {
+    employer_email: currentEmail, 
+    title, 
+    company, 
+    location: document.getElementById('location').value.trim(), 
+    salary_text: document.getElementById('salary').value.trim(),
+    description: document.getElementById('desc').value.trim()
+  };
+
+  let {error} = await supabase.from('jobs').insert(payload);
   if(error){ alert('Error: '+error.message); return; }
+  
   await supabase.from('employer_credits').update({job_credits: credits.job_credits-1}).eq('email', currentEmail);
-  alert('Job posted globally!'); loadJobs(); checkAuth();
+  alert('Job posted globally!'); 
+  document.getElementById('title').value=''; document.getElementById('desc').value='';
+  loadJobs(); checkAuth();
 }
+
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 checkAuth();
 </script>
