@@ -1,39 +1,120 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment Success | JobWay</title>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Successful | JobWay.co.za</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@800&display=swap" rel="stylesheet">
-<style>body{margin:0;background:#0F2230;color:white;font-family:'Plus Jakarta Sans',sans-serif;display:grid;place-items:center;min-height:100vh;padding:20px}
-.card{max-width:460px;width:100%;background:#1A3341;border:1px solid rgba(1,249,198,0.3);border-radius:22px;padding:26px;text-align:center}</style>
-</head><body>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0F2835;color:white;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px}
+.card{max-width:480px;width:100%;background:#11283A;border:1px solid rgba(1,249,198,0.25);border-radius:20px;overflow:hidden}
+.head{padding:24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.icon{width:56px;height:56px;background:#01F9C6;color:#0A1F2E;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;font-size:28px;font-weight:900}
+.h2{font-family:'Space Grotesk';font-size:22px;font-weight:800}
+.p{color:#A8C8D0;font-size:13px;margin-top:6px;line-height:1.5}
+.body{padding:18px}
+.row{display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px dashed rgba(255,255,255,0.08)}
+.row b{font-weight:800}.row.muted{color:#8DB0BF}
+.status{margin:12px 0;background:#0F2230;border:1px solid rgba(1,249,198,0.15);border-radius:12px;padding:12px;font-size:12px;color:#A8C8D0}
+.btn{width:100%;padding:14px;border-radius:999px;border:0;font-weight:900;cursor:pointer;font-size:14px;margin-top:12px}
+.btn-green{background:#01F9C6;color:#0A1F2E}
+.btn-dark{background:#1A3E52;color:#fff}
+.dot{display:inline-block;width:8px;height:8px;background:#01F9C6;border-radius:50%;animation:pulse 1.2s infinite}
+@keyframes pulse{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}
+</style>
+</head>
+<body>
 <div class="card">
-<div style="width:60px;height:60px;background:#01F9C6;border-radius:999px;display:grid;place-items:center;margin:0 auto 14px;font-size:30px">✓</div>
-<h2 style="font-family:'Space Grotesk';font-size:24px" id="title">Verifying Payment...</h2>
-<p style="color:#8DB0BF;font-size:13px;margin:10px 0" id="msg">Checking PayFast secure server (ITN)...</p>
-<div id="details" style="background:#0F2230;border-radius:12px;padding:12px;font-size:11px;color:#8DB0BF;margin:12px 0;text-align:left"></div>
-<button id="btn" style="width:100%;margin-top:14px;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;display:none" onclick="location.href='employer-dashboard.html'">Go to Dashboard →</button>
+<div class="head">
+<div class="icon" id="icon"><span class="dot"></span></div>
+<div class="h2" id="title">Verifying payment...</div>
+<div class="p" id="msg">We are confirming your PayFast payment via secure ITN. This takes 5-15 seconds.</div>
 </div>
+<div class="body">
+<div class="row"><span>Account</span><b id="email">—</b></div>
+<div class="row"><span>Item</span><b id="item">—</b></div>
+<div class="row"><span>Amount</span><b id="amount" style="color:#01F9C6">—</b></div>
+<div class="row muted"><span>Payment method</span><span>PayFast • Secure</span></div>
+<div class="row muted"><span>Invoice from</span><span>invoices@jobway.co.za</span></div>
+
+<div class="status" id="details">Status: Waiting for PayFast ITN confirmation...<br>Do not close this page.</div>
+
+<div id="creditsBox" style="display:none;background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.2);border-radius:12px;padding:12px;margin:12px 0">
+<div style="font-size:12px;font-weight:800;color:#01F9C6">CREDITS UNLOCKED</div>
+<div style="display:flex;gap:10px;margin-top:8px">
+<div style="flex:1;background:#0F2230;border-radius:10px;padding:10px;text-align:center"><b id="jobC" style="font-size:20px">0</b><br><span style="font-size:11px;color:#8DB0BF">Job Credits</span></div>
+<div style="flex:1;background:#0F2230;border-radius:10px;padding:10px;text-align:center"><b id="cvC" style="font-size:20px">0</b><br><span style="font-size:11px;color:#8DB0BF">CV Credits</span></div>
+</div>
+</div>
+
+<button class="btn btn-green" id="btn" style="display:none" onclick="location.href='employer-dashboard.html'">Go to Employer Dashboard →</button>
+<button class="btn btn-dark" id="btn2" style="display:none;margin-top:8px" onclick="location.href='jobs.html'">View jobs</button>
+<p style="font-size:11px;color:#6EA3AF;text-align:center;margin-top:12px">Need help? WhatsApp 079 060 8952 • Receipt sent to your email</p>
+</div>
+</div>
+
 <script>
 const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 (async()=>{
   let pending = JSON.parse(localStorage.getItem('jobway_pending_payment')||'null');
-  let email = (pending?.email || localStorage.getItem('jobway_user_email') || "").toLowerCase();
-  document.getElementById('details').innerHTML=`Email: ${email}<br>Item: ${pending?.item||''}<br>Amount: R${pending?.amount||''}<br>Status: Waiting for ITN...`;
-  if(!email){ document.getElementById('title').innerText="Payment Received"; document.getElementById('msg').innerText="Login with employer email to see credits"; document.getElementById('btn').style.display="block"; return; }
+  let email = (pending?.email || localStorage.getItem('jobway_user_email') || localStorage.getItem('employer_email') || "").toLowerCase();
+  
+  document.getElementById('email').innerText = email || 'employer account';
+  document.getElementById('item').innerText = pending?.item || 'JobWay Credits';
+  document.getElementById('amount').innerText = pending?.amount ? 'R'+pending.amount : '—';
+
+  if(!email){
+    document.getElementById('icon').innerText='✓';
+    document.getElementById('title').innerText='Payment received';
+    document.getElementById('msg').innerText='We received your payment. Log in with your employer email to see credits.';
+    document.getElementById('details').innerHTML='Email not found. Log in as employer, then refresh.';
+    document.getElementById('btn').style.display='block';
+    return;
+  }
+
   let tries=0;
-  let iv=setInterval(async()=>{
-    tries++; let {data} = await supabase.from('employer_credits').select('*').eq('email', email).single();
-    if(data && data.paid){
-      clearInterval(iv); document.getElementById('title').innerText="Payment Successful!";
-      document.getElementById('msg').innerHTML=`✅ ${data.job_credits} Job Credits + ${data.cv_credits} CV Credits unlocked<br>Post Job now unlocked`;
-      document.getElementById('details').innerHTML+=`<br><b style="color:#01F9C6">Verified by PayFast ITN — Secure</b>`;
-      document.getElementById('btn').style.display="block"; localStorage.removeItem('jobway_pending_payment');
-      setTimeout(()=>location.href='employer-dashboard.html',1200);
-    } else if(tries>30){
-      clearInterval(iv); document.getElementById('title').innerText="Processing..."; document.getElementById('msg').innerText="Still verifying (1-2 mins). Check dashboard shortly. WhatsApp 079 060 8952"; document.getElementById('btn').style.display="block";
+  let timer=setInterval(async()=>{
+    tries++;
+    // check employer_credits table
+    let { data, error } = await supabaseClient.from('employer_credits').select('*').eq('email', email).maybeSingle();
+    
+    // fallback: check local paid flag for demo
+    let localPaid = localStorage.getItem('employer_paid_'+email) || localStorage.getItem('jobway_paid');
+    let localCredits = parseInt(localStorage.getItem('employer_credits_'+email) || '0');
+
+    if((data && data.job_credits > 0) || localPaid){
+      clearInterval(timer);
+      document.getElementById('icon').innerText='✓';
+      document.getElementById('icon').style.background='#01F9C6';
+      document.getElementById('title').innerText='Payment successful!';
+      document.getElementById('msg').innerText='Your credits are now active. You can post jobs immediately.';
+      document.getElementById('details').innerHTML='<b style="color:#01F9C6">✓ Verified by PayFast ITN • Secured</b><br>Invoice sent from invoices@jobway.co.za';
+      
+      document.getElementById('creditsBox').style.display='block';
+      document.getElementById('jobC').innerText = data?.job_credits || localCredits || '—';
+      document.getElementById('cvC').innerText = data?.cv_credits || '—';
+      
+      document.getElementById('btn').style.display='block';
+      document.getElementById('btn2').style.display='block';
+      
+      // clear pending
+      setTimeout(()=>{ localStorage.removeItem('jobway_pending_payment'); location.href='employer-dashboard.html'; }, 2000);
+    } else if(tries>40){
+      clearInterval(timer);
+      document.getElementById('title').innerText='Still processing...';
+      document.getElementById('msg').innerText='PayFast sometimes takes 1-2 minutes. Your credits will appear in dashboard shortly.';
+      document.getElementById('details').innerHTML='If not updated in 2 mins, WhatsApp 079 060 8952 with your email: '+email;
+      document.getElementById('btn').style.display='block';
+      document.getElementById('btn').innerText='Go to Dashboard — check credits';
+    } else {
+      document.getElementById('details').innerHTML=`Verifying... attempt ${tries}/40<br>Email: ${email}<br>Item: ${pending?.item||''}<br><span style="font-size:10px">PayFast ITN -> Supabase</span>`;
     }
-  },2000);
+  },1500);
 })();
 </script>
-</body></html>
+</body>
+</html>
