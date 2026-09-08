@@ -1,128 +1,306 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Employer Dashboard - JobWay</title>
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Employer Dashboard - JobWay</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+
 <style>
-:root{--bright:#01F9C6;--navy:#20576E;--dark:#0F2835}*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:#fff}
-.top{background:#0A1F2E;border-bottom:1px solid rgba(1,249,198,0.15);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-.card{background:#1A3341;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;margin:14px 20px}
-.paywall{background:linear-gradient(135deg,#11283A,#20576E);border:2px solid var(--bright);border-radius:18px;padding:22px;margin:20px;text-align:center}
-.btn{border-radius:999px;padding:10px 18px;border:0;font-weight:800;cursor:pointer}
-.btn-bright{background:var(--bright);color:#08231C}.btn-white{background:#fff;color:var(--navy)}
-input,textarea,select{width:100%;background:#0F2230;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px;color:#fff;margin:6px 0}
-label{font-size:11px;color:#8FB3C1;font-weight:800;letter-spacing:0.08em;margin-top:10px;display:block}
-</style></head><body>
-<div class="top"><div style="font-family:'Space Grotesk';font-weight:800;font-size:20px">JobWay Employer</div><div><span id="emailTxt" style="font-size:11px;color:#8FB3C1"></span> <button class="btn btn-white" style="margin-left:10px" onclick="localStorage.clear();sessionStorage.clear();location.href='index.html'">Logout</button></div></div>
 
-<div id="status" style="margin:20px;padding:12px;background:#11283A;border-radius:10px;font-size:12px;color:#8DB0BF;display:none"></div>
-
-<div id="paywall" class="paywall" style="display:none">
-<h2 style="font-family:'Space Grotesk';font-size:24px">🔒 Post Job Locked — Pay to Unlock</h2>
-<p style="color:#8DB0BF;font-size:13px;margin:10px 0">Pay R299 to unlock Post Job page. Credits added only by PayFast server — cannot be faked.</p>
-<div id="credInfo" style="font-size:12px;color:#01F9C6;margin:8px 0"></div>
-<button class="btn btn-bright" onclick="location.href='pricing.html'">Go to Pricing — From R299 →</button>
-</div>
-
-<div id="dashboard" style="display:none">
-<div class="card">
-<h3 style="font-family:'Space Grotesk'">Post a Job — Uses 1 Credit</h3>
-<div style="font-size:12px;color:#01F9C6;margin:6px 0" id="creditsTxt">Loading credits...</div>
-<label>Job Title</label><input id="title" placeholder="e.g. Cashier">
-<label>Company</label><input id="company" placeholder="e.g. Shoprite">
-<label>Location</label><input id="location" placeholder="e.g. Soweto">
-<label>Salary</label><input id="salary" placeholder="e.g. R8000 - R12000">
-<label>Description</label><textarea id="desc" rows="4" placeholder="Job description"></textarea>
-<button class="btn btn-bright" style="width:100%;margin-top:12px;padding:14px" onclick="postJob()">Post Job — 1 Credit →</button>
-</div>
-<div class="card"><h3>My Jobs (Global — visible to all on jobway.co.za)</h3><div id="jobsList" style="margin-top:10px">Loading...</div></div>
-</div>
-
-<script>
-const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
-const SUPABASE_ANON_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentEmail = (localStorage.getItem('jobway_user_email') || localStorage.getItem('jobway_otp_email') || sessionStorage.getItem('jobway_signup_email') || "").toLowerCase().trim();
-document.getElementById('emailTxt').innerText = currentEmail || "";
-
-function showStatus(msg){
-  const el = document.getElementById('status');
-  el.style.display='block';
-  el.textContent = msg;
+:root{
+    --bright:#01F9C6;
+    --navy:#20576E;
+    --dark:#0F2835;
+    --bg:#0F2230;
+    --top:#0A1F2E;
+    --card:#1A3341;
+    --input:#0C2532;
+    --muted:#8FB3C1;
+    --white:#FFFFFF;
+    --danger:#FF6B6B;
+    --warning:#FFD166;
 }
 
-async function checkAuth(){
-  try{
-    if(!currentEmail){
-      showStatus("No email found in storage. Redirecting to login...");
-      setTimeout(()=> location.href='login.html', 1500);
-      return;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    background:var(--bg);
+    color:#fff;
+    min-height:100vh;
+}
+
+/* =========================
+   TOP BAR
+========================= */
+
+.top{
+    background:var(--top);
+    border-bottom:1px solid rgba(1,249,198,.15);
+    padding:14px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+.logo{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:21px;
+    font-weight:800;
+}
+
+.logo span{
+    color:var(--bright);
+}
+
+.top-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.email{
+    color:var(--muted);
+    font-size:11px;
+    max-width:260px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.btn{
+    border:0;
+    border-radius:999px;
+    padding:10px 17px;
+    font-weight:800;
+    cursor:pointer;
+    font-family:inherit;
+}
+
+.btn-white{
+    background:#fff;
+    color:var(--navy);
+}
+
+.btn-bright{
+    background:var(--bright);
+    color:#08231C;
+}
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+/* =========================
+   PAGE
+========================= */
+
+.container{
+    width:100%;
+    max-width:1200px;
+    margin:auto;
+    padding:28px 20px 50px;
+}
+
+.welcome{
+    margin-bottom:22px;
+}
+
+.welcome h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:30px;
+    font-weight:800;
+}
+
+.welcome p{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:7px;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status{
+    display:none;
+    border-radius:12px;
+    padding:13px 15px;
+    margin-bottom:18px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.status.success{
+    display:block;
+    background:rgba(1,249,198,.08);
+    border:1px solid rgba(1,249,198,.25);
+    color:var(--bright);
+}
+
+.status.error{
+    display:block;
+    background:rgba(255,107,107,.08);
+    border:1px solid rgba(255,107,107,.25);
+    color:#FF9A9A;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+.loading{
+    text-align:center;
+    padding:55px 20px;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.spinner{
+    width:30px;
+    height:30px;
+    border:3px solid rgba(255,255,255,.1);
+    border-top-color:var(--bright);
+    border-radius:50%;
+    margin:0 auto 15px;
+    animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
     }
-    const {data: credits, error} = await supabase.from('employer_credits').select('*').eq('email', currentEmail).maybeSingle();
-    
-    if(error){
-      console.warn("Credits error:", error.message);
-      showStatus("Credits check: " + error.message + " — showing paywall");
-    }
-
-    if(!credits || !credits.paid || (credits.job_credits||0) <= 0){
-      document.getElementById('paywall').style.display='block';
-      document.getElementById('dashboard').style.display='none';
-      document.getElementById('credInfo').innerText=`Current: ${credits?.job_credits||0} job credits — need 1 to post.`;
-      return;
-    }
-
-    // HAS CREDITS
-    document.getElementById('paywall').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    document.getElementById('creditsTxt').innerText=`✅ Paid: ${credits.job_credits} Job Credits + ${credits.cv_credits||0} CV Credits`;
-    loadJobs();
-
-  } catch(err){
-    console.error(err);
-    showStatus("Error: " + err.message);
-    // FAIL SAFE - SHOW PAYWALL SO PAGE NOT BLANK
-    document.getElementById('paywall').style.display='block';
-    document.getElementById('credInfo').innerText = `Error loading credits. Please pay to unlock.`;
-  }
 }
 
-async function loadJobs(){
-  try{
-    let {data, error} = await supabase.from('jobs').select('*').eq('employer_email', currentEmail).order('created_at',{ascending:false});
-    if(error) throw error;
-    document.getElementById('jobsList').innerHTML = (data||[]).map(j=>`<div style="padding:10px;border-bottom:1px solid rgba(255,255,255,0.08)"><b>${escapeHtml(j.title)}</b> — ${escapeHtml(j.company)} (${escapeHtml(j.location||'')})<br><span style="font-size:11px;color:#8DB0BF">${new Date(j.created_at).toLocaleString()}</span></div>`).join('') || "No jobs yet — post your first job above";
-  } catch(e){
-    document.getElementById('jobsList').innerText = "Could not load jobs: " + e.message;
-  }
+/* =========================
+   STATS
+========================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:20px;
 }
 
-async function postJob(){
-  let title=document.getElementById('title').value.trim(); 
-  let company=document.getElementById('company').value.trim();
-  if(!title||!company){ alert('Title + Company required'); return; }
-  
-  let {data: credits} = await supabase.from('employer_credits').select('*').eq('email', currentEmail).maybeSingle();
-  if(!credits || (credits.job_credits||0)<=0){ alert('No credits'); location.href='pricing.html'; return; }
-
-  const payload = {
-    employer_email: currentEmail, 
-    title, 
-    company, 
-    location: document.getElementById('location').value.trim(), 
-    salary_text: document.getElementById('salary').value.trim(),
-    description: document.getElementById('desc').value.trim()
-  };
-
-  let {error} = await supabase.from('jobs').insert(payload);
-  if(error){ alert('Error: '+error.message); return; }
-  
-  await supabase.from('employer_credits').update({job_credits: credits.job_credits-1}).eq('email', currentEmail);
-  alert('Job posted globally!'); 
-  document.getElementById('title').value=''; document.getElementById('desc').value='';
-  loadJobs(); checkAuth();
+.stat{
+    background:var(--card);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:17px;
+    padding:19px;
 }
 
-function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-checkAuth();
-</script>
-</body></html>
+.stat-label{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.08em;
+}
+
+.stat-value{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:29px;
+    font-weight:800;
+    margin-top:8px;
+}
+
+.green{
+    color:var(--bright);
+}
+
+/* =========================
+   GRID
+========================= */
+
+.grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);
+    gap:18px;
+}
+
+.card{
+    background:var(--card);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.card-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:18px;
+    font-weight:800;
+}
+
+.card-subtitle{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:5px;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+label{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.08em;
+    margin-top:13px;
+    margin-bottom:6px;
+    text-transform:uppercase;
+}
+
+input,
+textarea{
+    width:100%;
+    background:var(--input);
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:10px;
+    padding:12px;
+    color:#fff;
+    outline:none;
+    font-family:inherit;
+    font-size:13px;
+}
+
+input:focus,
+textarea:focus{
+    border-color:var(--bright);
+}
+
+textarea{
+    resize:vertical;
+    min-height:120px;
+}
+
+.post-button{
+    width:100%;
+    margin-top:15p
