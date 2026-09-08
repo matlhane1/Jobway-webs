@@ -2,80 +2,82 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Create Account | JobWay</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<title>Create Account | JobWay.co.za — Free for Jobseekers</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;background:#06151d;color:#fff;font-family:'Plus Jakarta Sans',sans-serif}
-a{color:inherit;text-decoration:none}
-.header-main{width:100%;min-height:82px;padding:12px 7%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07)}
-.brand-logo{width:180px;height:58px;display:block}.brand-logo svg{width:100%;height:100%}
-.btn-login{border:none;cursor:pointer;background:#01F9C6;color:#06151d;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:800;font-family:inherit}
-.header-nav{min-height:52px;display:flex;align-items:center;justify-content:center;gap:32px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,.06)}
-.header-nav a{color:#9eb6c0;font-size:13px;font-weight:700}
-.page{width:100%;padding:45px 20px 70px;display:flex;justify-content:center}
-.signup-container{width:100%;max-width:570px}
-.top-text{text-align:center;margin-bottom:28px}
-.top-text .eyebrow{color:#01F9C6;font-size:11px;font-weight:800;letter-spacing:1.8px;margin-bottom:10px}
-.top-text h1{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;margin-bottom:9px}
-.top-text p{color:#8FB3C1;font-size:13px;line-height:1.6}
-.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
-.role-card{padding:20px 17px;border:1px solid rgba(143,179,193,.18);border-radius:16px;background:#0a202a;cursor:pointer}
-.role-card.active{border-color:#01F9C6;background:rgba(1,249,198,.07)}
-.role-icon{font-size:27px;margin-bottom:12px}
-.role-card h4{font-family:'Space Grotesk',sans-serif;font-size:15px;margin-bottom:7px}
-.role-card p{color:#8FB3C1;font-size:11px;line-height:1.5}
-.form-box{background:#0a202a;border:1px solid rgba(143,179,193,.15);border-radius:20px;padding:28px}
-.form-box h2{font-family:'Space Grotesk',sans-serif;font-size:23px;margin-bottom:23px}
-label{display:block;color:#d8e6ea;font-size:12px;font-weight:700;margin:0 0 8px}
-input,select{width:100%;height:49px;border:1px solid rgba(143,179,193,.2);border-radius:10px;background:#06151d;color:#fff;outline:none;padding:0 14px;font-size:13px;margin-bottom:18px;font-family:inherit}
-input:focus,select:focus{border-color:#01F9C6}
-.input-wrap{position:relative}.input-wrap input{padding-right:75px}
-.eye{position:absolute;right:9px;top:7px;height:35px;padding:0 9px;border:none;border-radius:7px;background:#102e39;color:#01F9C6;font-size:9px;font-weight:800;cursor:pointer}
-.wa-box{margin:14px 0 20px;padding:16px;border:1px solid rgba(143,179,193,.15);border-radius:12px;background:rgba(6,21,29,.45)}
-.wa-check{display:flex;gap:10px;cursor:pointer}.wa-check input{width:17px;height:17px;accent-color:#01F9C6}.wa-check span{color:#c7d9de;font-size:11px;line-height:1.5}
-.wa-help{color:#8FB3C1;font-size:10px;margin-top:6px}
-.btn-submit{width:100%;height:52px;border:none;border-radius:11px;background:#01F9C6;color:#06151d;font-size:14px;font-weight:800;cursor:pointer}
-.btn-submit:disabled{opacity:.6}
-.status{display:none;margin-top:15px;padding:12px;border-radius:9px;font-size:12px;text-align:center}
-.status.show{display:block}.status.error{color:#ffb5b5;background:rgba(255,70,70,.08);border:1px solid rgba(255,70,70,.22)}
-.status.success{color:#aaffed;background:rgba(1,249,198,.07);border:1px solid rgba(1,249,198,.2)}
-.note{text-align:center;color:#8FB3C1;font-size:12px;margin-top:21px}.note a{color:#01F9C6;font-weight:800}
-@media(max-width:600px){.header-main{padding:11px 18px}.brand-logo{width:155px}.page{padding:28px 14px 50px}.role-grid{grid-template-columns:1fr}}
+body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
+.header{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:20px}
+.wrap{max-width:480px;margin:0 auto;padding:24px 20px}
+.card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:22px;margin-top:16px}
+.label{font-size:11px;color:#A8C8D0;font-weight:700;margin:12px 0 6px;display:block;letter-spacing:0.05em}
+.input, .select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;font-size:13px;font-family:inherit}
+.input:focus{border-color:#01F9C6;outline:none}
+.role{ display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 }
+.role-btn{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:#0F2230;cursor:pointer;text-align:left}
+.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,0.08)}
+.role-btn b{display:block;font-size:13px} .role-btn span{font-size:11px;color:#8DB0BF}
+.btn{width:100%;padding:13px;border-radius:999px;border:0;font-weight:800;cursor:pointer;margin-top:16px;font-size:13px}
+.btn-green{background:#01F9C6;color:#0A1F2E}
+.status{margin-top:12px;padding:10px;border-radius:10px;font-size:12px;display:none}
+.status.show{display:block}.status.error{background:rgba(255,138,157,0.12);border:1px solid rgba(255,138,157,0.3);color:#FF8A9D}.status.ok{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.2);color:#01F9C6}
 </style>
 </head>
 <body>
-<div class="header-main">
-  <a href="index.html" class="brand-logo">
-    <svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg>
-  </a>
-  <button class="btn-login" onclick="location.href='login.html'">Log In</button>
+<div class="header">
+<div class="logo" onclick="location.href='index.html'">JobWay</div>
+<button onclick="location.href='login.html'" style="background:#1A3E52;color:#fff;border:0;padding:8px 16px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">Log in</button>
 </div>
-<div class="header-nav"><a href="index.html">Find Jobs</a><a href="jobs.html">Jobs</a><a href="pricing.html">Pricing</a><a href="employer-dashboard.html">For Employers</a></div>
 
-<main class="page">
-<div class="signup-container">
-  <div class="top-text"><div class="eyebrow">JOIN JOBWAY.CO.ZA</div><h1>Create account your way</h1><p>Sign up as Candidate or Employer — pricing unlocks only for employers.</p></div>
-  <div class="role-grid">
-    <div class="role-card active" id="card-seeker" onclick="setRole('seeker')"><div class="role-icon">🧑‍💼</div><h4>Candidate / Job Seeker</h4><p>Find jobs, apply free, upload CV.</p></div>
-    <div class="role-card" id="card-employer" onclick="setRole('employer')"><div class="role-icon">🏢</div><h4>Employer</h4><p>Post jobs, buy credits, unlock CVs.</p></div>
-  </div>
-  <div class="form-box">
-    <h2>Create JobWay Account</h2>
-    <form id="signupForm" novalidate>
-      <label>Full Name</label><input id="fn" placeholder="Your name" maxlength="100">
-      <label>Email</label><input id="em" type="email" placeholder="you@email.com" maxlength="254">
-      <label>Password</label><div class="input-wrap"><input id="pw" type="password" placeholder="Create password" minlength="6"><button class="eye" id="eyeBtn" type="button">SHOW</button></div>
-      <label>I want to join as:</label><select id="role"><option value="seeker">Job Seeker</option><option value="employer">Employer</option></select>
-      <div class="wa-box"><label class="wa-check"><input type="checkbox" id="waOptIn"><span>I want job alerts on WhatsApp (optional)</span></label><div id="waField" style="display:none;margin-top:12px"><input id="waNumber" type="tel" placeholder="071 123 4567" maxlength="20"><div class="wa-help">SA numbers only — 11 digits after +27</div></div></div>
-      <button class="btn-submit" id="btn" type="submit">Create Account →</button>
-    </form>
-    <div id="status" class="status"></div>
-    <div class="note">Already have account? <a href="login.html">Log In</a></div>
-  </div>
+<div class="wrap">
+<div style="text-align:center;margin:10px 0">
+<div style="font-size:11px;letter-spacing:0.12em;color:#01F9C6;font-weight:800">JOIN JOBWAY.CO.ZA</div>
+<h1 style="font-family:'Space Grotesk';font-size:26px;margin:8px 0">Create your account</h1>
+<p style="font-size:13px;color:#A8C8D0">Jobseekers free. Employers pay only when posting. No spam.</p>
 </div>
-</main>
+
+<div class="card">
+<label class="label">I AM A...</label>
+<div class="role">
+<button class="role-btn active" id="btn-seeker" onclick="setRole('seeker')"><b>Jobseeker</b><span>Find jobs, apply free</span></button>
+<button class="role-btn" id="btn-employer" onclick="setRole('employer')"><b>Employer</b><span>Post jobs, buy credits</span></button>
+</div>
+
+<form id="form" novalidate>
+<label class="label">FULL NAME</label>
+<input class="input" id="fn" placeholder="e.g. Thandi Nkosi">
+
+<label class="label">EMAIL ADDRESS</label>
+<input class="input" id="em" type="email" placeholder="you@company.com">
+
+<label class="label">PASSWORD (6+ chars)</label>
+<input class="input" id="pw" type="password" placeholder="Create password">
+
+<div style="margin-top:14px;background:#0F2230;border-radius:10px;padding:10px;display:flex;gap:8px;align-items:flex-start">
+<input type="checkbox" id="waOpt" style="margin-top:3px;accent-color:#01F9C6">
+<label for="waOpt" style="font-size:12px;color:#A8C8D0;line-height:1.4;cursor:pointer"><b style="color:#fff">Get job alerts on WhatsApp (optional)</b><br>Only from 079 060 8952, 2-3 per week. No spam.</label>
+</div>
+<div id="waBox" style="display:none">
+<label class="label">WHATSAPP NUMBER</label>
+<input class="input" id="waNum" placeholder="071 123 4567">
+</div>
+
+<div style="margin-top:14px;display:flex;gap:8px;align-items:flex-start">
+<input type="checkbox" id="popia" required style="margin-top:3px;accent-color:#01F9C6">
+<label for="popia" style="font-size:11px;color:#8DB0BF;line-height:1.4">I agree to <a href="privacy.html" style="color:#01F9C6">Privacy Policy</a> & POPIA. My data will be used only for recruitment. I can delete my account anytime.</label>
+</div>
+
+<input type="hidden" id="role" value="seeker">
+<button class="btn btn-green" id="submitBtn" type="submit">Create account →</button>
+</form>
+
+<div id="status" class="status"></div>
+<p style="text-align:center;font-size:12px;color:#8DB0BF;margin-top:14px">Already have account? <a href="login.html" style="color:#01F9C6;font-weight:800">Log in</a></p>
+<p style="text-align:center;font-size:10px;color:#6EA3AF;margin-top:8px">Secured • POPIA compliant • No tracking</p>
+</div>
+</div>
 
 <script>
 const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
@@ -83,74 +85,51 @@ const SUPABASE_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
 const HYPER_WORKER_URL="https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const form=document.getElementById("signupForm");
-const fullName=document.getElementById("fn");
-const email=document.getElementById("em");
-const password=document.getElementById("pw");
-const roleSelect=document.getElementById("role");
-const waOptIn=document.getElementById("waOptIn");
-const waField=document.getElementById("waField");
-const waNumber=document.getElementById("waNumber");
-const submitButton=document.getElementById("btn");
-const statusBox=document.getElementById("status");
-const eyeButton=document.getElementById("eyeBtn");
-
 function setRole(r){
-  roleSelect.value=r;
-  document.getElementById("card-seeker").classList.toggle("active",r==="seeker");
-  document.getElementById("card-employer").classList.toggle("active",r==="employer");
+ document.getElementById('role').value=r;
+ document.getElementById('btn-seeker').classList.toggle('active', r==='seeker');
+ document.getElementById('btn-employer').classList.toggle('active', r==='employer');
 }
-roleSelect.addEventListener("change",e=>setRole(e.target.value));
-eyeButton.addEventListener("click",()=>{password.type=password.type==="password"?"text":"password";eyeButton.textContent=password.type==="password"?"SHOW":"HIDE";});
-waOptIn.addEventListener("change",()=>{waField.style.display=waOptIn.checked?"block":"none";if(!waOptIn.checked)waNumber.value="";});
-function showStatus(m,t){statusBox.textContent=m;statusBox.className="status show "+t;}
-function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}
-function normalizePhone(v){let p=v.replace(/\D/g,"");if(p.startsWith("0"))p="27"+p.slice(1);return p.length===11&&p.startsWith("27")? "+"+p : null;}
-
-form.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  submitButton.disabled=true;
-  submitButton.textContent="Creating account...";
-  statusBox.className="status";
-  try{
-    const name=fullName.value.trim();
-    const userEmail=email.value.trim().toLowerCase();
-    const userPassword=password.value;
-    const selectedRole=roleSelect.value;
-    let whatsapp=null;
-    if(name.length<2) throw new Error("Enter your full name.");
-    if(!validEmail(userEmail)) throw new Error("Enter a valid email.");
-    if(userPassword.length<6) throw new Error("Password must be 6+ chars.");
-    if(waOptIn.checked){
-      if(!waNumber.value.trim()) throw new Error("Enter WhatsApp number.");
-      whatsapp=normalizePhone(waNumber.value);
-      if(!whatsapp) throw new Error("Enter valid SA WhatsApp number (071...).");
-    }
-    const otp=Math.floor(100000+Math.random()*900000).toString();
-    const pending={full_name:name,email:userEmail,password:userPassword,role:selectedRole,whatsapp_opt_in:waOptIn.checked,whatsapp_number:whatsapp};
-    localStorage.setItem("jobway_pending_signup",JSON.stringify(pending));
-    localStorage.setItem("jobway_otp_email",userEmail);
-    localStorage.setItem("jobway_otp_code",otp);
-    sessionStorage.setItem("jobway_signup_email",userEmail);
-    supabaseClient.auth.signUp({email:userEmail,password:userPassword,options:{data:{full_name:name,role:selectedRole}}});
-    showStatus("📧 Sending verification code to "+userEmail+"...","success");
-    const res = await fetch(HYPER_WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "signup_otp", email: userEmail, code: otp, name: name })
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error || "Email failed to send");
-    showStatus("✅ Code sent to "+userEmail+" — redirecting...","success");
-    submitButton.textContent="Account Created ✓";
-    setTimeout(()=>{location.href="verify-email.html?email="+encodeURIComponent(userEmail);},800);
-  }catch(err){
-    showStatus(err.message,"error");
-    submitButton.disabled=false;
-    submitButton.textContent="Create Account →";
-  }
+document.getElementById('waOpt').addEventListener('change', e=>{
+ document.getElementById('waBox').style.display = e.target.checked ? 'block' : 'none';
 });
-setRole("seeker");
+function show(m,cls){let s=document.getElementById('status'); s.innerText=m; s.className='status show '+cls;}
+function normalizePhone(v){let p=v.replace(/\D/g,""); if(p.startsWith("0")) p="27"+p.slice(1); return p.length===11 && p.startsWith("27") ? "+"+p : null;}
+
+document.getElementById('form').addEventListener('submit', async (e)=>{
+ e.preventDefault();
+ let btn=document.getElementById('submitBtn'); btn.disabled=true; btn.innerText='Creating...';
+ try{
+  let name=document.getElementById('fn').value.trim();
+  let email=document.getElementById('em').value.trim().toLowerCase();
+  let pw=document.getElementById('pw').value;
+  let role=document.getElementById('role').value;
+  if(name.length<2) throw new Error('Enter full name');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Valid email required');
+  if(pw.length<6) throw new Error('Password 6+ chars');
+  if(!document.getElementById('popia').checked) throw new Error('Accept Privacy Policy to continue');
+  let wa=null;
+  if(document.getElementById('waOpt').checked){
+    wa=normalizePhone(document.getElementById('waNum').value);
+    if(!wa) throw new Error('Enter valid SA WhatsApp (071...)');
+  }
+  let otp=Math.floor(100000+Math.random()*900000).toString();
+  localStorage.setItem("jobway_pending_signup", JSON.stringify({full_name:name,email,role,whatsapp_number:wa}));
+  localStorage.setItem("jobway_otp_code", otp);
+  localStorage.setItem("jobway_otp_email", email);
+  
+  try{ await supabaseClient.auth.signUp({email,password:pw,options:{data:{full_name:name,role}}}); }catch(_){}
+
+  show('Sending code to '+email+'...','ok');
+  let res=await fetch(HYPER_WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'signup_otp',email,code:otp,name})});
+  let data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error||'Email failed — check worker');
+
+  show('Code sent to '+email,'ok');
+  setTimeout(()=>location.href='verify-email.html?email='+encodeURIComponent(email),800);
+ }catch(err){ show(err.message,'error'); btn.disabled=false; btn.innerText='Create account →'; }
+});
+setRole('seeker');
 </script>
 </body>
 </html>
