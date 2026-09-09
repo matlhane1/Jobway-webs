@@ -39,19 +39,38 @@
 const supabaseClient = supabase.createClient("https://bzbsqouohsylnhrsjhhy.supabase.co","sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2");
 function setRole(r){document.getElementById("role").value=r;document.getElementById("btn-seeker").classList.toggle("active",r==="seeker");document.getElementById("btn-employer").classList.toggle("active",r==="employer");}
 function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
+
 document.getElementById("form").addEventListener("submit",async(e)=>{
  e.preventDefault();
- const name=document.getElementById("fn").value.trim(),email=document.getElementById("em").value.trim().toLowerCase(),password=document.getElementById("pw").value,role=document.getElementById("role").value;
+ const name=document.getElementById("fn").value.trim();
+ const email=document.getElementById("em").value.trim().toLowerCase();
+ const password=document.getElementById("pw").value;
+ const role=document.getElementById("role").value;
  if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
- const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Sending code...";
+ const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating account...";
  try{
-  localStorage.setItem("jobway_signup_email",email);
-  const {error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role}}});
-  if(error&&!error.message.toLowerCase().includes("already")) throw error;
-  if(error&&error.message.toLowerCase().includes("already")) throw new Error("Account exists, please login");
-  showStatus("Code sent to "+email,"ok");
-  setTimeout(()=>{location.href="verify-email.html?email="+encodeURIComponent(email)},800);
- }catch(err){showStatus(err.message,"error");btn.disabled=false;btn.textContent="Create account →";}
+  // 1. Create account
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role:role}}});
+  if(error && !error.message.toLowerCase().includes("already")) throw error;
+  if(error && error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
+
+  // 2. Login immediately - NO CODE NEEDED
+  const {error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(loginError) throw loginError;
+
+  localStorage.setItem("jobway_user_email",email);
+  localStorage.setItem("user_role",role);
+  showStatus("Account created! Redirecting...","ok");
+  
+  setTimeout(()=>{
+    if(role==="employer") location.href="employer-dashboard.html";
+    else location.href="candidate-dashboard.html";
+  },800);
+
+ }catch(err){
+  showStatus(err.message,"error");
+  btn.disabled=false;btn.textContent="Create account →";
+ }
 });
 </script>
 </body>
