@@ -1,135 +1,1056 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Create Account | JobWay.co.za — Free for Jobseekers</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
-.header{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
-.logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:20px}
-.wrap{max-width:480px;margin:0 auto;padding:24px 20px}
-.card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:22px;margin-top:16px}
-.label{font-size:11px;color:#A8C8D0;font-weight:700;margin:12px 0 6px;display:block;letter-spacing:0.05em}
-.input, .select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;font-size:13px;font-family:inherit}
-.input:focus{border-color:#01F9C6;outline:none}
-.role{ display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 }
-.role-btn{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:#0F2230;cursor:pointer;text-align:left}
-.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,0.08)}
-.role-btn b{display:block;font-size:13px} .role-btn span{font-size:11px;color:#8DB0BF}
-.btn{width:100%;padding:13px;border-radius:999px;border:0;font-weight:800;cursor:pointer;margin-top:16px;font-size:13px}
-.btn-green{background:#01F9C6;color:#0A1F2E}
-.status{margin-top:12px;padding:10px;border-radius:10px;font-size:12px;display:none}
-.status.show{display:block}.status.error{background:rgba(255,138,157,0.12);border:1px solid rgba(255,138,157,0.3);color:#FF8A9D}.status.ok{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.2);color:#01F9C6}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0
+}
+
+body{
+  background:#0F2835;
+  color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  min-height:100vh
+}
+
+.header{
+  max-width:1100px;
+  margin:0 auto;
+  padding:12px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid rgba(255,255,255,0.08)
+}
+
+.logo{
+  font-family:'Space Grotesk';
+  font-weight:800;
+  color:#01F9C6;
+  font-size:20px;
+  cursor:pointer
+}
+
+.wrap{
+  max-width:480px;
+  margin:0 auto;
+  padding:24px 20px
+}
+
+.card{
+  background:#11283A;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  padding:22px;
+  margin-top:16px
+}
+
+.label{
+  font-size:11px;
+  color:#A8C8D0;
+  font-weight:700;
+  margin:12px 0 6px;
+  display:block;
+  letter-spacing:0.05em
+}
+
+.input,
+.select{
+  width:100%;
+  background:#0F2230;
+  border:1px solid #25475A;
+  color:#fff;
+  padding:12px;
+  border-radius:10px;
+  font-size:13px;
+  font-family:inherit
+}
+
+.input::placeholder{
+  color:#668896
+}
+
+.input:focus{
+  border-color:#01F9C6;
+  outline:none;
+  box-shadow:0 0 0 2px rgba(1,249,198,0.08)
+}
+
+.role{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:12px 0
+}
+
+.role-btn{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:#0F2230;
+  color:#fff;
+  cursor:pointer;
+  text-align:left;
+  font-family:inherit
+}
+
+.role-btn.active{
+  border-color:#01F9C6;
+  background:rgba(1,249,198,0.08)
+}
+
+.role-btn:hover{
+  border-color:#01F9C6
+}
+
+.role-btn b{
+  display:block;
+  font-size:13px
+}
+
+.role-btn span{
+  font-size:11px;
+  color:#8DB0BF
+}
+
+.btn{
+  width:100%;
+  padding:13px;
+  border-radius:999px;
+  border:0;
+  font-weight:800;
+  cursor:pointer;
+  margin-top:16px;
+  font-size:13px;
+  font-family:inherit
+}
+
+.btn-green{
+  background:#01F9C6;
+  color:#0A1F2E
+}
+
+.btn-green:hover{
+  filter:brightness(1.04)
+}
+
+.btn:disabled{
+  opacity:.65;
+  cursor:not-allowed
+}
+
+.status{
+  margin-top:12px;
+  padding:10px;
+  border-radius:10px;
+  font-size:12px;
+  display:none;
+  line-height:1.45
+}
+
+.status.show{
+  display:block
+}
+
+.status.error{
+  background:rgba(255,138,157,0.12);
+  border:1px solid rgba(255,138,157,0.3);
+  color:#FF8A9D
+}
+
+.status.ok{
+  background:rgba(1,249,198,0.08);
+  border:1px solid rgba(1,249,198,0.2);
+  color:#01F9C6
+}
+
+.check-row{
+  margin-top:14px;
+  display:flex;
+  gap:8px;
+  align-items:flex-start
+}
+
+.check-row input{
+  margin-top:3px;
+  accent-color:#01F9C6
+}
+
+.check-row label{
+  font-size:11px;
+  color:#8DB0BF;
+  line-height:1.4;
+  cursor:pointer
+}
+
+.check-row a{
+  color:#01F9C6
+}
+
+.wa-box{
+  display:none
+}
+
+.security{
+  text-align:center;
+  font-size:10px;
+  color:#6EA3AF;
+  margin-top:8px
+}
+
+@media(max-width:420px){
+  .wrap{
+    padding:18px 14px
+  }
+
+  .card{
+    padding:18px
+  }
+}
 </style>
 </head>
+
 <body>
+
 <div class="header">
-<div class="logo" onclick="location.href='index.html'">JobWay</div>
-<button onclick="location.href='login.html'" style="background:#1A3E52;color:#fff;border:0;padding:8px 16px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">Log in</button>
+
+  <div class="logo" onclick="location.href='index.html'">
+    JobWay
+  </div>
+
+  <button
+    onclick="location.href='login.html'"
+    style="
+      background:#1A3E52;
+      color:#fff;
+      border:0;
+      padding:8px 16px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:13px;
+      cursor:pointer;
+    "
+  >
+    Log in
+  </button>
+
 </div>
+
 
 <div class="wrap">
-<div style="text-align:center;margin:10px 0">
-<div style="font-size:11px;letter-spacing:0.12em;color:#01F9C6;font-weight:800">JOIN JOBWAY.CO.ZA</div>
-<h1 style="font-family:'Space Grotesk';font-size:26px;margin:8px 0">Create your account</h1>
-<p style="font-size:13px;color:#A8C8D0">Jobseekers free. Employers pay only when posting. No spam.</p>
+
+  <div style="text-align:center;margin:10px 0">
+
+    <div style="
+      font-size:11px;
+      letter-spacing:0.12em;
+      color:#01F9C6;
+      font-weight:800
+    ">
+      JOIN JOBWAY.CO.ZA
+    </div>
+
+    <h1 style="
+      font-family:'Space Grotesk';
+      font-size:26px;
+      margin:8px 0
+    ">
+      Create your account
+    </h1>
+
+    <p style="
+      font-size:13px;
+      color:#A8C8D0
+    ">
+      Jobseekers free. Employers pay only when posting. No spam.
+    </p>
+
+  </div>
+
+
+  <div class="card">
+
+    <label class="label">I AM A...</label>
+
+    <div class="role">
+
+      <button
+        type="button"
+        class="role-btn active"
+        id="btn-seeker"
+        onclick="setRole('seeker')"
+      >
+        <b>Jobseeker</b>
+        <span>Find jobs, apply free</span>
+      </button>
+
+      <button
+        type="button"
+        class="role-btn"
+        id="btn-employer"
+        onclick="setRole('employer')"
+      >
+        <b>Employer</b>
+        <span>Post jobs, buy credits</span>
+      </button>
+
+    </div>
+
+
+    <form id="form" novalidate>
+
+      <label class="label" for="fn">
+        FULL NAME
+      </label>
+
+      <input
+        class="input"
+        id="fn"
+        type="text"
+        autocomplete="name"
+        placeholder="e.g. Thandi Nkosi"
+        maxlength="100"
+        required
+      >
+
+
+      <label class="label" for="em">
+        EMAIL ADDRESS
+      </label>
+
+      <input
+        class="input"
+        id="em"
+        type="email"
+        autocomplete="email"
+        placeholder="you@company.com"
+        maxlength="254"
+        required
+      >
+
+
+      <label class="label" for="pw">
+        PASSWORD (6+ chars)
+      </label>
+
+      <input
+        class="input"
+        id="pw"
+        type="password"
+        autocomplete="new-password"
+        placeholder="Create password"
+        minlength="6"
+        maxlength="128"
+        required
+      >
+
+
+      <div style="
+        margin-top:14px;
+        background:#0F2230;
+        border-radius:10px;
+        padding:10px;
+        display:flex;
+        gap:8px;
+        align-items:flex-start
+      ">
+
+        <input
+          type="checkbox"
+          id="waOpt"
+          style="margin-top:3px;accent-color:#01F9C6"
+        >
+
+        <label
+          for="waOpt"
+          style="
+            font-size:12px;
+            color:#A8C8D0;
+            line-height:1.4;
+            cursor:pointer
+          "
+        >
+          <b style="color:#fff">
+            Get job alerts on WhatsApp (optional)
+          </b>
+          <br>
+          Only from 079 060 8952, 2-3 per week. No spam.
+        </label>
+
+      </div>
+
+
+      <div id="waBox" class="wa-box">
+
+        <label class="label" for="waNum">
+          WHATSAPP NUMBER
+        </label>
+
+        <input
+          class="input"
+          id="waNum"
+          type="tel"
+          autocomplete="tel"
+          placeholder="071 123 4567"
+          maxlength="20"
+        >
+
+      </div>
+
+
+      <div class="check-row">
+
+        <input
+          type="checkbox"
+          id="popia"
+          required
+        >
+
+        <label for="popia">
+          I agree to
+          <a href="privacy.html">
+            Privacy Policy
+          </a>
+          &amp; POPIA. My data will be used only for recruitment. I can delete my account anytime.
+        </label>
+
+      </div>
+
+
+      <input
+        type="hidden"
+        id="role"
+        value="seeker"
+      >
+
+
+      <button
+        class="btn btn-green"
+        id="submitBtn"
+        type="submit"
+      >
+        Create account →
+      </button>
+
+    </form>
+
+
+    <div id="status" class="status"></div>
+
+
+    <p style="
+      text-align:center;
+      font-size:12px;
+      color:#8DB0BF;
+      margin-top:14px
+    ">
+      Already have account?
+      <a
+        href="login.html"
+        style="color:#01F9C6;font-weight:800"
+      >
+        Log in
+      </a>
+    </p>
+
+
+    <p class="security">
+      Secured • Privacy focused • No unnecessary tracking
+    </p>
+
+  </div>
+
 </div>
 
-<div class="card">
-<label class="label">I AM A...</label>
-<div class="role">
-<button class="role-btn active" id="btn-seeker" onclick="setRole('seeker')"><b>Jobseeker</b><span>Find jobs, apply free</span></button>
-<button class="role-btn" id="btn-employer" onclick="setRole('employer')"><b>Employer</b><span>Post jobs, buy credits</span></button>
-</div>
-
-<form id="form" novalidate>
-<label class="label">FULL NAME</label>
-<input class="input" id="fn" placeholder="e.g. Thandi Nkosi">
-
-<label class="label">EMAIL ADDRESS</label>
-<input class="input" id="em" type="email" placeholder="you@company.com">
-
-<label class="label">PASSWORD (6+ chars)</label>
-<input class="input" id="pw" type="password" placeholder="Create password">
-
-<div style="margin-top:14px;background:#0F2230;border-radius:10px;padding:10px;display:flex;gap:8px;align-items:flex-start">
-<input type="checkbox" id="waOpt" style="margin-top:3px;accent-color:#01F9C6">
-<label for="waOpt" style="font-size:12px;color:#A8C8D0;line-height:1.4;cursor:pointer"><b style="color:#fff">Get job alerts on WhatsApp (optional)</b><br>Only from 079 060 8952, 2-3 per week. No spam.</label>
-</div>
-<div id="waBox" style="display:none">
-<label class="label">WHATSAPP NUMBER</label>
-<input class="input" id="waNum" placeholder="071 123 4567">
-</div>
-
-<div style="margin-top:14px;display:flex;gap:8px;align-items:flex-start">
-<input type="checkbox" id="popia" required style="margin-top:3px;accent-color:#01F9C6">
-<label for="popia" style="font-size:11px;color:#8DB0BF;line-height:1.4">I agree to <a href="privacy.html" style="color:#01F9C6">Privacy Policy</a> & POPIA. My data will be used only for recruitment. I can delete my account anytime.</label>
-</div>
-
-<input type="hidden" id="role" value="seeker">
-<button class="btn btn-green" id="submitBtn" type="submit">Create account →</button>
-</form>
-
-<div id="status" class="status"></div>
-<p style="text-align:center;font-size:12px;color:#8DB0BF;margin-top:14px">Already have account? <a href="login.html" style="color:#01F9C6;font-weight:800">Log in</a></p>
-<p style="text-align:center;font-size:10px;color:#6EA3AF;margin-top:8px">Secured • POPIA compliant • No tracking</p>
-</div>
-</div>
 
 <script>
-const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
-const SUPABASE_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
-const HYPER_WORKER_URL="https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker";
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-function setRole(r){
- document.getElementById('role').value=r;
- document.getElementById('btn-seeker').classList.toggle('active', r==='seeker');
- document.getElementById('btn-employer').classList.toggle('active', r==='employer');
+/* ==========================================
+   JOBWAY CONFIGURATION
+========================================== */
+
+const SUPABASE_URL =
+  "https://bzbsqouohsylnhrsjhhy.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
+
+const HYPER_WORKER_URL =
+  "https://dmxumcjeetphwzvgzzuk.supabase.co/functions/v1/hyper-worker";
+
+
+/* ==========================================
+   SUPABASE
+========================================== */
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* ==========================================
+   ELEMENTS
+========================================== */
+
+const form =
+  document.getElementById("form");
+
+const submitBtn =
+  document.getElementById("submitBtn");
+
+const statusBox =
+  document.getElementById("status");
+
+const waOpt =
+  document.getElementById("waOpt");
+
+const waBox =
+  document.getElementById("waBox");
+
+
+/* ==========================================
+   ROLE
+========================================== */
+
+function setRole(role){
+
+  document.getElementById("role").value = role;
+
+  document
+    .getElementById("btn-seeker")
+    .classList.toggle(
+      "active",
+      role === "seeker"
+    );
+
+  document
+    .getElementById("btn-employer")
+    .classList.toggle(
+      "active",
+      role === "employer"
+    );
 }
-document.getElementById('waOpt').addEventListener('change', e=>{
- document.getElementById('waBox').style.display = e.target.checked ? 'block' : 'none';
-});
-function show(m,cls){let s=document.getElementById('status'); s.innerText=m; s.className='status show '+cls;}
-function normalizePhone(v){let p=v.replace(/\D/g,""); if(p.startsWith("0")) p="27"+p.slice(1); return p.length===11 && p.startsWith("27") ? "+"+p : null;}
 
-document.getElementById('form').addEventListener('submit', async (e)=>{
- e.preventDefault();
- let btn=document.getElementById('submitBtn'); btn.disabled=true; btn.innerText='Creating...';
- try{
-  let name=document.getElementById('fn').value.trim();
-  let email=document.getElementById('em').value.trim().toLowerCase();
-  let pw=document.getElementById('pw').value;
-  let role=document.getElementById('role').value;
-  if(name.length<2) throw new Error('Enter full name');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Valid email required');
-  if(pw.length<6) throw new Error('Password 6+ chars');
-  if(!document.getElementById('popia').checked) throw new Error('Accept Privacy Policy to continue');
-  let wa=null;
-  if(document.getElementById('waOpt').checked){
-    wa=normalizePhone(document.getElementById('waNum').value);
-    if(!wa) throw new Error('Enter valid SA WhatsApp (071...)');
+
+/* ==========================================
+   WHATSAPP TOGGLE
+========================================== */
+
+waOpt.addEventListener("change", function(){
+
+  waBox.style.display =
+    this.checked ? "block" : "none";
+
+  if(!this.checked){
+    document.getElementById("waNum").value = "";
   }
-  let otp=Math.floor(100000+Math.random()*900000).toString();
-  localStorage.setItem("jobway_pending_signup", JSON.stringify({full_name:name,email,role,whatsapp_number:wa}));
-  localStorage.setItem("jobway_otp_code", otp);
-  localStorage.setItem("jobway_otp_email", email);
-  
-  try{ await supabaseClient.auth.signUp({email,password:pw,options:{data:{full_name:name,role}}}); }catch(_){}
 
-  show('Sending code to '+email+'...','ok');
-  let res=await fetch(HYPER_WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'signup_otp',email,code:otp,name})});
-  let data=await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(data.error||'Email failed — check worker');
-
-  show('Code sent to '+email,'ok');
-  setTimeout(()=>location.href='verify-email.html?email='+encodeURIComponent(email),800);
- }catch(err){ show(err.message,'error'); btn.disabled=false; btn.innerText='Create account →'; }
 });
-setRole('seeker');
+
+
+/* ==========================================
+   STATUS MESSAGE
+========================================== */
+
+function showStatus(message, type){
+
+  statusBox.textContent = message;
+
+  statusBox.className =
+    "status show " + type;
+
+}
+
+
+/* ==========================================
+   EMAIL VALIDATION
+========================================== */
+
+function isValidEmail(email){
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+}
+
+
+/* ==========================================
+   SOUTH AFRICAN PHONE NORMALIZATION
+========================================== */
+
+function normalizePhone(value){
+
+  if(!value) return null;
+
+  let phone =
+    value.replace(/\D/g, "");
+
+  /*
+    0712345678
+    -> 27712345678
+  */
+
+  if(phone.startsWith("0")){
+    phone =
+      "27" + phone.substring(1);
+  }
+
+  /*
+    Accept:
+
+    27712345678
+  */
+
+  if(
+    phone.length === 11 &&
+    phone.startsWith("27")
+  ){
+    return "+" + phone;
+  }
+
+  return null;
+
+}
+
+
+/* ==========================================
+   GENERATE OTP
+
+   NOTE:
+   This OTP is only used to request the
+   verification email from the worker.
+
+   The backend MUST verify OTPs server-side
+   for a production implementation.
+========================================== */
+
+function generateOTP(){
+
+  const array =
+    new Uint32Array(1);
+
+  crypto.getRandomValues(array);
+
+  return String(
+    100000 + (array[0] % 900000)
+  );
+
+}
+
+
+/* ==========================================
+   CLEAN OLD PENDING SIGNUP DATA
+========================================== */
+
+function clearPendingSignup(){
+
+  localStorage.removeItem(
+    "jobway_pending_signup"
+  );
+
+  localStorage.removeItem(
+    "jobway_otp_code"
+  );
+
+  localStorage.removeItem(
+    "jobway_otp_email"
+  );
+
+}
+
+
+/* ==========================================
+   SUBMIT
+========================================== */
+
+form.addEventListener(
+  "submit",
+  async function(event){
+
+    event.preventDefault();
+
+    if(submitBtn.disabled){
+      return;
+    }
+
+
+    /* --------------------------------------
+       READ VALUES
+    -------------------------------------- */
+
+    const name =
+      document
+        .getElementById("fn")
+        .value
+        .trim();
+
+    const email =
+      document
+        .getElementById("em")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const password =
+      document
+        .getElementById("pw")
+        .value;
+
+    const role =
+      document
+        .getElementById("role")
+        .value;
+
+    const popia =
+      document
+        .getElementById("popia")
+        .checked;
+
+
+    /* --------------------------------------
+       VALIDATION
+    -------------------------------------- */
+
+    if(name.length < 2){
+
+      showStatus(
+        "Please enter your full name.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if(!isValidEmail(email)){
+
+      showStatus(
+        "Please enter a valid email address.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if(password.length < 6){
+
+      showStatus(
+        "Password must contain at least 6 characters.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if(!["seeker","employer"].includes(role)){
+
+      showStatus(
+        "Please select an account type.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if(!popia){
+
+      showStatus(
+        "Please accept the Privacy Policy and POPIA terms to continue.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    /* --------------------------------------
+       WHATSAPP
+    -------------------------------------- */
+
+    let whatsapp = null;
+
+    if(waOpt.checked){
+
+      whatsapp =
+        normalizePhone(
+          document
+            .getElementById("waNum")
+            .value
+        );
+
+      if(!whatsapp){
+
+        showStatus(
+          "Please enter a valid South African WhatsApp number.",
+          "error"
+        );
+
+        return;
+      }
+
+    }
+
+
+    /* --------------------------------------
+       LOCK BUTTON
+    -------------------------------------- */
+
+    submitBtn.disabled = true;
+
+    submitBtn.textContent =
+      "Creating account...";
+
+    statusBox.className = "status";
+
+
+    try{
+
+      /*
+        Remove old pending signup data
+        before starting a new signup.
+      */
+
+      clearPendingSignup();
+
+
+      /* ------------------------------------
+         GENERATE OTP
+      ------------------------------------ */
+
+      const otp =
+        generateOTP();
+
+
+      /* ------------------------------------
+         SAVE TEMPORARY FLOW DATA
+
+         This allows verify-email.html
+         to know which email is being verified.
+
+         Do NOT treat localStorage OTP as
+         the security authority.
+      ------------------------------------ */
+
+      localStorage.setItem(
+        "jobway_pending_signup",
+        JSON.stringify({
+          full_name:name,
+          email:email,
+          role:role,
+          whatsapp_number:whatsapp
+        })
+      );
+
+      localStorage.setItem(
+        "jobway_otp_email",
+        email
+      );
+
+
+      /* ------------------------------------
+         SUPABASE SIGNUP
+      ------------------------------------ */
+
+      const {
+        data: signupData,
+        error: signupError
+      } =
+        await supabaseClient.auth.signUp({
+
+          email:email,
+
+          password:password,
+
+          options:{
+            data:{
+              full_name:name,
+              role:role,
+              whatsapp_number:whatsapp
+            }
+          }
+
+        });
+
+
+      /*
+        IMPORTANT:
+
+        Do NOT silently ignore Supabase errors.
+      */
+
+      if(signupError){
+
+        /*
+          If Supabase says the user already exists,
+          tell the user clearly.
+        */
+
+        const message =
+          signupError.message || "";
+
+        if(
+          message.toLowerCase().includes("already") ||
+          message.toLowerCase().includes("registered")
+        ){
+
+          throw new Error(
+            "An account with this email already exists. Please log in instead."
+          );
+
+        }
+
+        throw new Error(
+          message
+        );
+
+      }
+
+
+      /* ------------------------------------
+         REQUEST OTP EMAIL FROM WORKER
+      ------------------------------------ */
+
+      showStatus(
+        "Creating your account and sending your verification code...",
+        "ok"
+      );
+
+
+      const response =
+        await fetch(
+          HYPER_WORKER_URL,
+          {
+            method:"POST",
+
+            headers:{
+              "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+              type:"signup_otp",
+
+              email:email,
+
+              code:otp,
+
+              name:name
+
+            })
+
+          }
+        );
+
+
+      let result = {};
+
+      try{
+
+        result =
+          await response.json();
+
+      }catch(_){
+
+        result = {};
+
+      }
+
+
+      /* ------------------------------------
+         WORKER ERROR
+      ------------------------------------ */
+
+      if(!response.ok){
+
+        throw new Error(
+          result.error ||
+          result.message ||
+          "We could not send your verification code. Please try again."
+        );
+
+      }
+
+
+      /* ------------------------------------
+         SUCCESS
+      ------------------------------------ */
+
+      showStatus(
+        "Verification code sent to " + email + ".",
+        "ok"
+      );
+
+
+      /*
+        Give the message time to appear,
+        then open verification page.
+      */
+
+      setTimeout(function(){
+
+        window.location.href =
+          "verify-email.html?email=" +
+          encodeURIComponent(email);
+
+      },800);
+
+
+    }catch(error){
+
+      console.error(
+        "JobWay signup error:",
+        error
+      );
+
+
+      /*
+        Do not leave broken temporary
+        signup data after an actual failure.
+      */
+
+      clearPendingSignup();
+
+
+      showStatus(
+        error.message ||
+        "Something went wrong. Please try again.",
+        "error"
+      );
+
+
+      submitBtn.disabled = false;
+
+      submitBtn.textContent =
+        "Create account →";
+
+    }
+
+  }
+);
+
+
+/* ==========================================
+   DEFAULT ROLE
+========================================== */
+
+setRole("seeker");
+
 </script>
+
 </body>
 </html>
