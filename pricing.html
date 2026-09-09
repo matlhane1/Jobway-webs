@@ -17,6 +17,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 .sub{color:#A8C8D0;font-size:14px;max-width:600px}
 .trust{margin:14px 0;display:flex;gap:8px;flex-wrap:wrap}
 .trust span{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);padding:6px 12px;border-radius:999px;font-size:11px;color:#A8C8D0}
+.pay-logos{margin:12px 0 2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pay-logos .label{font-size:10px;letter-spacing:0.12em;color:#6EA3AF;font-weight:800;margin-right:2px}
+.pay-logos .logo-card{background:#fff;color:#0A1F2E;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:900;letter-spacing:0.02em;line-height:1}
+.pay-logos .logo-eft{background:#11283A;border:1px solid rgba(255,255,255,0.18);color:#C8DDE3;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700}
 .grid{display:grid;gap:14px;margin:18px 0}
 .g3{grid-template-columns:repeat(3,1fr)}
 .card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;position:relative}
@@ -53,7 +57,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 <div class="sub">Pay only for what you use. One job post = R299 live for 30 days. All applicant CVs free. Invoices from invoices@jobway.co.za. Need help? WhatsApp 079 060 8952</div>
 <div class="trust"><span>PayFast secured</span><span>Invoices instantly</span><span>POPIA compliant</span><span>No tracking pixels</span></div>
 
-<div class="grid g3" style="margin-top:24px">
+<div class="pay-logos">
+<span class="label">WE ACCEPT:</span>
+<span class="logo-card">VISA</span>
+<span class="logo-card">Mastercard</span>
+<span class="logo-eft">Instant EFT</span>
+<span class="logo-eft">Capitec Pay</span>
+<span class="logo-eft">Apple Pay</span>
+<span class="logo-eft">Google Pay</span>
+</div>
+<p style="font-size:11px;color:#6EA3AF;margin-top:4px">Secured by PayFast • Cards + Instant EFT • No card stored on JobWay</p>
+
+<div class="grid g3" style="margin-top:20px">
 <div class="card">
 <div style="font-size:11px;color:#01F9C6;font-weight:800;letter-spacing:0.08em">SINGLE JOB</div>
 <div class="price">R299 <small>/ 30 days</small></div>
@@ -111,7 +126,7 @@ R299 = 1 job post live 30 days on jobway.co.za + jobway jobs page. All CVs that 
 <b>Refund?</b>
 Unused credits refundable within 7 days. Used credits non-refundable. Jobs can be removed if fraudulent.
 <b>How do payments work?</b>
-PayFast only. Cards and Instant EFT. We don't store card numbers.
+PayFast only. Cards (Visa/Mastercard), Instant EFT, Capitec Pay, Apple Pay & Google Pay. We don't store card numbers.
 </div>
 <div>
 <b>Is this for jobseekers?</b>
@@ -123,7 +138,7 @@ WhatsApp 079 060 8952 Mon-Fri 8am-6pm. Email invoices@jobway.co.za
 </div>
 </div>
 
-<p style="text-align:center;color:#6EA3AF;font-size:11px;margin-top:28px">© 2026 JobWay.co.za • PayFast Secure • Pretoria, SA • No tracking pixels</p>
+<p style="text-align:center;color:#6EA3AF;font-size:11px;margin-top:28px">© 2026 JobWay.co.za • PayFast Secure • Cards + Instant EFT • Pretoria, SA • No tracking pixels</p>
 </div>
 
 <div class="modal" id="payModal">
@@ -132,11 +147,14 @@ WhatsApp 079 060 8952 Mon-Fri 8am-6pm. Email invoices@jobway.co.za
 <b id="mItem" style="font-family:'Space Grotesk'">JobWay Single</b>
 <button onclick="closePay()" style="background:rgba(255,255,255,0.08);border:0;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">×</button>
 </div>
-<p style="font-size:12px;color:#A8C8D0;margin:8px 0">You will pay via PayFast (Cards + Instant EFT). Secured 256-bit SSL.</p>
+<p style="font-size:12px;color:#A8C8D0;margin:8px 0">You will pay via PayFast — choose Card or Instant EFT on next page. 256-bit SSL.</p>
 <div style="background:#0F2230;border-radius:10px;padding:12px;display:flex;justify-content:space-between;margin:12px 0">
 <span id="mItem2" style="font-size:13px">Single Job</span><b id="mAmount" style="color:#01F9C6">R299</b>
 </div>
-<button class="btn-card btn-green" id="payBtn" style="background:#01F9C6" onclick="doPay()">Pay via PayFast →</button>
+<div style="display:flex;gap:6px;margin:6px 0 12px">
+<span class="logo-card" style="font-size:10px">VISA</span><span class="logo-card" style="font-size:10px">Mastercard</span><span class="logo-eft" style="font-size:10px">Instant EFT</span><span class="logo-eft" style="font-size:10px">Capitec Pay</span>
+</div>
+<button class="btn-card btn-green" id="payBtn" style="background:#01F9C6" onclick="doPay()">Pay with Card or Instant EFT →</button>
 <p style="font-size:10px;color:#6EA3AF;text-align:center;margin-top:10px">By paying you agree to Terms & Privacy. Credits valid 12 months.</p>
 </div>
 </div>
