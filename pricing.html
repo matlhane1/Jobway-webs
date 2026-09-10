@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing — JobWay.co.za | From R299</title>
+<title>Pricing — JobWay.co.za | From R999</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;line-height:1.5}
-.header{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.header{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
 .logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:20px;cursor:pointer}
 .btn{border:none;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;font-size:13px}
 .btn-dark{background:#1A3E52;color:#A8C8D0}.btn-green{background:#01F9C6;color:#0A1F2E}
-.wrap{max-width:1100px;margin:0 auto;padding:24px 20px}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px}
 .h1{font-family:'Space Grotesk';font-size:38px;font-weight:800;margin:8px 0}
-.sub{color:#A8C8D0;font-size:14px;max-width:600px}
+.sub{color:#A8C8D0;font-size:14px;max-width:650px}
 .trust{margin:14px 0;display:flex;gap:8px;flex-wrap:wrap}
 .trust span{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);padding:6px 12px;border-radius:999px;font-size:11px;color:#A8C8D0}
 .pay-logos{margin:12px 0 2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -22,24 +22,26 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 .pay-logos .logo-card{background:#fff;color:#0A1F2E;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:900;letter-spacing:0.02em;line-height:1}
 .pay-logos .logo-eft{background:#11283A;border:1px solid rgba(255,255,255,0.18);color:#C8DDE3;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700}
 .grid{display:grid;gap:14px;margin:18px 0}
-.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
 .card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;position:relative}
 .card.popular{border:1px solid #01F9C6;box-shadow:0 0 0 1px rgba(1,249,198,0.2)}
 .badge{position:absolute;top:-10px;left:20px;background:#01F9C6;color:#0A1F2E;padding:4px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:0.05em}
-.price{font-family:'Space Grotesk';font-size:32px;font-weight:800;margin:6px 0}
-.price small{font-size:14px;opacity:0.6}
+.price{font-family:'Space Grotesk';font-size:28px;font-weight:800;margin:6px 0}
+.price small{font-size:13px;opacity:0.6}
 .ul{list-style:none;margin:12px 0}
-.ul li{font-size:13px;color:#C8DDE3;margin:6px 0;padding-left:16px;position:relative}
+.ul li{font-size:12px;color:#C8DDE3;margin:6px 0;padding-left:16px;position:relative}
 .ul li::before{content:"✓";position:absolute;left:0;color:#01F9C6;font-weight:900}
-.btn-card{width:100%;margin-top:14px;padding:13px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:13px}
+.btn-card{width:100%;margin-top:14px;padding:12px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:12px}
 .btn-white{background:#fff;color:#0A1F2E}.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#fff}
+.section-title{font-family:'Space Grotesk';font-size:22px;font-weight:800;margin:30px 0 4px}
+.section-sub{font-size:13px;color:#A8C8D0;margin-bottom:14px}
 .divider{height:1px;background:rgba(255,255,255,0.08);margin:28px 0}
-.faq{font-size:13px;color:#A8C8D0}
-.faq b{color:#fff;display:block;margin-top:10px}
 .modal{position:fixed;inset:0;background:rgba(8,24,36,0.92);display:none;place-items:center;z-index:99;padding:20px}
 .modal.show{display:grid}
 .modal-box{max-width:420px;width:100%;background:#11283A;border:1px solid rgba(1,249,198,0.2);border-radius:18px;padding:22px}
-@media(max-width:800px){.g3{grid-template-columns:1fr}}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+@media(max-width:600px){.g4{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -53,8 +55,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 
 <div class="wrap">
 <div style="font-size:11px;letter-spacing:0.12em;color:#01F9C6;font-weight:800">FOR EMPLOYERS • PAYFAST SECURE • POPIA COMPLIANT</div>
-<div class="h1">Simple pricing. No monthly fees unless you want them.</div>
-<div class="sub">Pay only for what you use. One job post = R299 live for 30 days. All applicant CVs free. Invoices from invoices@jobway.co.za. Need help? WhatsApp 079 060 8952</div>
+<div class="h1">Simple pricing. Choose what fits your hiring.</div>
+<div class="sub">Subscription plans from R999. Plus pay-as-you-go Job Credits and CV Database access. Invoices from invoices@jobway.co.za. WhatsApp 079 060 8952</div>
 <div class="trust"><span>PayFast secured</span><span>Invoices instantly</span><span>POPIA compliant</span><span>No tracking pixels</span></div>
 
 <div class="pay-logos">
@@ -66,96 +68,148 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 <span class="logo-eft">Apple Pay</span>
 <span class="logo-eft">Google Pay</span>
 </div>
-<p style="font-size:11px;color:#6EA3AF;margin-top:4px">Secured by PayFast • Cards + Instant EFT • No card stored on JobWay</p>
 
-<div class="grid g3" style="margin-top:20px">
+<!-- SUBSCRIPTION PLANS -->
+<div class="section-title">Subscription Plans</div>
+<div class="section-sub">Monthly plans for teams hiring regularly. Cancel anytime.</div>
+<div class="grid g4" style="margin-top:12px">
 <div class="card">
-<div style="font-size:11px;color:#01F9C6;font-weight:800;letter-spacing:0.08em">SINGLE JOB</div>
-<div class="price">R299 <small>/ 30 days</small></div>
+<div style="font-size:11px;color:#01F9C6;font-weight:800;letter-spacing:0.08em">STARTER</div>
+<div class="price">R999 <small>/ month</small></div>
 <ul class="ul">
-<li>1 job post live 30 days</li>
-<li>All CVs from applicants free</li>
-<li>Invoice instantly</li>
-<li>WhatsApp support</li>
+<li>5 active job posts</li>
+<li>20 CV unlocks included</li>
+<li>Basic candidate search</li>
+<li>Email support</li>
 </ul>
-<form class="payfast-form" data-amount="299.00" data-item="JobWay Single Job Post"><button class="btn-card btn-white" type="submit">Post a job — R299</button></form>
-<p style="font-size:11px;color:#8DB0BF;margin-top:8px;text-align:center">Most small businesses start here</p>
+<form class="payfast-form" data-amount="999.00" data-item="JobWay Starter Monthly"><button class="btn-card btn-white" type="submit">Get Starter — R999</button></form>
 </div>
 
 <div class="card popular">
 <div class="badge">MOST CHOSEN</div>
-<div style="font-size:11px;color:#01F9C6;font-weight:800;letter-spacing:0.08em;margin-top:8px">JOB CREDITS — SAVE 50%</div>
-<div class="price">R7,500 <small>for 50 jobs</small></div>
-<div style="font-size:12px;color:#01F9C6;font-weight:700">R150 per job — not R299</div>
+<div style="font-size:11px;color:#01F9C6;font-weight:800;letter-spacing:0.08em;margin-top:8px">GROWTH</div>
+<div class="price">R2,500 <small>/ month</small></div>
 <ul class="ul">
-<li>50 job posts — use anytime in 12 months</li>
-<li>Share with your team</li>
-<li>Credits never expire in 12 months</li>
-<li>Best for growing companies</li>
+<li>20 active job posts</li>
+<li>100 CV unlocks included</li>
+<li>Featured listings</li>
+<li>Priority support + analytics</li>
 </ul>
-<form class="payfast-form" data-amount="7500.00" data-item="JobWay 50 Job Credits"><button class="btn-card btn-green" type="submit" style="background:#01F9C6">Buy 50 credits</button></form>
-<div style="display:flex;gap:6px;margin-top:10px">
-<button class="btn btn-dark" style="flex:1;font-size:11px" onclick="openPay('14000.00','JobWay 100 Job Credits')">100 for R14k</button>
-<button class="btn btn-dark" style="flex:1;font-size:11px" onclick="openPay('31250.00','JobWay 250 Job Credits')">250 for R31,250</button>
-</div>
+<form class="payfast-form" data-amount="2500.00" data-item="JobWay Growth Monthly"><button class="btn-card btn-green" style="background:#01F9C6" type="submit">Get Growth — R2,500</button></form>
 </div>
 
 <div class="card">
-<div style="font-size:11px;color:#A8C8D0;font-weight:800;letter-spacing:0.08em">CV DATABASE</div>
-<div class="price">R999 <small>for 10 CVs</small></div>
-<div style="font-size:12px;color:#A8C8D0">Search CVs before they apply</div>
+<div style="font-size:11px;color:#A8C8D0;font-weight:800;letter-spacing:0.08em">PRO</div>
+<div class="price">R3,500 <small>/ month</small></div>
 <ul class="ul">
-<li>10 CV unlocks</li>
-<li>Contact candidates directly</li>
-<li>POPIA: use for hiring only</li>
-<li>Valid 12 months</li>
+<li>50 active job posts</li>
+<li>250 CV unlocks included</li>
+<li>Branded company page</li>
+<li>Team access (5 users)</li>
 </ul>
-<form class="payfast-form" data-amount="999.00" data-item="JobWay 10 CV Unlocks"><button class="btn-card btn-outline" type="submit">Unlock 10 CVs — R999</button></form>
-<div style="display:flex;gap:6px;margin-top:10px">
-<button class="btn btn-dark" style="flex:1;font-size:11px" onclick="openPay('2499.00','JobWay 50 CV Unlocks')">50 for R2,499</button>
-<button class="btn btn-dark" style="flex:1;font-size:11px" onclick="openPay('10999.00','JobWay 250 CV Unlocks')">250 for R10,999</button>
+<form class="payfast-form" data-amount="3500.00" data-item="JobWay Pro Monthly"><button class="btn-card btn-outline" type="submit">Get Pro — R3,500</button></form>
 </div>
+
+<div class="card">
+<div style="font-size:11px;color:#A8C8D0;font-weight:800;letter-spacing:0.08em">BUSINESS</div>
+<div class="price">R5,999 <small>/ month</small></div>
+<ul class="ul">
+<li>Unlimited job posts</li>
+<li>Unlimited CV unlocks</li>
+<li>API + custom integrations</li>
+<li>Dedicated success manager</li>
+</ul>
+<form class="payfast-form" data-amount="5999.00" data-item="JobWay Business Monthly"><button class="btn-card btn-outline" type="submit">Get Business — R5,999</button></form>
 </div>
 </div>
 
-<div class="divider"></div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" class="faq">
-<div>
-<b>What do I get exactly?</b>
-R299 = 1 job post live 30 days on jobway.co.za + jobway jobs page. All CVs that apply are free. You get invoice instantly. No hidden fees.
-<b>Refund?</b>
-Unused credits refundable within 7 days. Used credits non-refundable. Jobs can be removed if fraudulent.
-<b>How do payments work?</b>
-PayFast only. Cards (Visa/Mastercard), Instant EFT, Capitec Pay, Apple Pay & Google Pay. We don't store card numbers.
+<!-- JOB CREDITS -->
+<div class="section-title">Job Credits — Pay as you go</div>
+<div class="section-sub">For companies that prefer once-off. Credits valid 12 months. Same style, clear pricing.</div>
+<div class="grid g4">
+<div class="card">
+<div style="font-size:11px;color:#01F9C6;font-weight:800">STARTER</div>
+<div class="price">R7,500 <small>for 50 jobs</small></div>
+<div style="font-size:12px;color:#A8C8D0">R150 per job</div>
+<ul class="ul"><li>50 job posts — use anytime</li><li>Valid 12 months</li></ul>
+<button class="btn-card btn-white" onclick="openPay('7500.00','JobWay 50 Job Credits')">Buy 50 — R7,500</button>
 </div>
-<div>
-<b>Is this for jobseekers?</b>
-No. Jobseekers use JobWay free. This page is for employers only.
-<b>POPIA?</b>
-By unlocking CVs you agree to use CVs only for recruitment, not share them, and delete if not hired.
-<b>Support?</b>
-WhatsApp 079 060 8952 Mon-Fri 8am-6pm. Email invoices@jobway.co.za
+<div class="card">
+<div style="font-size:11px;color:#01F9C6;font-weight:800">GROWTH</div>
+<div class="price">R14,000 <small>for 100 jobs</small></div>
+<div style="font-size:12px;color:#01F9C6;font-weight:700">R140 per job — save 6%</div>
+<ul class="ul"><li>100 job posts</li><li>Best for growing teams</li></ul>
+<button class="btn-card btn-white" onclick="openPay('14000.00','JobWay 100 Job Credits')">Buy 100 — R14,000</button>
+</div>
+<div class="card popular">
+<div class="badge">BEST VALUE</div>
+<div style="font-size:11px;color:#01F9C6;font-weight:800;margin-top:8px">PRO</div>
+<div class="price">R31,250 <small>for 250 jobs</small></div>
+<div style="font-size:12px;color:#01F9C6;font-weight:700">R125 per job — save 16%</div>
+<ul class="ul"><li>250 job posts</li><li>Share with your team</li></ul>
+<button class="btn-card btn-green" style="background:#01F9C6" onclick="openPay('31250.00','JobWay 250 Job Credits')">Buy 250 — R31,250</button>
+</div>
+<div class="card">
+<div style="font-size:11px;color:#A8C8D0;font-weight:800">BUSINESS</div>
+<div class="price">R55,000 <small>for 500 jobs</small></div>
+<div style="font-size:12px;color:#A8C8D0">R110 per job — save 26%</div>
+<ul class="ul"><li>500 job posts</li><li>Agency / high volume</li></ul>
+<button class="btn-card btn-outline" onclick="openPay('55000.00','JobWay 500 Job Credits')">Buy 500 — R55,000</button>
 </div>
 </div>
 
-<p style="text-align:center;color:#6EA3AF;font-size:11px;margin-top:28px">© 2026 JobWay.co.za • PayFast Secure • Cards + Instant EFT • Pretoria, SA • No tracking pixels</p>
+<!-- CV DATABASE -->
+<div class="section-title">CV Database Access</div>
+<div class="section-sub">Search CVs before they apply. Visible, clear pricing like the rest.</div>
+<div class="grid g4">
+<div class="card">
+<div style="font-size:11px;color:#A8C8D0;font-weight:800">STARTER</div>
+<div class="price">R999 <small>for 10 CVs</small></div>
+<div style="font-size:12px;color:#A8C8D0">R99 per CV</div>
+<ul class="ul"><li>10 CV unlocks</li><li>Contact directly</li></ul>
+<button class="btn-card btn-outline" onclick="openPay('999.00','JobWay 10 CV Unlocks')">Unlock 10 — R999</button>
+</div>
+<div class="card popular">
+<div class="badge">POPULAR</div>
+<div style="font-size:11px;color:#01F9C6;font-weight:800;margin-top:8px">GROWTH</div>
+<div class="price">R2,499 <small>for 50 CVs</small></div>
+<div style="font-size:12px;color:#01F9C6;font-weight:700">R49 per CV — save 50%</div>
+<ul class="ul"><li>50 CV unlocks</li><li>Verified candidates</li></ul>
+<button class="btn-card btn-green" style="background:#01F9C6" onclick="openPay('2499.00','JobWay 50 CV Unlocks')">Unlock 50 — R2,499</button>
+</div>
+<div class="card">
+<div style="font-size:11px;color:#A8C8D0;font-weight:800">PRO</div>
+<div class="price">R10,999 <small>for 250 CVs</small></div>
+<div style="font-size:12px;color:#01F9C6;font-weight:700">R44 per CV — save 55%</div>
+<ul class="ul"><li>250 CV unlocks</li><li>Bulk access, PDF exports</li></ul>
+<button class="btn-card btn-white" onclick="openPay('10999.00','JobWay 250 CV Unlocks')">Unlock 250 — R10,999</button>
+</div>
+<div class="card">
+<div style="font-size:11px;color:#A8C8D0;font-weight:800">BUSINESS</div>
+<div class="price">R19,999 <small>for 500 CVs</small></div>
+<div style="font-size:12px;color:#A8C8D0">R40 per CV — best rate</div>
+<ul class="ul"><li>500 CV unlocks</li><li>12-month validity</li></ul>
+<button class="btn-card btn-outline" onclick="openPay('19999.00','JobWay 500 CV Unlocks')">Unlock 500 — R19,999</button>
+</div>
+</div>
+
+<p style="text-align:center;color:#6EA3AF;font-size:11px;margin-top:28px">© 2026 JobWay.co.za • PayFast Secure • Merchant ID 36908075 • Pretoria, SA</p>
 </div>
 
 <div class="modal" id="payModal">
 <div class="modal-box">
 <div style="display:flex;justify-content:space-between;align-items:center">
-<b id="mItem" style="font-family:'Space Grotesk'">JobWay Single</b>
+<b id="mItem" style="font-family:'Space Grotesk'">JobWay</b>
 <button onclick="closePay()" style="background:rgba(255,255,255,0.08);border:0;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">×</button>
 </div>
-<p style="font-size:12px;color:#A8C8D0;margin:8px 0">You will pay via PayFast — choose Card or Instant EFT on next page. 256-bit SSL.</p>
+<p style="font-size:12px;color:#A8C8D0;margin:8px 0">Pay via PayFast — Card or Instant EFT. 256-bit SSL.</p>
 <div style="background:#0F2230;border-radius:10px;padding:12px;display:flex;justify-content:space-between;margin:12px 0">
-<span id="mItem2" style="font-size:13px">Single Job</span><b id="mAmount" style="color:#01F9C6">R299</b>
+<span id="mItem2" style="font-size:13px">Item</span><b id="mAmount" style="color:#01F9C6">R0</b>
 </div>
 <div style="display:flex;gap:6px;margin:6px 0 12px">
 <span class="logo-card" style="font-size:10px">VISA</span><span class="logo-card" style="font-size:10px">Mastercard</span><span class="logo-eft" style="font-size:10px">Instant EFT</span><span class="logo-eft" style="font-size:10px">Capitec Pay</span>
 </div>
 <button class="btn-card btn-green" id="payBtn" style="background:#01F9C6" onclick="doPay()">Pay with Card or Instant EFT →</button>
-<p style="font-size:10px;color:#6EA3AF;text-align:center;margin-top:10px">By paying you agree to Terms & Privacy. Credits valid 12 months.</p>
 </div>
 </div>
 
