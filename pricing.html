@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing — JobWay.co.za | From R999</title>
+<title>Pricing — JobWay.co.za | From R299</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;line-height:1.5}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200px 600px at 50% -10%, #1a435a 0%, #0F2835 60%);color:#fff;line-height:1.5}
 .header{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
 .logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:20px;cursor:pointer}
 .btn{border:none;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;font-size:13px}
@@ -23,25 +23,26 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 .pay-logos .logo-eft{background:#11283A;border:1px solid rgba(255,255,255,0.18);color:#C8DDE3;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700}
 .grid{display:grid;gap:14px;margin:18px 0}
 .g4{grid-template-columns:repeat(4,1fr)}
-.g2{grid-template-columns:repeat(2,1fr)}
-.card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;position:relative}
-.card.popular{border:1px solid #01F9C6;box-shadow:0 0 0 1px rgba(1,249,198,0.2)}
+.card{background:#132f42;border:1px solid rgba(255,255,255,0.10);border-radius:18px;padding:20px;position:relative;box-shadow:0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)}
+.card:hover{border-color:rgba(1,249,198,0.25);box-shadow:0 8px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(1,249,198,0.08)}
+.card.popular{border:1px solid #01F9C6;box-shadow:0 0 0 1px rgba(1,249,198,0.2), 0 10px 40px rgba(1,249,198,0.12)}
 .badge{position:absolute;top:-10px;left:20px;background:#01F9C6;color:#0A1F2E;padding:4px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:0.05em}
 .price{font-family:'Space Grotesk';font-size:28px;font-weight:800;margin:6px 0}
 .price small{font-size:13px;opacity:0.6}
 .ul{list-style:none;margin:12px 0}
 .ul li{font-size:12px;color:#C8DDE3;margin:6px 0;padding-left:16px;position:relative}
 .ul li::before{content:"✓";position:absolute;left:0;color:#01F9C6;font-weight:900}
-.btn-card{width:100%;margin-top:14px;padding:12px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:12px}
+.btn-card{width:100%;margin-top:14px;padding:12px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:12px;transition:all .2s}
+.btn-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 .btn-white{background:#fff;color:#0A1F2E}.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#fff}
 .section-title{font-family:'Space Grotesk';font-size:22px;font-weight:800;margin:30px 0 4px}
 .section-sub{font-size:13px;color:#A8C8D0;margin-bottom:14px}
-.divider{height:1px;background:rgba(255,255,255,0.08);margin:28px 0}
+.single-featured{background:linear-gradient(135deg, #132f42 0%, #173d56 100%);border:1px solid rgba(1,249,198,0.25);border-radius:18px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;box-shadow:0 0 0 1px rgba(1,249,198,0.1), 0 12px 40px rgba(1,249,198,0.08)}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.single-featured{flex-direction:column;align-items:flex-start}}
+@media(max-width:600px){.g4{grid-template-columns:1fr}}
 .modal{position:fixed;inset:0;background:rgba(8,24,36,0.92);display:none;place-items:center;z-index:99;padding:20px}
 .modal.show{display:grid}
 .modal-box{max-width:420px;width:100%;background:#11283A;border:1px solid rgba(1,249,198,0.2);border-radius:18px;padding:22px}
-@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-@media(max-width:600px){.g4{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -67,6 +68,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;li
 <span class="logo-eft">Capitec Pay</span>
 <span class="logo-eft">Apple Pay</span>
 <span class="logo-eft">Google Pay</span>
+</div>
+
+<!-- NEW: PAY PER POST R299 AT TOP -->
+<div style="margin:26px 0 10px">
+<div class="single-featured">
+<div style="flex:1">
+<div style="font-size:11px;color:#01F9C6;font-weight:800;letter-spacing:0.08em">PAY PER POST — NO SUBSCRIPTION</div>
+<div style="display:flex;align-items:baseline;gap:12px;margin-top:6px">
+<div class="price" style="margin:0">R299 <small>/ 30 days</small></div>
+<span style="font-size:11px;background:rgba(1,249,198,0.12);border:1px solid rgba(1,249,198,0.2);padding:4px 10px;border-radius:999px;color:#01F9C6;font-weight:700">MOST SMALL BUSINESSES START HERE</span>
+</div>
+<ul class="ul" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">
+<li>1 job post live 30 days</li>
+<li>All applicant CVs free</li>
+<li>Invoice instantly</li>
+<li>WhatsApp support</li>
+</ul>
+</div>
+<div style="min-width:200px">
+<form class="payfast-form" data-amount="299.00" data-item="JobWay Single Job Post"><button class="btn-card btn-green" style="background:#01F9C6" type="submit">Post a job — R299</button></form>
+<p style="font-size:11px;color:#8DB0BF;margin-top:8px;text-align:center">One-time, no contract</p>
+</div>
+</div>
 </div>
 
 <!-- SUBSCRIPTION PLANS -->
