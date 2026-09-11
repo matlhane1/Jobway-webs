@@ -43,6 +43,11 @@
 <input type="checkbox" id="wa" checked>
 <label for="wa" style="cursor:pointer">Get WhatsApp job alerts for jobs matching my profile</label>
 </div>
+<!-- NEW: WhatsApp number appears ONLY if ticked -->
+<div id="wa-phone-wrap" style="display:block;margin-top:2px">
+<label class="label">WHATSAPP NUMBER</label>
+<input class="input" id="waNumber" type="tel" placeholder="e.g. 076 123 4567" required>
+</div>
 
 <label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy & POPIA</span></label>
 <input type="hidden" id="role" value="seeker">
@@ -56,7 +61,11 @@ function setRole(r){
   document.getElementById("role").value=r;
   document.getElementById("btn-seeker").classList.toggle("active",r==="seeker");
   document.getElementById("btn-employer").classList.toggle("active",r==="employer");
-  document.getElementById("wa-wrap").style.display = r==="seeker" ? "flex" : "none";
+  const isSeeker = r==="seeker";
+  const waChecked = document.getElementById("wa").checked;
+  document.getElementById("wa-wrap").style.display = isSeeker ? "flex" : "none";
+  document.getElementById("wa-phone-wrap").style.display = (isSeeker && waChecked) ? "block" : "none";
+  document.getElementById("waNumber").required = (isSeeker && waChecked);
 }
 function togglePw(){
   const pw=document.getElementById("pw");
@@ -66,6 +75,15 @@ function togglePw(){
 }
 function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
 
+// toggle phone field when checkbox clicked
+document.getElementById("wa").addEventListener("change", function(){
+  const isSeeker = document.getElementById("role").value==="seeker";
+  const checked = this.checked;
+  document.getElementById("wa-phone-wrap").style.display = (isSeeker && checked) ? "block" : "none";
+  document.getElementById("waNumber").required = (isSeeker && checked);
+  if(!checked) document.getElementById("waNumber").value="";
+});
+
 document.getElementById("form").addEventListener("submit",async(e)=>{
  e.preventDefault();
  const name=document.getElementById("fn").value.trim();
@@ -73,10 +91,15 @@ document.getElementById("form").addEventListener("submit",async(e)=>{
  const password=document.getElementById("pw").value;
  const role=document.getElementById("role").value;
  const whatsappAlerts = role==="seeker" ? document.getElementById("wa").checked : false;
+ const whatsappNumber = (role==="seeker" && whatsappAlerts) ? document.getElementById("waNumber").value.trim() : "";
+ if(role==="seeker" && whatsappAlerts && !whatsappNumber){
+   showStatus("Please enter your WhatsApp number to receive alerts","error");
+   return;
+ }
  if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
  const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating account...";
  try{
-  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role:role,whatsapp_alerts:whatsappAlerts}}});
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role:role,whatsapp_alerts:whatsappAlerts,whatsapp_number:whatsappNumber}}});
   if(error && !error.message.toLowerCase().includes("already")) throw error;
   if(error && error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
   const {error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
@@ -84,6 +107,7 @@ document.getElementById("form").addEventListener("submit",async(e)=>{
   localStorage.setItem("jobway_user_email",email);
   localStorage.setItem("user_role",role);
   localStorage.setItem("whatsapp_alerts",whatsappAlerts);
+  localStorage.setItem("whatsapp_number",whatsappNumber);
   showStatus("Account created! Redirecting...","ok");
   setTimeout(()=>{
     if(role==="employer") location.href="employer-dashboard.html";
