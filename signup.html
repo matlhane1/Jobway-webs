@@ -38,12 +38,10 @@
 <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePw()">👁️</button>
 </div>
 
-<!-- ONLY FOR CANDIDATES -->
 <div id="wa-wrap" class="check-row">
 <input type="checkbox" id="wa" checked>
 <label for="wa" style="cursor:pointer">Get WhatsApp job alerts for jobs matching my profile</label>
 </div>
-<!-- NEW: WhatsApp number appears ONLY if ticked -->
 <div id="wa-phone-wrap" style="display:block;margin-top:2px">
 <label class="label">WHATSAPP NUMBER</label>
 <input class="input" id="waNumber" type="tel" placeholder="e.g. 076 123 4567" required>
@@ -74,8 +72,6 @@ function togglePw(){
   else{pw.type="password";btn.textContent="👁️";}
 }
 function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
-
-// toggle phone field when checkbox clicked
 document.getElementById("wa").addEventListener("change", function(){
   const isSeeker = document.getElementById("role").value==="seeker";
   const checked = this.checked;
@@ -83,7 +79,6 @@ document.getElementById("wa").addEventListener("change", function(){
   document.getElementById("waNumber").required = (isSeeker && checked);
   if(!checked) document.getElementById("waNumber").value="";
 });
-
 document.getElementById("form").addEventListener("submit",async(e)=>{
  e.preventDefault();
  const name=document.getElementById("fn").value.trim();
@@ -104,6 +99,19 @@ document.getElementById("form").addEventListener("submit",async(e)=>{
   if(error && error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
   const {error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
   if(loginError) throw loginError;
+
+  // STEP 2 INSERTED HERE - saves to whatsapp_subscribers
+  if(role==="seeker" && whatsappAlerts && whatsappNumber){
+    let cleanNumber = whatsappNumber.replace(/\s/g, '').replace(/^0/, '27');
+    if(!cleanNumber.startsWith('27')) cleanNumber = '27' + cleanNumber.replace(/^\+/, '');
+    await supabaseClient.from('whatsapp_subscribers').insert({
+      email: email,
+      full_name: name,
+      whatsapp_number: cleanNumber,
+      subscribed: true
+    });
+  }
+
   localStorage.setItem("jobway_user_email",email);
   localStorage.setItem("user_role",role);
   localStorage.setItem("whatsapp_alerts",whatsappAlerts);
