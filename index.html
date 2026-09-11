@@ -22,7 +22,7 @@
 .h1{font-family:'Space Grotesk',sans-serif;font-size:60px;line-height:0.95;letter-spacing:-0.04em;font-weight:800}
 .h1 .n{color:#fff}.h1 .m{color:var(--mid)}.h1 .b{color:var(--bright)}
 .sub{color:var(--muted);font-size:15.5px;line-height:1.6;margin:16px 0;max-width:520px}
-.search-box{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.2);border-radius:20px;padding:14px;display:flex;gap:10px}
+.search-box{background:linear-gradient(135deg,#12344A,#20576E);border:1px solid rgba(1,249,198,0.2);border-radius:20px;padding:14px;display:flex;gap:10px;box-shadow:0 18px 40px rgba(0,0,0,0.3)}
 .search-box input{flex:1;background:rgba(10,31,46,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:0 18px;height:48px;color:#fff;font-size:14px;outline:none}
 .btn-search{background:var(--bright);color:var(--navy);font-weight:900;height:48px;padding:0 28px;border-radius:999px;border:0;cursor:pointer}
 .trust{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
@@ -50,11 +50,11 @@
 .contact-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#20576E,#12344A);border:1px solid rgba(1,249,198,0.2);color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:800;margin:6px 0;text-decoration:none}
 .contact-btn.bright{background:var(--bright);color:var(--navy);border:0}
 .copy{max-width:1280px;margin:18px auto 0;padding:14px 20px 0;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11px;color:#6EA3AF}
-/* PERFECT CENTER FIX - BIGGER & CLEAR */
-.social-row{display:flex;gap:16px;margin:18px 0 0;align-items:center;justify-content:flex-start}
-.social-btn{width:60px;height:60px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden}
-.social-btn svg{width:32px;height:32px;fill:#081824;flex-shrink:0}
-.social-btn:hover{transform:translateY(-2px)}
+/* BIG CLEAR CENTERED LOGOS - FIXED */
+.social-row{display:flex;gap:14px;margin:16px 0 0;flex-wrap:wrap;align-items:center}
+.social-btn{width:56px;height:56px;border-radius:50%;background:#FFFFFF;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.social-btn svg{width:28px;height:28px;fill:#081824;display:block;flex-shrink:0}
+.social-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3)}
 @media(max-width:960px){.hero{grid-template-columns:1fr}.h1{font-size:42px}.stats{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -66,41 +66,29 @@
 </div>
 <div class="header-nav"><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Browse Jobs</a><a href="pricing.html">For Employers</a><a href="employer-dashboard.html">Post a Job</a></div>
 </div></div>
+
 <div class="wrap">
 <div class="hero"><div><div class="kicker">REAL JOBS IN SOUTH AFRICA — UPDATED TODAY</div><div class="h1"><div class="n">Find work</div><div class="m">that pays.</div><div class="b">Fast.</div></div><div class="sub">Cashier, Retail, General Worker, Call Centre and Driver jobs in Gauteng, Durban and Cape Town. Apply with your CV in 60 seconds. No scams, no fees for jobseekers.</div><div class="search-box"><input placeholder="Job title: Cashier, General Worker"><input placeholder="Where: Pretoria, Durban"><button class="btn-search" onclick="location.href='jobs.html'">Search</button></div><div class="trust"><span>✓ POPIA compliant</span><span>✓ PayFast secured</span><span>✓ WhatsApp support</span><span>Pretoria, SA</span></div></div>
 <div class="hero-visual"><div class="hero-job"><b>Cashier — Shoprite, Pretoria North</b><span>R5,500 • Full-time • Posted 2h ago • 12 applied</span></div><div class="hero-job"><b>General Worker — Boxer, Durban</b><span>R4,800 • No experience needed • Posted today</span></div><div class="hero-job" style="opacity:0.85"><b>Call Centre Agent — Cape Town</b><span>R8,000 • Matric required • 23 applied</span></div><div style="margin-top:10px;font-size:11px;color:#A8C8D0">Live jobs — new posts added hourly.</div></div></div>
 <div class="stats"><div class="s-card s-navy"><b>580+</b><span style="color:var(--bright)">SA EMPLOYERS</span></div><div class="s-card s-teal"><b>Daily</b><span>NEW JOBS ADDED</span></div><div class="s-card s-dark"><b>Free</b><span style="color:var(--bright)">FOR JOBSEEKERS</span></div><div class="s-card s-bright"><b>R299</b><span>PER JOB POST</span></div></div>
-<div class="cta"><div><h3>Employers: Post a job in 2 minutes</h3><p>R299 for 1 job for 30 days. No monthly fees.</p></div></div>
+<div class="cta"><div><h3>Employers: Post a job in 2 minutes</h3><p>R299 for 1 job for 30 days. No monthly fees.</p></div><div style="display:flex;gap:10px"><button class="btn-dark" onclick="location.href='pricing.html'">See pricing</button><button class="btn-light" onclick="location.href='employer-dashboard.html'">Post a job</button></div></div>
 </div>
+
 <footer class="footer">
 <div class="footer-grid">
 <div class="foot"><h5>JobWay.co.za</h5><p style="color:#fff;font-weight:800">Your Job, Your Way</p><p>Real jobs for South Africans. No fees for jobseekers. Based in Pretoria.</p><div style="margin-top:14px;display:grid;gap:8px"><a class="contact-btn bright" href="mailto:hello@jobway.co.za">hello@jobway.co.za</a><a class="contact-btn" href="https://wa.me/27790608952" target="_blank">WhatsApp: 079 060 8952</a><a class="contact-btn" href="mailto:support@jobway.co.za">support@jobway.co.za</a></div></div>
 <div class="foot"><h5>Jobs</h5><a href="jobs.html">Browse all jobs</a><a href="jobs.html?cat=retail">Retail & Cashier</a><a href="jobs.html?cat=general">General Worker</a><a href="employer-dashboard.html">Post a job</a></div>
 <div class="foot"><h5>Legal — No tracking</h5><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a><a href="paia.html">PAIA Manual</a><a href="refund.html">Refund Policy</a>
-<div style="margin-top:26px"><h5>Connect With Us</h5><p style="font-size:11px;color:#8FB3C1;margin-bottom:12px">Chat with us directly — real pages</p>
+<div style="margin-top:24px"><h5>Connect With Us</h5><p style="font-size:11px;color:#8FB3C1;margin-bottom:10px">Chat with us directly — real pages</p>
 <div class="social-row">
-<!-- FACEBOOK - PERFECT CENTER -->
-<a class="social-btn" href="https://www.facebook.com/Jobwaysouthafrica" target="_blank" aria-label="Facebook">
-<svg viewBox="0 0 24 24"><path d="M14 13.5h2.4l.4-3H14V9c0-1 .3-1.5 1.5-1.5H17V4.4c-.7-.1-1.7-.2-2.8-.2-2.8 0-4.7 1.7-4.7 4.8v1.5H8v3h1.5V20h3.5v-6.5Z"/></svg>
-</a>
-<!-- INSTAGRAM - PERFECT CENTER -->
-<a class="social-btn" href="https://www.instagram.com/jobway_sa/" target="_blank" aria-label="Instagram">
-<svg viewBox="0 0 24 24"><path d="M12 4.8c2.6 0 2.9 0 4 .1 1 .1 1.6.2 2 .4.5.2.9.5 1.2.9.4.7.8.9 1.2.2.4.3 1 .4 2 .1 1.1.1 1.4.1 4s0 2.9-.1 4c-.1 1-.2 1.6-.4 2-.2.5-.5.9-.9 1.2-.4.4-.8.7-1.2.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4 .1s-2.9 0-4-.1c-1-.1-1.6-.2-2-.4a3 3 0 0 1-1.2-.9 3 3 0 0 1-.9-1.2c-.2-.4-.3-1-.4-2C4.8 14.9 4.8 14.6 4.8 12s0-2.9.1-4c.1-1 .2-1.6.4-2 .2-.5.5-.9.9-1.2.4-.4.8-.7 1.2-.9.4-.2 1-.3 2-.4C9.1 4.8 9.4 4.8 12 4.8m0-1.8c-2.7 0-3 0-4.1.1-1.1 0-1.8.2-2.4.5-.6.2-1.1.5-1.6 1-.5.5-.8 1-1 1.6-.3.6-.5 1.3-.5 2.4C2.4 9.7 2.4 10 2.4 12.7s0 3 .1 4.1c0 1.1.2 1.8.5 2.4.2.6.5 1.1 1 1.6.5.5 1 .8 1.6 1 .6.3 1.3.5 2.4.5 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c1.1 0 1.8-.2 2.4-.5.6-.2 1.1-.5 1.6-1 .5-.5.8-1 1-1.6.3-.6.5-1.3.5-2.4.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c0-1.1-.2-1.8-.5-2.4a3.5 3.5 0 0 0-1-1.6 3.5 3.5 0 0 0-1.6-1c-.6-.3-1.3-.5-2.4-.5C15 3 14.7 3 12 3m0 5.2a4 4 0 1 0 0 8 4 4 0 0 0 0-8m0 6.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5m5.2-6.8a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg>
-</a>
-<!-- WHATSAPP - PERFECT CENTER -->
-<a class="social-btn" href="https://wa.me/27790608952" target="_blank" aria-label="WhatsApp">
-<svg viewBox="0 0 24 24"><path d="M12.04 2c-5.5 0-10 4.5-10 10 0 1.8.5 3.5 1.3 5L2 22l5-1.3A9.9 9.9 0 0 0 12 22h.1c5.5 0 10-4.5 10-10S17.6 2 12.04 2m0 18.1A8.2 8.2 0 0 1 7.8 19l-.3-.2-3 .8.8-3-.2-.3A8.2 8.2 0 0 1 12 3.9a8.2 8.2 0 0 1 8.2 8.2 8.2 8.2 0 0 1-8.16 8m4.6-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.1.2-.6.8-.8.9-.1.1-.3.1-.5 0-.2-.1-1-.4-2-1.3-.7-.6-1.2-1.4-1.3-1.7-.1-.2 0-.4.1-.5l.4-.4c.1-.1.1-.3.2-.4v-.4c0-.1-.6-1.4-.8-1.9-.2-.4-.4-.4-.6-.4h-.4c-.2 0-.4 0-.6.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.7 4.3 3.8.6.3 1 .4 1.4.5.6.2 1.1.2 1.5.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.4-.3"/></svg>
-</a>
-<!-- YOUTUBE - PERFECT CENTER -->
-<a class="social-btn" href="https://www.youtube.com/@jobway_sa" target="_blank" aria-label="YouTube">
-<svg viewBox="0 0 24 24"><path d="M21.6 7.2a3 3 0 0 0-2.1-2.1C17.7 4.5 12 4.5 12 4.5s-5.7 0-7.5.6A3 3 0 0 0 2.4 7.2C1.8 9 1.8 12 1.8 12s0 3 .6 4.8a3 3 0 0 0 2.1 2.1c1.8.6 7.5.6 7.5.6s5.7 0 7.5-.6a3 3 0 0 0 2.1-2.1c.6-1.8.6-4.8.6-4.8s0-3-.6-4.8M10 15V9l5.5 3-5.5 3Z"/></svg>
-</a>
-</div>
-</div>
-</div>
+<a class="social-btn" href="https://www.facebook.com/Jobwaysouthafrica" target="_blank" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14V7.5c0-1.03.34-1.5 1.5-1.5H18V2.24c-.66-.09-1.6-.24-2.5-.24-2.5 0-4.5 1.5-4.5 4.5v2.5H9v4h2V22h4v-8.5Z"/></svg></a>
+<a class="social-btn" href="https://www.instagram.com/jobway_sa/" target="_blank" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.2c2.7 0 3 .01 4.1.06 1 .05 1.5.23 1.9.38.4.16.7.36 1 .7.3.3.5.6.7 1 .15.4.33.9.38 1.9.05 1.1.06 1.4.06 4.1s-.01 3-.06 4.1c-.05 1-.23 1.5-.38 1.9-.16.4-.36.7-.7 1-.3.3-.6.5-1 .7-.4.15-.9.33-1.9.38-1.1.05-1.4.06-4.1.06s-3-.01-4.1-.06c-1-.05-1.5-.23-1.9-.38a2.9 2.9 0 0 1-1-.7 2.9 2.9 0 0 1-.7-1c-.15-.4-.33-.9-.38-1.9C2.21 15 2.2 14.7 2.2 12s.01-3 .06-4.1c.05-1 .23-1.5.38-1.9.16-.4.36-.7.7-1 .3-.3.6-.5 1-.7.4-.15.9-.33 1.9-.38C9 2.21 9.3 2.2 12 2.2Zm0 1.8c-2.6 0-2.9.01-4 .06-.9.04-1.4.19-1.7.32-.4.16-.7.35-1 .7-.3.3-.5.6-.7 1-.13.3-.28.8-.32 1.7C4.01 9.1 4 9.4 4 12s.01 2.9.06 4c.04.9.19 1.4.32 1.7.16.4.35.7.7 1 .3.3.6.5 1 .7.3.13.8.28 1.7.32 1.1.05 1.4.06 4 .06s2.9-.01 4-.06c.9-.04 1.4-.19 1.7-.32.4-.16.7-.35 1-.7.3-.3.5-.6.7-1 .13-.3.28-.8.32-1.7.05-1.1.06-1.4.06-4s-.01-2.9-.06-4c-.04-.9-.19-1.4-.32-1.7a2.1 2.1 0 0 0-.7-1c-.3-.3-.6-.5-1-.7-.3-.13-.8-.28-1.7-.32C14.9 4.01 14.6 4 12 4Zm0 3.9a4.1 4.1 0 1 1 0 8.2 4.1 4.1 0 0 1 0-8.2Zm0 1.8a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6Zm5.2-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg></a>
+<a class="social-btn" href="https://wa.me/27790608952" target="_blank" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M19.5 3.5A10 10 0 0 0 3.6 17.1L2 22l4.9-1.3A10 10 0 0 0 19.5 3.5ZM12 20a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 0 1 12 4a8 8 0 0 1 5.6 13.6 8 8 0 0 1-5.6 2.4Zm4.6-6.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.1.2-.6.8-.7.9-.1.1-.2.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.3-.4.1-.1.1-.2.2-.4.1-.1 0-.3 0-.4s-.5-1.3-.7-1.7c-.2-.5-.4-.4-.5-.4h-.5c-.1 0-.4.1-.6.3-.2.2-.8.8-.8 2s.9 2.3 1 2.4c.1.2 1.7 2.6 4 3.6.6.2 1 .4 1.3.5.6.2 1.1.2 1.5.1.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.1-.2-.2-.5-.3Z"/></svg></a>
+<a class="social-btn" href="https://www.youtube.com/@jobway_sa" target="_blank" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M21.8 8.2a2.9 2.9 0 0 0-2-2C18 5.5 12 5.5 12 5.5s-6 0-7.8.7a2.9 2.9 0 0 0-2 2C1.5 10 1.5 12 1.5 12s0 2 .7 3.8a2.9 2.9 0 0 0 2 2c1.8.7 7.8.7 7.8.7s6 0 7.8-.7a2.9 2.9 0 0 0 2-2C22.5 14 22.5 12 22.5 12s0-2-.7-3.8ZM10 15.5v-7l5.5 3.5-5.5 3.5Z"/></svg></a>
+</div></div></div>
 <div class="foot"><h5>Support</h5><p>Mon-Fri 8am-6pm SAST<br>Reply within 1 hour on WhatsApp</p><p style="margin-top:8px">10 Lenchen Ave, Centurion, Pretoria</p></div>
 </div>
-<div class="copy"><span>© 2026 JobWay.co.za • Made for Mzansi • POPIA compliant</span><span>All jobs manually verified</span></div>
+<div class="copy"><span>© 2026 JobWay.co.za • Made for Mzansi • POPIA compliant • No tracking pixels</span><span>All jobs manually verified</span></div>
 </footer>
 </body>
 </html>
