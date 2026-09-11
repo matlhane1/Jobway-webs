@@ -43,6 +43,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200p
 .modal{position:fixed;inset:0;background:rgba(8,24,36,0.92);display:none;place-items:center;z-index:99;padding:20px}
 .modal.show{display:grid}
 .modal-box{max-width:420px;width:100%;background:#11283A;border:1px solid rgba(1,249,198,0.2);border-radius:18px;padding:22px}
+.email-input{width:100%;background:#0F2230;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;outline:none;margin:10px 0}
+.email-input:focus{border-color:#01F9C6}
 </style>
 </head>
 <body>
@@ -70,7 +72,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200p
 <span class="logo-eft">Google Pay</span>
 </div>
 
-<!-- NEW: PAY PER POST R299 AT TOP -->
 <div style="margin:26px 0 10px">
 <div class="single-featured">
 <div style="flex:1">
@@ -93,7 +94,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200p
 </div>
 </div>
 
-<!-- SUBSCRIPTION PLANS -->
 <div class="section-title">Subscription Plans</div>
 <div class="section-sub">Monthly plans for teams hiring regularly. Cancel anytime.</div>
 <div class="grid g4" style="margin-top:12px">
@@ -147,9 +147,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200p
 </div>
 </div>
 
-<!-- JOB CREDITS -->
 <div class="section-title">Job Credits — Pay as you go</div>
-<div class="section-sub">For companies that prefer once-off. Credits valid 12 months. Same style, clear pricing.</div>
+<div class="section-sub">For companies that prefer once-off. Credits valid 12 months.</div>
 <div class="grid g4">
 <div class="card">
 <div style="font-size:11px;color:#01F9C6;font-weight:800">STARTER</div>
@@ -182,9 +181,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200p
 </div>
 </div>
 
-<!-- CV DATABASE -->
 <div class="section-title">CV Database Access</div>
-<div class="section-sub">Search CVs before they apply. Visible, clear pricing like the rest.</div>
+<div class="section-sub">Search CVs before they apply.</div>
 <div class="grid g4">
 <div class="card">
 <div style="font-size:11px;color:#A8C8D0;font-weight:800">STARTER</div>
@@ -220,20 +218,23 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(1200p
 <p style="text-align:center;color:#6EA3AF;font-size:11px;margin-top:28px">© 2026 JobWay.co.za • PayFast Secure • Pretoria, SA</p>
 </div>
 
+<!-- PAYFAST MODAL - NO 256 BIT SSL TEXT -->
 <div class="modal" id="payModal">
 <div class="modal-box">
 <div style="display:flex;justify-content:space-between;align-items:center">
 <b id="mItem" style="font-family:'Space Grotesk'">JobWay</b>
 <button onclick="closePay()" style="background:rgba(255,255,255,0.08);border:0;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">×</button>
 </div>
-<p style="font-size:12px;color:#A8C8D0;margin:8px 0">Pay via PayFast — Card or Instant EFT. 256-bit SSL.</p>
+<p style="font-size:12px;color:#A8C8D0;margin:8px 0">Pay via PayFast — Secure payment: Card, Instant EFT, Capitec Pay, Apple Pay, Google Pay</p>
 <div style="background:#0F2230;border-radius:10px;padding:12px;display:flex;justify-content:space-between;margin:12px 0">
 <span id="mItem2" style="font-size:13px">Item</span><b id="mAmount" style="color:#01F9C6">R0</b>
 </div>
-<div style="display:flex;gap:6px;margin:6px 0 12px">
-<span class="logo-card" style="font-size:10px">VISA</span><span class="logo-card" style="font-size:10px">Mastercard</span><span class="logo-eft" style="font-size:10px">Instant EFT</span><span class="logo-eft" style="font-size:10px">Capitec Pay</span>
+<div style="display:flex;gap:6px;margin:6px 0 8px;flex-wrap:wrap">
+<span class="logo-card" style="font-size:10px">VISA</span><span class="logo-card" style="font-size:10px">Mastercard</span><span class="logo-eft" style="font-size:10px">Instant EFT</span><span class="logo-eft" style="font-size:10px">Capitec Pay</span><span class="logo-eft" style="font-size:10px">Apple Pay</span><span class="logo-eft" style="font-size:10px">Google Pay</span>
 </div>
-<button class="btn-card btn-green" id="payBtn" style="background:#01F9C6" onclick="doPay()">Pay with Card or Instant EFT →</button>
+<input id="emailField" class="email-input" type="email" placeholder="Company email for invoice (e.g. hr@company.co.za)" />
+<button class="btn-card btn-green" id="payBtn" style="background:#01F9C6;margin-top:10px" onclick="doPay()">Pay with Card or Instant EFT →</button>
+<p style="font-size:10px;color:#6EA3AF;text-align:center;margin-top:8px">You will be redirected to PayFast secure checkout</p>
 </div>
 </div>
 
@@ -242,23 +243,55 @@ const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let curAmount='',curItem='';
-function openPay(amount,item){curAmount=amount;curItem=item;document.getElementById('mAmount').textContent='R'+amount;document.getElementById('mItem').textContent=item;document.getElementById('mItem2').textContent=item;document.getElementById('payModal').classList.add('show');}
+
+function openPay(amount,item){
+  curAmount=amount;curItem=item;
+  document.getElementById('mAmount').textContent='R'+amount;
+  document.getElementById('mItem').textContent=item;
+  document.getElementById('mItem2').textContent=item;
+  const savedEmail = (localStorage.getItem('jobway_user_email')||'');
+  document.getElementById('emailField').value = savedEmail;
+  document.getElementById('payModal').classList.add('show');
+}
 function closePay(){document.getElementById('payModal').classList.remove('show');}
-document.querySelectorAll('.payfast-form').forEach(f=>{f.addEventListener('submit',e=>{e.preventDefault();openPay(f.dataset.amount,f.dataset.item);});});
+
+document.querySelectorAll('.payfast-form').forEach(f=>{
+  f.addEventListener('submit',e=>{
+    e.preventDefault();
+    openPay(f.dataset.amount,f.dataset.item);
+  });
+});
+
 async function doPay(){
-  let email=(localStorage.getItem('jobway_user_email')||'').toLowerCase();
-  if(!email){email=prompt('Company email for invoice:')||''; localStorage.setItem('jobway_user_email',email.toLowerCase());}
-  if(!email){return;}
+  let email = document.getElementById('emailField').value.trim().toLowerCase();
+  if(!email){
+    email = (localStorage.getItem('jobway_user_email')||'').toLowerCase();
+  }
+  if(!email || !email.includes('@')){
+    document.getElementById('emailField').focus();
+    document.getElementById('emailField').style.borderColor='#ff5555';
+    alert('Please enter your company email for invoice');
+    return;
+  }
+  localStorage.setItem('jobway_user_email',email);
   localStorage.setItem('jobway_pending_payment', JSON.stringify({amount:curAmount,item:curItem,email,time:Date.now()}));
-  let form=document.createElement('form'); form.method='post'; form.action='https://www.payfast.co.za/eng/process';
+  
+  // Build PayFast form and redirect to PayFast
+  let form=document.createElement('form'); 
+  form.method='post'; 
+  form.action='https://www.payfast.co.za/eng/process';
   const add=(k,v)=>{let i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;form.appendChild(i);}
-  add('merchant_id','36908075'); add('merchant_key','qakpbrei45zbu');
+  add('merchant_id','36908075'); 
+  add('merchant_key','qakpbrei45zbu');
   add('return_url','https://www.jobway.co.za/payment-success.html');
   add('cancel_url','https://www.jobway.co.za/payment-failed.html');
   add('notify_url', SUPABASE_URL+'/functions/v1/payfast-itn');
-  add('amount',curAmount); add('item_name',curItem);
-  add('email_address',email); add('custom_str2',email);
-  document.body.appendChild(form); form.submit();
+  add('amount',curAmount); 
+  add('item_name',curItem);
+  add('email_address',email); 
+  add('custom_str2',email);
+  document.body.appendChild(form); 
+  form.submit();
 }
 </script>
 </body>
