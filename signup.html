@@ -52,7 +52,6 @@
 <div id="status" class="status"></div>
 </div></div>
 <script>
-// ✅ NEW KEYS - UPDATED 21 Oct 2026
 const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -98,27 +97,30 @@ document.getElementById("form").addEventListener("submit",async(e)=>{
     if(error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
     throw error;
   }
-  // Try immediate login - works if email confirmation is OFF
+  let userId = data.user?.id;
+  // Try login to get session - if email confirm is OFF this works
   const {data:loginData, error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(loginError){
-    // If email confirmation is ON, user needs to confirm first
-    showStatus("Account created! Check your email to confirm, then login.","ok");
-    btn.disabled=false;btn.textContent="Create account →";
-    setTimeout(()=>location.href='login.html',2000);
-    return;
-  }
-  const userId = loginData.user.id;
-  // Save profile
-  await supabaseClient.from('profiles').insert({id:userId, email:email, full_name:name, role:role, whatsapp_number:whatsappNumber});
-  if(role==="seeker" && whatsappAlerts && whatsappNumber){
-    let cleanNumber = whatsappNumber.replace(/\s/g, '').replace(/^0/, '27');
-    if(!cleanNumber.startsWith('27')) cleanNumber = '27' + cleanNumber.replace(/^\+/, '');
-    await supabaseClient.from('whatsapp_subscribers').insert({email:email, full_name:name, whatsapp_number:cleanNumber, subscribed:true});
+  if(!loginError && loginData.user) userId = loginData.user.id;
+
+  if(userId){
+    // Use UPSERT not INSERT so it never fails
+    const {error: profErr} = await supabaseClient.from('profiles').upsert({id:userId, email:email, full_name:name, role:role, whatsapp_number:whatsappNumber, phone: whatsappNumber},{onConflict:'id'});
+    if(profErr) console.log("profile err", profErr);
+    if(role==="seeker" && whatsappAlerts && whatsappNumber){
+      let cleanNumber = whatsappNumber.replace(/\s/g, '').replace(/^0/, '27');
+      if(!cleanNumber.startsWith('27')) cleanNumber = '27' + cleanNumber.replace(/^\+/, '');
+      await supabaseClient.from('whatsapp_subscribers').upsert({email:email, full_name:name, whatsapp_number:cleanNumber, subscribed:true},{onConflict:'email'});
+    }
   }
   localStorage.setItem("jobway_user_email",email);
   localStorage.setItem("user_role",role);
-  showStatus("Account created! Redirecting...","ok");
-  setTimeout(()=>{ if(role==="employer") location.href="employer-dashboard.html"; else location.href="candidate-dashboard.html"; },800);
+  if(loginError){
+    showStatus("Account created! Check email to confirm, then login.","ok");
+    setTimeout(()=>location.href='login.html',2000);
+  } else {
+    showStatus("Account created! Redirecting...","ok");
+    setTimeout(()=>{ if(role==="employer") location.href="employer-dashboard.html"; else location.href="candidate-dashboard.html"; },800);
+  }
  }catch(err){
   console.error(err);
   showStatus(err.message,"error");
