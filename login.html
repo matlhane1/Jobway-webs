@@ -43,12 +43,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <div id="message" class="message"></div>
 <p class="small">🔒 Secure login<br>No account = No access</p>
 </div>
-
 <script>
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRteHVtY2plZXRwaHd6dmd6enVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczMzE1MzUsImV4cCI6MjA3MjkwNzUzNX0.fO9l6L3yR5fLkJf0V7kX8pY1t3mZ6u8v2n4x9q0w1e2r';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 function togglePass(){
   const p=document.getElementById('pass');
   const e=document.getElementById('eyeButton');
@@ -65,14 +63,13 @@ async function login(){
   document.getElementById('message').className='message';
   if(!email||!password){showMessage('Please enter your email and password.');return;}
   btn.disabled=true; btn.textContent='Logging in...';
-  const {data, error} = await supabase.auth.signInWithPassword({email, password});
+  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
   if(error){
     showMessage(error.message);
     btn.disabled=false; btn.textContent='Log In'; return;
   }
-  // Get role from profiles
   const userId=data.user.id;
-  const {data:profile} = await supabase.from('profiles').select('role').eq('id', userId).single();
+  const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
   const role = profile?.role?.toLowerCase() || data.user.user_metadata?.role?.toLowerCase() || 'seeker';
   localStorage.setItem('jobway_user_email', email);
   localStorage.setItem('jobway_logged_in','true');
@@ -87,7 +84,7 @@ async function login(){
 async function forgot(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   if(!email){showMessage('Enter your email address first.');return;}
-  const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo: window.location.origin+'/reset-password.html'});
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo: window.location.origin+'/reset-password.html'});
   if(error) showMessage(error.message);
   else showMessage('Password reset link sent to your email.','success');
 }
