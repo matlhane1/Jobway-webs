@@ -43,7 +43,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <div class="nav-cta">
 <button class="btn btn-dark" onclick="location.href='index.html'">Home</button>
 <button class="btn btn-dark" onclick="location.href='profile.html'">My CV</button>
-<button class="btn btn-green" onclick="location.href='employer-dashboard.html'">Post a Job</button>
+<button class="btn btn-green" onclick="location.href='applications.html'">Track my applications</button>
 </div>
 </div>
 
@@ -56,7 +56,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <select class="select" id="exp" onchange="render()"><option value="">Any Experience</option><option>No experience</option><option>1+ years</option><option>Matric only</option></select>
 <select class="select" id="salary" onchange="render()"><option value="">Any Salary</option><option>R3500</option><option>R5000</option><option>R8000</option></select>
 <button class="btn-filter btn-wa" onclick="subscribeWA()">Get jobs on WhatsApp</button>
-<button class="btn-filter btn-track" onclick="location.href='seeker-dashboard.html'">Track my applications</button>
+<button class="btn-filter btn-track" onclick="location.href='applications.html'">Track my applications</button>
 </div>
 <div id="count" style="font-size:12px;color:#8DB0BF;margin:14px 2px"></div>
 <div id="list" style="margin-top:8px"></div>
@@ -134,12 +134,12 @@ function applyJob(title,company){
  }
  let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
  if(apps.some(a=>a.job_title==title && a.company==company)){
-   location.href='seeker-dashboard.html'; return;
+   location.href='applications.html'; return;
  }
  apps.unshift({id:Date.now().toString(),job_title:title,company:company,name:profile.fullName,email:profile.email,whatsapp:profile.whatsapp,date:new Date().toISOString(),status:'Application Received',cvName:profile.cvName,hasCV:true});
  localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
  alert(`Applied for ${title} at ${company}. Track in My Applications.`);
- location.href='seeker-dashboard.html';
+ location.href='applications.html';
 }
 function subscribeWA(){let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');if(!wa)return;localStorage.setItem('jobway_wa_alerts',wa);alert('You will get jobs on WhatsApp from 079 060 8952. We will not spam.');}
 render();
