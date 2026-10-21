@@ -56,26 +56,6 @@ document.getElementById('eyeButton').onclick = function(){
   const e=document.getElementById('eyeButton');
   if(p.type==='password'){p.type='text';e.textContent='🙈 Hide';}else{p.type='password';e.textContent='👁️ Show';}
 };
-async function doRedirect(role){
-  // UNIFIED: candidate and seeker are same -> both use seeker
-  let r = (role||'seeker').toLowerCase().trim();
-  if(r === 'candidate') r = 'seeker';
-  if(r !== 'employer') r = 'seeker';
-
-  if(r === 'employer'){
-    window.location.replace('employer-dashboard.html');
-    return;
-  }
-  // For seeker/candidate - try all possible filenames in order
-  const candidates = ['seeker-dashboard.html','my-applications.html','candidate-dashboard.html','dashboard.html','index.html'];
-  for(let file of candidates){
-    try{
-      const res = await fetch(file, {method:'HEAD'});
-      if(res.ok){ window.location.replace(file); return; }
-    }catch(e){}
-  }
-  window.location.replace('seeker-dashboard.html');
-}
 async function login(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   const password=document.getElementById('pass').value;
@@ -92,7 +72,7 @@ async function login(){
       const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
       if(profile && profile.role) role = profile.role;
     }catch(e){}
-    // UNIFY HERE - candidate and seeker mean same
+    // candidate = seeker (same thing)
     role = String(role).toLowerCase().trim();
     if(role === 'candidate') role = 'seeker';
     if(role !== 'employer') role = 'seeker';
@@ -101,7 +81,12 @@ async function login(){
     localStorage.setItem('user_role', role);
     localStorage.setItem('jobway_user_id', userId);
     showMessage('Login successful! Redirecting...','success');
-    await doRedirect(role);
+    // FIXED: go directly to applications.html for seekers
+    if(role === 'employer'){
+      window.location.replace('employer-dashboard.html');
+    } else {
+      window.location.replace('applications.html');
+    }
   }catch(err){ showMessage('Error: '+err.message); btn.disabled=false; btn.textContent='Log In'; }
 }
 document.getElementById('loginButton').addEventListener('click', login);
