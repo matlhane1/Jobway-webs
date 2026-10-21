@@ -5,7 +5,6 @@
 <title>Employer Dashboard | JobWay.co.za</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <script>
-// POPIA - Employer only
 (function(){
   const logged = localStorage.getItem('jobway_logged_in');
   const role = localStorage.getItem('user_role');
@@ -56,6 +55,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <div class="header">
 <div class="logo" onclick="location.href='index.html'">JobWay • Employer</div>
 <div style="display:flex;gap:8px">
+<button class="btn btn-dark" onclick="location.href='index.html'">Home</button>
 <button class="btn btn-dark" onclick="location.href='pricing.html'">Pricing</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">View jobs</button>
 <button class="btn btn-dark" onclick="logout()">Log out</button>
@@ -92,7 +92,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
 const STATUSES=["Application Received","Under Review","Shortlisted","Interview Scheduled","Hired","Not Selected"];
 
-function logout(){ localStorage.clear(); location.href='index.html'; }
+function logout(){ localStorage.removeItem('jobway_logged_in'); localStorage.removeItem('user_role'); location.href='index.html'; }
 function getApps(){return JSON.parse(localStorage.getItem('jobway_all_applications')||'[]')}
 function saveApps(a){localStorage.setItem('jobway_all_applications',JSON.stringify(a))}
 
@@ -166,7 +166,6 @@ async function postJob(){
  let d=document.getElementById('jobDesc').value.trim()||'New opening';
  if(!t||!c||!l){alert('Fill title, company and location');return;}
 
- // Save locally for demo + Supabase
  try{
    await supabaseClient.from('jobs').insert([{title:t,company:c,location:l,salary:s,description:d}]);
  }catch(e){}
