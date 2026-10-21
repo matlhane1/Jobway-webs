@@ -44,7 +44,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <div class="header">
 <div class="logo">JobWay <span style="font-size:10px;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:3px 8px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif">CANDIDATE ONLY</span></div>
 <div class="nav-cta">
-<button class="btn btn-dark" onclick="location.href='pricing.html'">Pricing</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">💼 Jobs</button>
 <button class="btn btn-dark" onclick="location.href='seeker-dashboard.html'">📊 Track</button>
 <button class="btn btn-green" style="width:auto;padding:10px 14px;margin-top:0" onclick="logout()">Log Out</button>
@@ -98,7 +97,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 
 <script>
 function logout(){ localStorage.clear(); location.href='index.html'; }
-
 function loadProfile(){
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  document.getElementById('fullName').value=p.fullName||'';
@@ -116,7 +114,6 @@ function renderSkills(){
  document.getElementById('skillsPreview').innerHTML=arr.map(s=>`<span class="badge-skill">${s}</span>`).join('');
 }
 document.getElementById('skills').addEventListener('input',renderSkills);
-
 function handleFile(file){
  if(!file) return;
  if(file.size>5*1024*1024){alert('File too big! Max 5MB'); return;}
@@ -132,12 +129,10 @@ function handleFile(file){
  };
  reader.readAsDataURL(file);
 }
-
 let box=document.getElementById('uploadBox');
 box.addEventListener('dragover',e=>{e.preventDefault(); box.classList.add('dragover')});
 box.addEventListener('dragleave',()=>box.classList.remove('dragover'));
 box.addEventListener('drop',e=>{e.preventDefault(); box.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]);});
-
 function saveProfile(){
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  p.fullName=document.getElementById('fullName').value;
