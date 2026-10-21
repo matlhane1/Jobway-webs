@@ -7,8 +7,9 @@
 <script>
 (function(){
   const logged = localStorage.getItem('jobway_logged_in');
-  const role = localStorage.getItem('user_role');
-  if(!logged || role !== 'candidate'){
+  const role = (localStorage.getItem('user_role')||'').toLowerCase();
+  // FIXED: allow both seeker and candidate, was only candidate before
+  if(!logged || (role !== 'candidate' && role !== 'seeker')){
     location.href = 'login.html';
   }
 })();
