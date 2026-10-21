@@ -37,7 +37,6 @@
 <input class="input" id="pw" type="password" required placeholder="6+ chars" minlength="6" style="padding-right:40px">
 <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePw()">👁️</button>
 </div>
-
 <div id="wa-wrap" class="check-row">
 <input type="checkbox" id="wa" checked>
 <label for="wa" style="cursor:pointer">Get WhatsApp job alerts for jobs matching my profile</label>
@@ -46,7 +45,6 @@
 <label class="label">WHATSAPP NUMBER</label>
 <input class="input" id="waNumber" type="tel" placeholder="e.g. 076 123 4567" required>
 </div>
-
 <label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy & POPIA</span></label>
 <input type="hidden" id="role" value="seeker">
 <button class="btn btn-green" id="submitBtn" type="submit">Create account →</button>
@@ -54,7 +52,11 @@
 <div id="status" class="status"></div>
 </div></div>
 <script>
-const supabaseClient = supabase.createClient("https://bzbsqouohsylnhrsjhhy.supabase.co","sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2");
+// ✅ NEW KEYS - UPDATED 21 Oct 2026
+const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 function setRole(r){
   document.getElementById("role").value=r;
   document.getElementById("btn-seeker").classList.toggle("active",r==="seeker");
@@ -87,41 +89,38 @@ document.getElementById("form").addEventListener("submit",async(e)=>{
  const role=document.getElementById("role").value;
  const whatsappAlerts = role==="seeker" ? document.getElementById("wa").checked : false;
  const whatsappNumber = (role==="seeker" && whatsappAlerts) ? document.getElementById("waNumber").value.trim() : "";
- if(role==="seeker" && whatsappAlerts && !whatsappNumber){
-   showStatus("Please enter your WhatsApp number to receive alerts","error");
-   return;
- }
+ if(role==="seeker" && whatsappAlerts && !whatsappNumber){showStatus("Please enter your WhatsApp number","error");return;}
  if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
  const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating account...";
  try{
   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role:role,whatsapp_alerts:whatsappAlerts,whatsapp_number:whatsappNumber}}});
-  if(error && !error.message.toLowerCase().includes("already")) throw error;
-  if(error && error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
-  const {error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(loginError) throw loginError;
-
-  // STEP 2 INSERTED HERE - saves to whatsapp_subscribers
+  if(error){
+    if(error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
+    throw error;
+  }
+  // Try immediate login - works if email confirmation is OFF
+  const {data:loginData, error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(loginError){
+    // If email confirmation is ON, user needs to confirm first
+    showStatus("Account created! Check your email to confirm, then login.","ok");
+    btn.disabled=false;btn.textContent="Create account →";
+    setTimeout(()=>location.href='login.html',2000);
+    return;
+  }
+  const userId = loginData.user.id;
+  // Save profile
+  await supabaseClient.from('profiles').insert({id:userId, email:email, full_name:name, role:role, whatsapp_number:whatsappNumber});
   if(role==="seeker" && whatsappAlerts && whatsappNumber){
     let cleanNumber = whatsappNumber.replace(/\s/g, '').replace(/^0/, '27');
     if(!cleanNumber.startsWith('27')) cleanNumber = '27' + cleanNumber.replace(/^\+/, '');
-    await supabaseClient.from('whatsapp_subscribers').insert({
-      email: email,
-      full_name: name,
-      whatsapp_number: cleanNumber,
-      subscribed: true
-    });
+    await supabaseClient.from('whatsapp_subscribers').insert({email:email, full_name:name, whatsapp_number:cleanNumber, subscribed:true});
   }
-
   localStorage.setItem("jobway_user_email",email);
   localStorage.setItem("user_role",role);
-  localStorage.setItem("whatsapp_alerts",whatsappAlerts);
-  localStorage.setItem("whatsapp_number",whatsappNumber);
   showStatus("Account created! Redirecting...","ok");
-  setTimeout(()=>{
-    if(role==="employer") location.href="employer-dashboard.html";
-    else location.href="candidate-dashboard.html";
-  },800);
+  setTimeout(()=>{ if(role==="employer") location.href="employer-dashboard.html"; else location.href="candidate-dashboard.html"; },800);
  }catch(err){
+  console.error(err);
   showStatus(err.message,"error");
   btn.disabled=false;btn.textContent="Create account →";
  }
