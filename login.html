@@ -12,7 +12,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 .card{background:#1A3341;border:1px solid #25475A;border-radius:24px;padding:24px;width:100%;max-width:380px}
 .logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:16px}
 .label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
-.input{width:100%;background:#0F2230!important;border:1px solid #25475A;color:white!important;padding:14px 46px 14px 14px;border-radius:12px;margin-top:8px;outline:none;font-size:14px}
+.input{width:100%;background:#0F2230!important;border:1px solid #25475A;color:white!important;padding:14px 46px 14px 14px;border-radius:12px;margin-top:8px;outline:none;font-size:14px;color-scheme:dark}
 .btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer;font-size:15px}
 .btn:disabled{opacity:.6}
 .pass-wrap{position:relative}
@@ -33,11 +33,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <label class="label">Password</label>
 <div class="pass-wrap">
 <input class="input" id="pass" type="password" placeholder="••••••••" autocomplete="current-password">
-<span class="eye" id="eyeButton" onclick="togglePass()">👁️ Show</span>
+<span class="eye" id="eyeButton">👁️ Show</span>
 </div>
-<button class="btn" id="loginButton" onclick="login()">Log In</button>
+<button class="btn" id="loginButton" type="button">Log In</button>
 <div style="display:flex;justify-content:space-between;margin-top:12px;">
-<a class="link" onclick="forgot()">Forgot Password?</a>
+<a class="link" id="forgotLink">Forgot Password?</a>
 <a class="link" href="signup.html">Create account</a>
 </div>
 <div id="message" class="message"></div>
@@ -46,48 +46,49 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <script>
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-function togglePass(){
-  const p=document.getElementById('pass');
-  const e=document.getElementById('eyeButton');
-  if(p.type==='password'){p.type='text';e.textContent='🙈 Hide';}else{p.type='password';e.textContent='👁️ Show';}
-}
+let supabaseClient = null;
+try {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e){ console.log('Supabase init error', e); }
+
 function showMessage(t,type='error'){
   const m=document.getElementById('message');
   m.textContent=t; m.className='message '+type;
 }
+document.getElementById('eyeButton').onclick = function(){
+  const p=document.getElementById('pass');
+  const e=document.getElementById('eyeButton');
+  if(p.type==='password'){p.type='text';e.textContent='🙈 Hide';}else{p.type='password';e.textContent='👁️ Show';}
+};
 async function login(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   const password=document.getElementById('pass').value;
   const btn=document.getElementById('loginButton');
   document.getElementById('message').className='message';
   if(!email||!password){showMessage('Please enter your email and password.');return;}
+  if(!supabaseClient){showMessage('Connection error: Supabase failed to load. Please refresh.');return;}
   btn.disabled=true; btn.textContent='Logging in...';
-  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
-  if(error){
-    showMessage(error.message);
-    btn.disabled=false; btn.textContent='Log In'; return;
-  }
-  const userId=data.user.id;
-  const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
-  const role = profile?.role?.toLowerCase() || data.user.user_metadata?.role?.toLowerCase() || 'seeker';
-  localStorage.setItem('jobway_user_email', email);
-  localStorage.setItem('jobway_logged_in','true');
-  localStorage.setItem('user_role', role);
-  localStorage.setItem('jobway_user_id', userId);
-  showMessage('Login successful! Redirecting...','success');
-  setTimeout(()=>{
-    if(role==='employer') window.location.href='employer-dashboard.html';
-    else window.location.href='seeker-dashboard.html';
-  },800);
+  try{
+    const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
+    if(error){ showMessage(error.message); btn.disabled=false; btn.textContent='Log In'; return; }
+    const userId=data.user.id;
+    const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
+    const role = profile?.role?.toLowerCase() || data.user.user_metadata?.role?.toLowerCase() || 'seeker';
+    localStorage.setItem('jobway_user_email', email);
+    localStorage.setItem('jobway_logged_in','true');
+    localStorage.setItem('user_role', role);
+    localStorage.setItem('jobway_user_id', userId);
+    showMessage('Login successful! Redirecting...','success');
+    setTimeout(()=>{ if(role==='employer') window.location.href='employer-dashboard.html'; else window.location.href='seeker-dashboard.html'; },800);
+  }catch(err){ showMessage('Error: '+err.message); btn.disabled=false; btn.textContent='Log In'; }
 }
-async function forgot(){
+document.getElementById('loginButton').addEventListener('click', login);
+document.getElementById('forgotLink').addEventListener('click', async ()=>{
   const email=document.getElementById('email').value.trim().toLowerCase();
   if(!email){showMessage('Enter your email address first.');return;}
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo: window.location.origin+'/reset-password.html'});
-  if(error) showMessage(error.message);
-  else showMessage('Password reset link sent to your email.','success');
-}
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email);
+  if(error) showMessage(error.message); else showMessage('Password reset link sent.','success');
+});
 document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter') login();});
 </script>
 </body>
