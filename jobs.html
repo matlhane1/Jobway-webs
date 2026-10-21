@@ -51,10 +51,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <div class="trust-bar">All jobs verified manually • <b>Never pay to apply</b> • Questions? WhatsApp <b>079 060 8952</b> (Mon-Fri 8am-6pm)</div>
 
 <div class="filters">
-<select class="select" id="loc" onchange="render()"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Eastern Cape</option><option>Free State</option></select>
-<select class="select" id="type" onchange="render()"><option value="">All Types</option><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
+<select class="select" id="loc" onchange="render()"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
+<select class="select" id="type" onchange="render()"><option value="">All Types</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Temporary</option></select>
 <select class="select" id="exp" onchange="render()"><option value="">Any Experience</option><option>No experience</option><option>1+ years</option><option>Matric only</option></select>
-<select class="select" id="salary" onchange="render()"><option value="">Any Salary</option><option>R3500</option><option>R5000</option><option>R8000</option></select>
+<select class="select" id="salary" onchange="render()"><option value="">Any Salary</option><option value="3500">R3500+</option><option value="5000">R5000+</option><option value="8000">R8000+</option></select>
 <button class="btn-filter btn-wa" onclick="subscribeWA()">Get jobs on WhatsApp</button>
 <button class="btn-filter btn-track" onclick="location.href='applications.html'">Track my applications</button>
 </div>
@@ -80,27 +80,60 @@ async function fetchSupabaseJobs(){
     const { data } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
     if(!data) return [];
     return data.map(j=>({
-      title:j.title,company:j.company,location:j.location,city:j.location||'Gauteng',type:j.type||'Full-time',
+      title:j.title,company:j.company,location:j.location,city:j.location||'Gauteng',type:j.type||j.job_type||'Full-time',
       salaryText:j.salary||'Market related',desc:j.description||'',duration:'Permanent',
       postedAt:j.created_at? new Date(j.created_at).getTime():Date.now(),
-      closingDate:j.closing_date? new Date(j.closing_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short'}):'30 Sept',
+      closingDate:j.closing_date? new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',
       logo:j.logo||j.logo_url||null,id:j.id
     }));
   }catch(e){return []}
 }
 
+function normalizeJob(j){
+  return {
+    title:j.title, company:j.company, location:j.location||j.city||'',
+    city:j.city||j.location||'', 
+    type: j.type || j.jobType || 'Full-time',
+    salaryText: j.salaryText || j.salary || 'Market related',
+    desc: j.desc || j.description || '',
+    postedAt: j.postedAt || Date.now(),
+    closingDate: j.closingDate || j.closing_date || '30 Sept 2026',
+    logo: j.logo || null
+  }
+}
+
 async function render(){
  let qCity=document.getElementById('loc').value;
  let qType=document.getElementById('type').value;
+ let qExp=document.getElementById('exp').value;
+ let qSal=document.getElementById('salary').value;
  let supaJobs = await fetchSupabaseJobs();
- let localJobs = getEmployerJobs();
- let jobs=[...supaJobs,...localJobs,...getDefaults()];
+ let localJobs = getEmployerJobs().map(normalizeJob);
+ let jobs=[...supaJobs.map(normalizeJob),...localJobs,...getDefaults()];
  let seen=new Set(); jobs=jobs.filter(j=>{const k=j.title+'|'+j.company; if(seen.has(k)) return false; seen.add(k); return true;});
- if(qCity)jobs=jobs.filter(j=>(j.location||'').includes(qCity));
- if(qType)jobs=jobs.filter(j=>j.type===qType);
+ if(qCity) jobs=jobs.filter(j=>(j.location||'').includes(qCity));
+ if(qType) jobs=jobs.filter(j=> (j.type||'').trim() === qType);
+ if(qExp){
+   if(qExp==='No experience') jobs=jobs.filter(j=> (j.desc||'').toLowerCase().includes('no experience'));
+   if(qExp==='Matric only') jobs=jobs.filter(j=> (j.desc||'').toLowerCase().includes('matric'));
+   if(qExp==='1+ years') jobs=jobs.filter(j=> (j.desc||'').toLowerCase().includes('year') || (j.desc||'').toLowerCase().includes('experience'));
+ }
+ if(qSal){
+   let min = parseInt(qSal);
+   jobs=jobs.filter(j=>{
+     let nums = (j.salaryText||'').replace(/[^0-9]/g,'');
+     let val = parseInt(nums||'0');
+     return val >= min;
+   });
+ }
 
- document.getElementById('count').innerText = `${jobs.length} jobs found${qCity?' in '+qCity:''} • Updated today`;
+ document.getElementById('count').innerText = `${jobs.length} jobs found${qCity?' in '+qCity:''}${qType?' • '+qType:''} • Updated today`;
  let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
+
+ if(jobs.length===0){
+   document.getElementById('list').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No jobs match this filter.<br><button class="btn btn-green" style="margin-top:10px" onclick="document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render()">Clear filters</button></div>`;
+   return;
+ }
 
  document.getElementById('list').innerHTML=jobs.map(j=>{
   let posted=timeAgo(j.postedAt);
