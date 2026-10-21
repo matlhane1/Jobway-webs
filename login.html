@@ -46,10 +46,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <script>
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-let supabaseClient = null;
-try {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-} catch(e){ console.log('Supabase init error', e); }
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function showMessage(t,type='error'){
   const m=document.getElementById('message');
@@ -60,26 +57,60 @@ document.getElementById('eyeButton').onclick = function(){
   const e=document.getElementById('eyeButton');
   if(p.type==='password'){p.type='text';e.textContent='🙈 Hide';}else{p.type='password';e.textContent='👁️ Show';}
 };
+
+async function doRedirect(role){
+  const r = (role||'seeker').toLowerCase().trim();
+  let target = 'seeker-dashboard.html';
+  if(r === 'employer') target = 'employer-dashboard.html';
+  if(r === 'candidate') target = 'candidate-dashboard.html';
+
+  // Check if target exists, if not try alternatives
+  try{
+    const res = await fetch(target, {method:'HEAD'});
+    if(!res.ok){
+      if(r !== 'employer'){
+        // Try candidate name
+        const res2 = await fetch('candidate-dashboard.html', {method:'HEAD'});
+        if(res2.ok) target = 'candidate-dashboard.html';
+        else {
+          const res3 = await fetch('dashboard.html', {method:'HEAD'});
+          if(res3.ok) target = 'dashboard.html';
+          else target = 'index.html';
+        }
+      } else {
+        target = 'index.html';
+      }
+    }
+  }catch(e){}
+  console.log('Redirecting to', target, 'role', r);
+  window.location.replace(target);
+}
+
 async function login(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   const password=document.getElementById('pass').value;
   const btn=document.getElementById('loginButton');
   document.getElementById('message').className='message';
   if(!email||!password){showMessage('Please enter your email and password.');return;}
-  if(!supabaseClient){showMessage('Connection error: Supabase failed to load. Please refresh.');return;}
   btn.disabled=true; btn.textContent='Logging in...';
   try{
     const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
     if(error){ showMessage(error.message); btn.disabled=false; btn.textContent='Log In'; return; }
     const userId=data.user.id;
-    const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
-    const role = profile?.role?.toLowerCase() || data.user.user_metadata?.role?.toLowerCase() || 'seeker';
+    let role = data.user.user_metadata?.role || 'seeker';
+    try{
+      const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
+      if(profile && profile.role) role = profile.role;
+    }catch(e){}
+    role = String(role).toLowerCase().trim();
+    if(role !== 'employer' && role !== 'candidate' && role !== 'seeker') role = 'seeker';
     localStorage.setItem('jobway_user_email', email);
     localStorage.setItem('jobway_logged_in','true');
     localStorage.setItem('user_role', role);
     localStorage.setItem('jobway_user_id', userId);
-    showMessage('Login successful! Redirecting...','success');
-    setTimeout(()=>{ if(role==='employer') window.location.href='employer-dashboard.html'; else window.location.href='seeker-dashboard.html'; },800);
+    showMessage('Login successful! Redirecting to '+role+' dashboard...','success');
+    // Redirect immediately - no 800ms delay that gets stuck
+    await doRedirect(role);
   }catch(err){ showMessage('Error: '+err.message); btn.disabled=false; btn.textContent='Log In'; }
 }
 document.getElementById('loginButton').addEventListener('click', login);
