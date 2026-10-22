@@ -1,41 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0F2835">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Create Account | JobWay</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2.44.0/dist/umd/supabase.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
-.header{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
-.logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:20px;cursor:pointer}
-.wrap{max-width:480px;margin:0 auto;padding:24px 20px}.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;margin-top:16px}
-.label{font-size:11px;color:#A8C8D0;font-weight:700;margin:12px 0 6px;display:block}
-.input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;font-size:13px;font-family:inherit}
-.input:focus{border-color:#01F9C6;outline:none}
-.role{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.role-btn{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#0F2230;color:#fff;cursor:pointer;text-align:left;font-family:inherit}.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,.08)}
-.btn{width:100%;padding:13px;border-radius:999px;border:0;font-weight:800;cursor:pointer;margin-top:16px;font-family:inherit}.btn-green{background:#01F9C6;color:#0A1F2E}.btn:disabled{opacity:.6}
-.status{margin-top:12px;padding:10px;border-radius:10px;font-size:12px;display:none}.status.show{display:block}.status.error{background:rgba(255,138,157,.12);border:1px solid rgba(255,138,157,.3);color:#FF8A9D}.status.ok{background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.2);color:#01F9C6}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+.header{max-width:1100px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:#0F2835;z-index:10}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;color:#01F9C6;font-size:20px;cursor:pointer;letter-spacing:-.02em}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 32px;padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;margin-top:16px}
+h1{font-family:'Space Grotesk',sans-serif;text-align:center;font-size:clamp(22px,6vw,28px);margin:16px 0;line-height:1.1}
+.label{font-size:11px;letter-spacing:.06em;color:#A8C8D0;font-weight:700;margin:14px 0 6px;display:block}
+.input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:14px 12px;border-radius:10px;font-size:16px;font-family:inherit;appearance:none;-webkit-appearance:none;border-radius:10px}
+.input:focus{border-color:#01F9C6;outline:none;box-shadow:0 0 0 3px rgba(1,249,198,.15)}
+.input::placeholder{color:#5A7A85}
+.role{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.role-btn{padding:14px 12px;min-height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#0F2230;color:#fff;cursor:pointer;text-align:left;font-family:inherit;font-size:14px}
+.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,.08)}
+.btn{width:100%;padding:14px 16px;min-height:48px;border-radius:999px;border:0;font-weight:800;cursor:pointer;margin-top:16px;font-family:inherit;font-size:15px}
+.btn-green{background:#01F9C6;color:#0A1F2E}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.6}
+.status{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;line-height:1.4;display:none;word-break:break-word}.status.show{display:block}.status.error{background:rgba(255,138,157,.12);border:1px solid rgba(255,138,157,.3);color:#FF8A9D}.status.ok{background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.2);color:#01F9C6}
 .pw-wrap{position:relative}
-.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;color:#A8C8D0;cursor:pointer;font-size:13px;padding:4px 6px}
-.check-row{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#C9E6EC;margin-top:10px;line-height:1.3}
-.check-row input{margin-top:2px;accent-color:#01F9C6}
+.pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:#A8C8D0;cursor:pointer;font-size:16px;padding:10px 8px;min-width:44px;min-height:44px}
+.check-row{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#C9E6EC;margin-top:12px;line-height:1.4}
+.check-row input{margin-top:3px;width:18px;height:18px;accent-color:#01F9C6;flex-shrink:0}
+
+/* Tablets and iPads */
+@media (min-width: 768px) and (max-width: 1024px){
+  .wrap{max-width:520px;padding:28px 24px}
+  .card{padding:28px}
+}
+/* Desktop / Laptops */
+@media (min-width: 1025px){
+  .wrap{max-width:480px}
+  .card{padding:24px}
+}
+/* Small Android */
+@media (max-width: 360px){
+  .wrap{padding:16px 12px}
+  .card{padding:16px;border-radius:14px}
+  .role-btn{font-size:13px}
+}
 </style>
 </head>
 <body>
-<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><button onclick="location.href='login.html'" style="background:#1A3E52;color:#fff;border:0;padding:8px 16px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">Log in</button></div>
+<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><button onclick="location.href='login.html'" style="background:#1A3E52;color:#fff;border:0;padding:10px 18px;min-height:40px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">Log in</button></div>
 <div class="wrap">
-<h1 style="font-family:'Space Grotesk';text-align:center;font-size:26px;margin:16px 0">Create your account</h1>
+<h1>Create your account</h1>
 <div class="card">
 <label class="label">I AM A...</label>
-<div class="role"><button type="button" class="role-btn active" id="btn-seeker" onclick="setRole('seeker')"><b>Jobseeker</b></button><button type="button" class="role-btn" id="btn-employer" onclick="setRole('employer')"><b>Employer</b></button></div>
-<form id="form">
-<label class="label">FULL NAME</label><input class="input" id="fn" required placeholder="Thandi Nkosi">
-<label class="label">EMAIL</label><input class="input" id="em" type="email" required placeholder="you@mail.com">
+<div class="role"><button type="button" class="role-btn active" id="btn-seeker" onclick="setRole('seeker')"><b>Jobseeker</b><br><span style="font-size:12px;color:#A8C8D0">Find work</span></button><button type="button" class="role-btn" id="btn-employer" onclick="setRole('employer')"><b>Employer</b><br><span style="font-size:12px;color:#A8C8D0">Hire staff</span></button></div>
+<form id="form" novalidate>
+<label class="label">FULL NAME</label><input class="input" id="fn" required placeholder="Thandi Nkosi" autocomplete="name">
+<label class="label">EMAIL</label><input class="input" id="em" type="email" required placeholder="you@mail.com" autocomplete="email" inputmode="email">
 <label class="label">PASSWORD</label>
 <div class="pw-wrap">
-<input class="input" id="pw" type="password" required placeholder="6+ chars" minlength="6" style="padding-right:40px">
-<button type="button" class="pw-toggle" id="pwToggle" onclick="togglePw()">👁️</button>
+<input class="input" id="pw" type="password" required placeholder="6+ characters" minlength="6" style="padding-right:48px" autocomplete="new-password">
+<button type="button" class="pw-toggle" id="pwToggle" onclick="togglePw()" aria-label="Show password">👁️</button>
 </div>
 <div id="wa-wrap" class="check-row">
 <input type="checkbox" id="wa" checked>
@@ -43,18 +74,22 @@
 </div>
 <div id="wa-phone-wrap" style="display:block;margin-top:2px">
 <label class="label">WHATSAPP NUMBER</label>
-<input class="input" id="waNumber" type="tel" placeholder="e.g. 076 123 4567" required>
+<input class="input" id="waNumber" type="tel" placeholder="e.g. 076 123 4567" inputmode="tel" autocomplete="tel" required>
 </div>
-<label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy & POPIA</span></label>
+<label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy &amp; POPIA</span></label>
 <input type="hidden" id="role" value="seeker">
 <button class="btn btn-green" id="submitBtn" type="submit">Create account →</button>
 </form>
 <div id="status" class="status"></div>
+<p style="text-align:center;font-size:12px;color:#7A9AA3;margin-top:14px;line-height:1.4">By creating an account you agree to our Terms.<br>Works on Android, iPhone, iPad, Desktop &amp; Laptop.</p>
 </div></div>
 <script>
 const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabaseClient;
+try{
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'jobway-auth'}});
+}catch(e){ console.error("Supabase init failed", e); }
 
 function setRole(r){
   document.getElementById("role").value=r;
@@ -72,7 +107,7 @@ function togglePw(){
   if(pw.type==="password"){pw.type="text";btn.textContent="🙈";}
   else{pw.type="password";btn.textContent="👁️";}
 }
-function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
+function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;s.scrollIntoView({behavior:'smooth',block:'nearest'});}
 document.getElementById("wa").addEventListener("change", function(){
   const isSeeker = document.getElementById("role").value==="seeker";
   const checked = this.checked;
@@ -82,48 +117,55 @@ document.getElementById("wa").addEventListener("change", function(){
 });
 document.getElementById("form").addEventListener("submit",async(e)=>{
  e.preventDefault();
+ if(!supabaseClient){showStatus("Connection failed. Check internet and refresh. Try WiFi or Incognito if on 4G.","error");return;}
  const name=document.getElementById("fn").value.trim();
  const email=document.getElementById("em").value.trim().toLowerCase();
  const password=document.getElementById("pw").value;
  const role=document.getElementById("role").value;
  const whatsappAlerts = role==="seeker" ? document.getElementById("wa").checked : false;
  const whatsappNumber = (role==="seeker" && whatsappAlerts) ? document.getElementById("waNumber").value.trim() : "";
+ if(!name){showStatus("Please enter your full name","error");return;}
+ if(!email.includes("@")){showStatus("Please enter a valid email","error");return;}
+ if(password.length<6){showStatus("Password must be 6+ characters","error");return;}
  if(role==="seeker" && whatsappAlerts && !whatsappNumber){showStatus("Please enter your WhatsApp number","error");return;}
- if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
+ if(!document.getElementById("popia").checked){showStatus("Please accept Privacy & POPIA","error");return;}
  const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating account...";
  try{
-  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role:role,whatsapp_alerts:whatsappAlerts,whatsapp_number:whatsappNumber}}});
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,role:role,whatsapp_alerts:whatsappAlerts,whatsapp_number:whatsappNumber},emailRedirectTo: window.location.origin + '/login.html'}});
   if(error){
-    if(error.message.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
+    if(error.message.toLowerCase().includes("already") || error.message.toLowerCase().includes("registered")) throw new Error("Account already exists, please login");
+    if(error.message.toLowerCase().includes("fetch") || error.message.toLowerCase().includes("network")) throw new Error("Network error: Check internet or try WiFi / Incognito. Supabase is Healthy.");
     throw error;
   }
   let userId = data.user?.id;
-  // Try login to get session - if email confirm is OFF this works
   const {data:loginData, error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
   if(!loginError && loginData.user) userId = loginData.user.id;
-
   if(userId){
-    // Use UPSERT not INSERT so it never fails
-    const {error: profErr} = await supabaseClient.from('profiles').upsert({id:userId, email:email, full_name:name, role:role, whatsapp_number:whatsappNumber, phone: whatsappNumber},{onConflict:'id'});
-    if(profErr) console.log("profile err", profErr);
+    try{
+      await supabaseClient.from('profiles').upsert({id:userId, email:email, full_name:name, role:role, whatsapp_number:whatsappNumber, phone: whatsappNumber},{onConflict:'id'});
+    }catch(profErr){ console.log("profile skipped", profErr); }
     if(role==="seeker" && whatsappAlerts && whatsappNumber){
-      let cleanNumber = whatsappNumber.replace(/\s/g, '').replace(/^0/, '27');
-      if(!cleanNumber.startsWith('27')) cleanNumber = '27' + cleanNumber.replace(/^\+/, '');
-      await supabaseClient.from('whatsapp_subscribers').upsert({email:email, full_name:name, whatsapp_number:cleanNumber, subscribed:true},{onConflict:'email'});
+      try{
+        let cleanNumber = whatsappNumber.replace(/\s/g, '').replace(/^0/, '27');
+        if(!cleanNumber.startsWith('27')) cleanNumber = '27' + cleanNumber.replace(/^\+/, '');
+        await supabaseClient.from('whatsapp_subscribers').upsert({email:email, full_name:name, whatsapp_number:cleanNumber, subscribed:true},{onConflict:'email'});
+      }catch(_){ }
     }
   }
   localStorage.setItem("jobway_user_email",email);
   localStorage.setItem("user_role",role);
   if(loginError){
     showStatus("Account created! Check email to confirm, then login.","ok");
-    setTimeout(()=>location.href='login.html',2000);
+    setTimeout(()=>location.href='login.html',1800);
   } else {
     showStatus("Account created! Redirecting...","ok");
     setTimeout(()=>{ if(role==="employer") location.href="employer-dashboard.html"; else location.href="candidate-dashboard.html"; },800);
   }
  }catch(err){
   console.error(err);
-  showStatus(err.message,"error");
+  let msg = err.message || "Failed to create account";
+  if(msg.toLowerCase().includes("failed to fetch")) msg = "Failed to fetch: Phone network blocked Supabase. Switch to WiFi or open in Incognito/Private mode and try again.";
+  showStatus(msg,"error");
   btn.disabled=false;btn.textContent="Create account →";
  }
 });
