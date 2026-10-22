@@ -1,0 +1,19 @@
+<!DOCTYPE html><html><body style="background:#0F2835;color:#fff;font-family:sans-serif;padding:20px">
+<h3>Supabase Debug</h3>
+<button id="b" style="padding:14px;background:#01F9C6;border:0;border-radius:10px;font-weight:800">Test Signup</button>
+<pre id="out" style="white-space:pre-wrap;margin-top:16px;background:#11283A;padding:12px;border-radius:10px"></pre>
+<script>
+document.getElementById("b").onclick = async ()=>{
+  const out=document.getElementById("out");
+  out.textContent="Testing...";
+  try{
+    const res = await fetch("https://dmxumcjeetphwzvgzzuk.supabase.co/auth/v1/signup",{
+      method:"POST",
+      headers:{"apikey":"sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-","Content-Type":"application/json"},
+      body: JSON.stringify({email:"test"+Date.now()+"@gmail.com",password:"Test123456!"})
+    });
+    const txt = await res.text();
+    out.textContent = "Status: "+res.status+"\n\n"+txt;
+  }catch(e){ out.textContent = "FETCH FAILED: "+e.message; }
+}
+</script></body></html>
