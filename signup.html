@@ -62,51 +62,49 @@ document.getElementById("form").addEventListener("submit",async(e)=>{
  if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
  const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating account...";
  try{
-  // Direct fetch - NO library, works on ALL 4G networks
   const res = await fetch(SUPABASE_URL + "/auth/v1/signup", {
     method:"POST",
     headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"},
-    body: JSON.stringify({email,password,data:{full_name:name,[STRIPPED] window.location.origin + "/login.html"}})
+    body: JSON.stringify({email:email,password:password,data:{full_name:name,role:role}})
   });
   const json = await res.json();
   if(!res.ok){
     if(json.msg && json.msg.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
+    if(json.error_code === "email_exists") throw new Error("Account already exists, please login");
     throw new Error(json.msg || json.message || "Signup failed");
   }
-  // Now try login to get session
   let userId = json.user?.id;
   let loginOk = false;
   try{
     const loginRes = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password",{
       method:"POST",
       headers:{"apikey":SUPABASE_KEY,"Content-Type":"application/json"},
-      body: JSON.stringify({email,password})
+      body: JSON.stringify({email:email,password:password})
     });
     const loginJson = await loginRes.json();
     if(loginRes.ok && loginJson.user){ userId = loginJson.user.id; loginOk=true; localStorage.setItem("jobway_token", loginJson.access_token); }
   }catch(_){ }
-  // Save profile with direct REST call - no library needed
   if(userId){
     try{
       let clean = waNum.replace(/\s/g,'').replace(/^0/,'27');
       await fetch(SUPABASE_URL + "/rest/v1/profiles",{
         method:"POST",
-        headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"resolution=merge-duplicates"},
+        headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
         body: JSON.stringify({id:userId,email:email,full_name:name,role:role,whatsapp_number:waNum,phone:waNum})
       });
       if(role==="seeker" && waChecked && waNum){
         await fetch(SUPABASE_URL + "/rest/v1/whatsapp_subscribers",{
           method:"POST",
-          headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"resolution=merge-duplicates"},
+          headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
           body: JSON.stringify({email:email,full_name:name,whatsapp_number:clean,subscribed:true})
         });
       }
-    }catch(_){ console.log("profile save skipped"); }
+    }catch(_){ }
   }
   localStorage.setItem("jobway_user_email",email);
   localStorage.setItem("user_role",role);
   if(loginOk){ showStatus("Account created! Redirecting...","ok"); setTimeout(()=>{location.href = role==="employer" ? "employer-dashboard.html" : "candidate-dashboard.html";},900); }
-  else{ showStatus("Account created! Check email to confirm, then login.","ok"); setTimeout(()=>location.href='login.html',1800); }
+  else{ showStatus("Account created! Please login.","ok"); setTimeout(()=>location.href='login.html',1200); }
  }catch(err){
   console.error(err);
   showStatus(err.message,"error");
