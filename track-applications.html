@@ -1,34 +1,84 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Track Applications - JobWay</title><style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:22px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.btn-whats{background:#25D366;color:#fff}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:22px;padding:18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.05)}.meta{color:#8fb3c1;font-size:13px;margin:6px 0}.badge{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}.s-active{background:#01F9C6;color:#11283a}.s-pending{background:rgba(255,255,255,.1);color:#8fb3c1;border:1px solid #2a4a5c}.s-done{background:rgba(1,249,198,.15);color:#01F9C6}.progress{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}.interview-box{background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.3);border-radius:14px;padding:14px;margin-top:12px}.hired-box{background:rgba(1,249,198,.1);border:1px solid rgba(1,249,198,.4);border-radius:14px;padding:14px;margin-top:12px}</style></head><body>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Track Applications - JobWay</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:22px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:22px;padding:18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.05)}.meta{color:#8fb3c1;font-size:13px;margin:6px 0}.badge{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}.s-active{background:#01F9C6;color:#11283a}.s-pending{background:rgba(255,255,255,.1);color:#8fb3c1;border:1px solid #2a4a5c}.s-done{background:rgba(1,249,198,.15);color:#01F9C6}.progress{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}.interview-box{background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.3);border-radius:14px;padding:14px;margin-top:12px}.hired-box{background:rgba(1,249,198,.1);border:1px solid rgba(1,249,198,.4);border-radius:14px;padding:14px;margin-top:12px}</style></head><body>
 <div class="header"><div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobWay</div><div><button class="btn btn-white" onclick="location.href='jobs.html'">← Jobs</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='notifications.html'">🔔 Bell</button></div></div>
 <div class="container">
 <h2>📊 My Applications <span id="count"></span></h2>
-<div id="list"></div>
+<div id="list"><p class="meta">Loading from Supabase...</p></div>
 </div>
 <script>
+const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 function fmtDate(d){ try{ if(!d) return ''; let date=new Date(d); if(isNaN(date)) return d; return date.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return d; } }
 
 function getEmpPhone(app){
-  let raw = app.empWhatsApp || app.employerPhone || app.employer_whatsapp || '0790608952';
+  let raw = app.employer_whatsapp || app.empWhatsApp || app.employerPhone || '0790608952';
   let clean = (raw||'').toString().replace(/[^0-9]/g,'');
   if(clean.startsWith('0')) clean='27'+clean.slice(1);
   return clean;
 }
 
-function load(){
-  let applied = JSON.parse(localStorage.getItem('jobway_applied')||'[]');
-  let applied2 = JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
-  let all = applied.length ? applied : applied2;
+// Get current user from localStorage (your login saves jobway_user)
+function getCurrentUser(){
+  try{
+    let u = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('jobway_current_user')||localStorage.getItem('user')||'null');
+    return u;
+  }catch(e){ return null; }
+}
+
+async function load(){
+  let user = getCurrentUser();
+  let query = supabase.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number)').order('created_at', {ascending:false});
+  
+  // If we know who is logged in, filter to them only
+  if(user && user.id){
+    query = query.eq('jobseeker_id', user.id);
+  } else if(user && user.email){
+    query = query.eq('jobseeker_email', user.email);
+  } else if(user && user.phone){
+    query = query.eq('phone', user.phone);
+  } else {
+    // No user found - show localStorage as fallback for testing, but also try to show all recent
+    // For now show all (you can remove this after login is fixed)
+  }
+
+  let { data: apps, error } = await query;
+  if(error){
+    console.log('Supabase error', error);
+    // Fallback to localStorage for migration
+    let local = JSON.parse(localStorage.getItem('jobway_applied')||'[]');
+    render(local, true);
+    return;
+  }
+
+  // If no supabase apps but local exists, merge local for migration
+  if((!apps || apps.length===0)){
+    let local = JSON.parse(localStorage.getItem('jobway_applied')||localStorage.getItem('jobway_all_applications')||'[]');
+    if(local.length>0){
+      render(local, false);
+      return;
+    }
+  }
+  render(apps||[]);
+}
+
+function render(all, isLocal=false){
   document.getElementById('count').innerText=`(${all.length})`;
   if(all.length==0){
     document.getElementById('list').innerHTML=`<div class="card" style="text-align:center"><p>No applications yet</p><p class="meta">Go apply for Cashier/Waiter first, then come back</p><button class="btn btn-green" onclick="location.href='jobs.html'">Go Apply</button></div>`;
     return;
   }
   document.getElementById('list').innerHTML=all.map(app=>{
-    let title = app.title || app.job_title || 'Job';
-    let comp = app.company || '';
+    // Support both Supabase and local field names
+    let title = app.job_title || app.title || (app.jobs && app.jobs.title) || 'Job';
+    let comp = app.company || (app.jobs && app.jobs.company) || '';
     let status = app.status||'Application Received';
     if(status==='Applied') status='Application Received';
     if(status==='Approved') status='Hired';
+    if(status==='shortlisted') status='Shortlisted';
+    if(status==='interview') status='Interview Scheduled';
 
     let steps=['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
     let idx=steps.indexOf(status); 
@@ -42,25 +92,27 @@ function load(){
     }).join('');
 
     let interview = '';
-    if(app.interview_date){
+    if(app.interview_date || status==='Interview Scheduled'){
       interview=`<div class="interview-box">📅 <b>INTERVIEW SCHEDULED</b><br>
-      <span style="font-size:13px">📅 Date: <b style="color:#fff">${app.interview_date}</b><br>
+      <span style="font-size:13px">📅 Date: <b style="color:#fff">${app.interview_date||'To be confirmed'}</b><br>
       🕐 Time: <b style="color:#fff">${app.interview_time||''}</b><br>
       📍 Location: <b style="color:#fff">${app.interview_location||'Thohoyandou Office'}</b><br>
-      📝 ${app.interview_note||'Bring ID & CV'}</span></div>`;
+      📝 ${app.interview_note||app.interview_notes||'Bring ID & CV'}</span></div>`;
     }
     let hired = (status==='Hired')?`<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">${comp} will contact you for start date.</span></div>`:'';
     let rejected = (status==='Not Selected' || status==='Rejected')?`<div style="color:#ff8a8a;margin-top:8px">❌ Not Selected for this job. Keep applying — new jobs every week.</div>`:'';
 
     let empPhone = getEmpPhone(app);
-    let myName = app.name || app.fullName || 'Applicant';
+    let myName = app.jobseeker_name || app.name || app.fullName || 'Applicant';
     let msg = `Hi ${comp}, I'm ${myName}. I applied for ${title} on JobWay. My status is ${status}. Can you please update me? Thank you.`;
     let waBtn = `<a href="https://wa.me/${empPhone}?text=${encodeURIComponent(msg)}" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:10px 16px;border-radius:999px;font-weight:800;font-size:12px;text-decoration:none;margin-top:12px">💬 Message Employer on WhatsApp</a>`;
 
-    return `<div class="card"><h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.date)} • ${app.location||''} ${app.salary? '• '+app.salary : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hired}${rejected}${waBtn}</div>`;
+    return `<div class="card"><h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at || app.date)} • ${app.location||(app.jobs&&app.jobs.location)||''} ${app.salary||(app.jobs&&app.jobs.salary)? '• '+(app.salary||app.jobs.salary) : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hired}${rejected}${waBtn}</div>`;
   }).join('');
 }
+
 load();
-window.addEventListener('storage', load);
-setInterval(load, 1000);
+// Realtime - if employer updates status, auto refresh
+supabase.channel('applications-changes').on('postgres_changes', {event:'*', schema:'public', table:'applications'}, ()=>load()).subscribe();
+setInterval(load, 5000);
 </script></body></html>
