@@ -8,6 +8,30 @@
 <script>
 function load(){
   let notifs = JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
+  
+  // 1. CLEAN TEXT - remove ugly Track link that was saved inside
+  notifs = notifs.map(n=>{
+    let t = n.text||'';
+    t = t.replace(/Track:\s*https?:\/\/[^\s]+/gi, '').trim();
+    t = t.replace(/https?:\/\/jobway\.co\.za\/track-applications\.html/gi, '').trim();
+    return {...n, text: t};
+  });
+
+  // 2. DEDUPE - keep only 1 per title+text
+  let seen = new Set();
+  notifs = notifs.filter(n=>{
+    let key = (n.title||'').trim().toLowerCase() + '|' + (n.text||'').trim().toLowerCase();
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // 3. Newest first
+  notifs.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
+
+  // save cleaned version back
+  localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
+
   document.getElementById('count').innerText = notifs.length ? `(${notifs.length})` : '';
   if(!notifs.length){
     document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>No notifications yet</p><p class="meta">When an employer shortlists you or schedules an interview, it will appear here.</p><button class="btn btn-green" onclick="location.href='jobs.html'">Browse Jobs</button></div>`;
@@ -18,7 +42,6 @@ function load(){
     let cls = n.read ? '' : 'unread';
     return `<div class="card ${cls}"><b>${n.title||'Update'}</b><div class="meta">${date}</div><p style="font-size:13px;line-height:1.5;margin:6px 0">${n.text||''}</p><button class="btn btn-green" style="padding:8px 14px;font-size:12px" onclick="location.href='track-applications.html'">View Application →</button></div>`;
   }).join('');
-  // mark as read
   notifs = notifs.map(n=>({...n, read:true}));
   localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
 }
