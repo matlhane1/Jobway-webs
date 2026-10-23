@@ -106,15 +106,24 @@ function sendWhatsApp(app, newStatus, skipConfirm){
   if(!phone){ alert(`Status saved as ${newStatus} but no WhatsApp number for ${app.name}. Ask candidate to add it.`); return; }
   let jobTitle = app.job_title||app.title||'Job';
   let msg='';
-  if(newStatus==='Shortlisted') msg=`Hi ${app.name} 👋 Great news! You have been SHORTLISTED for ${jobTitle} at ${app.company} on JobWay. We will contact you for next steps. Track: https://jobway.co.za/track-applications.html`;
-  else if(newStatus==='Interview Scheduled') msg=`Hi ${app.name} 📅 Interview Scheduled for ${jobTitle} at ${app.company} on JobWay.\n\n📅 Date: ${app.interview_date||''}\n🕐 Time: ${app.interview_time||''}\n📍 Location: ${app.interview_location||''}\n📝 Note: ${app.interview_note||'Bring ID & CV'}\n\nPlease reply YES to confirm. Track: https://jobway.co.za/track-applications.html`;
-  else if(newStatus==='Hired') msg=`Hi ${app.name} 🎉 Congratulations! You are HIRED for ${jobTitle} at ${app.company} on JobWay. Please check your Track page and reply.`;
-  else if(newStatus==='Under Review') msg=`Hi ${app.name}, update: Your application for ${jobTitle} at ${app.company} is now Under Review. We'll update you soon. - JobWay`;
-  else if(newStatus==='Not Selected') msg=`Hi ${app.name}, thank you for applying for ${jobTitle} at ${app.company}. Unfortunately you were not selected this time. Keep applying on JobWay.`;
-  else msg=`Hi ${app.name}, JobWay update: Your application for ${jobTitle} at ${app.company} is now: ${newStatus}. Track: https://jobway.co.za/track-applications.html`;
+  let notifText='';
+  if(newStatus==='Shortlisted'){ msg=`Hi ${app.name} 👋 Great news! You have been SHORTLISTED for ${jobTitle} at ${app.company} on JobWay. We will contact you for next steps. Track: https://jobway.co.za/track-applications.html`; notifText=`Hi ${app.name} 👋 Great news! You have been SHORTLISTED for ${jobTitle} at ${app.company} on JobWay. We will contact you for next steps.`; }
+  else if(newStatus==='Interview Scheduled'){ msg=`Hi ${app.name} 📅 Interview Scheduled for ${jobTitle} at ${app.company} on JobWay.\n\n📅 Date: ${app.interview_date||''}\n🕐 Time: ${app.interview_time||''}\n📍 Location: ${app.interview_location||''}\n📝 Note: ${app.interview_note||'Bring ID & CV'}\n\nPlease reply YES to confirm. Track: https://jobway.co.za/track-applications.html`; notifText=`Hi ${app.name} 📅 Interview Scheduled for ${jobTitle} at ${app.company} on JobWay.\n\n📅 Date: ${app.interview_date||''}\n🕐 Time: ${app.interview_time||''}\n📍 Location: ${app.interview_location||''}`; }
+  else if(newStatus==='Hired'){ msg=`Hi ${app.name} 🎉 Congratulations! You are HIRED for ${jobTitle} at ${app.company} on JobWay. Please check your Track page and reply.`; notifText=msg; }
+  else if(newStatus==='Under Review'){ msg=`Hi ${app.name}, update: Your application for ${jobTitle} at ${app.company} is now Under Review. We'll update you soon. - JobWay`; notifText=msg; }
+  else if(newStatus==='Not Selected'){ msg=`Hi ${app.name}, thank you for applying for ${jobTitle} at ${app.company}. Unfortunately you were not selected this time. Keep applying on JobWay.`; notifText=msg; }
+  else { msg=`Hi ${app.name}, JobWay update: Your application for ${jobTitle} at ${app.company} is now: ${newStatus}. Track: https://jobway.co.za/track-applications.html`; notifText=`Hi ${app.name}, JobWay update: Your application for ${jobTitle} at ${app.company} is now: ${newStatus}.`; }
+
+  // FIXED: Prevent duplicate notifications - check if same status already exists
   let notifs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
-  notifs.unshift({id:Date.now(), title:`Status: ${newStatus} - ${jobTitle}`, text:msg, date:new Date().toISOString(), read:false, job:jobTitle});
-  localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
+  let notifTitle=`Status: ${newStatus} - ${jobTitle}`;
+  let alreadyExists = notifs.some(n=> n.title===notifTitle && n.text===notifText);
+  if(!alreadyExists){
+    notifs.unshift({id:Date.now(), title:notifTitle, text:notifText, date:new Date().toISOString(), read:false, job:jobTitle});
+    // keep max 20 notifications to avoid storage bloat
+    if(notifs.length>20) notifs = notifs.slice(0,20);
+    localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
+  }
   window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`, '_blank');
 }
 function load(){
