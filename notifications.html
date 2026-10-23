@@ -1,15 +1,53 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notifications - JobWay</title><style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:22px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}.meta{color:#8fb3c1;font-size:12px;margin:6px 0}.unread{border-left:4px solid #01F9C6}</style></head><body>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notifications - JobWay</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:22px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}.meta{color:#8fb3c1;font-size:12px;margin:6px 0}.unread{border-left:4px solid #01F9C6}</style></head><body>
 <div class="header"><div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobWay</div><div><button class="btn btn-white" onclick="location.href='track-applications.html'">My Applications</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='jobs.html'">Jobs</button></div></div>
 <div class="container">
 <h2>🔔 Notifications <span id="count"></span></h2>
-<div id="list"></div>
+<div id="list"><p class="meta">Loading...</p></div>
 <div style="text-align:center;margin-top:20px"><button class="btn btn-white" onclick="clearAll()">Clear All</button></div>
 </div>
 <script>
-function load(){
-  let notifs = JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
-  
-  // 1. CLEAN TEXT - remove ugly Track link that was saved inside
+const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+
+function getUser(){
+  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
+}
+
+async function load(){
+  let localNotifs = JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
+
+  // 1. Build notifications from Supabase applications (REAL SOURCE OF TRUTH)
+  let supaNotifs = [];
+  try{
+    let user = getUser();
+    let query = supabaseClient.from('applications').select('*, jobs(title, company)').order('updated_at', {ascending:false}).limit(30);
+    if(user && user.id) query = query.eq('jobseeker_id', user.id);
+    else if(user && user.email) query = query.eq('jobseeker_email', user.email);
+    let { data: apps } = await query;
+    if(apps){
+      apps.forEach(app=>{
+        let title = app.job_title || (app.jobs && app.jobs.title) || 'Job';
+        let comp = app.company || (app.jobs && app.jobs.company) || '';
+        let status = app.status || 'Application Received';
+        let date = app.updated_at || app.created_at;
+        let text = '';
+        if(status==='Shortlisted') text = `Great news! You have been SHORTLISTED for ${title} at ${comp}. We will contact you for next steps.`;
+        else if(status==='Interview Scheduled') text = `Interview Scheduled for ${title} at ${comp}. Date: ${app.interview_date||''} Time: ${app.interview_time||''} Location: ${app.interview_location||'Thohoyandou Office'}`;
+        else if(status==='Hired') text = `Congratulations! You are HIRED for ${title} at ${comp}. Check your Track page.`;
+        else if(status==='Under Review') text = `Your application for ${title} at ${comp} is now Under Review.`;
+        else if(status==='Not Selected' || status==='Rejected') text = `Thank you for applying for ${title} at ${comp}. You were not selected this time, keep applying.`;
+        else text = `Your application for ${title} at ${comp} status: ${status}`;
+
+        supaNotifs.push({id: 'supa-'+app.id, title:`Status: ${status} - ${title}`, text, date, read:false, fromSupabase:true});
+      });
+    }
+  }catch(e){ console.log(e); }
+
+  // 2. Merge local + supabase
+  let notifs = [...supaNotifs, ...localNotifs];
+
+  // 3. CLEAN TEXT
   notifs = notifs.map(n=>{
     let t = n.text||'';
     t = t.replace(/Track:\s*https?:\/\/[^\s]+/gi, '').trim();
@@ -17,7 +55,7 @@ function load(){
     return {...n, text: t};
   });
 
-  // 2. DEDUPE - keep only 1 per title+text
+  // 4. DEDUPE
   let seen = new Set();
   notifs = notifs.filter(n=>{
     let key = (n.title||'').trim().toLowerCase() + '|' + (n.text||'').trim().toLowerCase();
@@ -26,11 +64,12 @@ function load(){
     return true;
   });
 
-  // 3. Newest first
+  // 5. Newest first
   notifs.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
 
-  // save cleaned version back
-  localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
+  // save cleaned local only (not supabase ones)
+  let toSaveLocal = notifs.filter(n=>!n.fromSupabase).slice(0,20);
+  localStorage.setItem('jobway_notifications', JSON.stringify(toSaveLocal));
 
   document.getElementById('count').innerText = notifs.length ? `(${notifs.length})` : '';
   if(!notifs.length){
@@ -42,9 +81,20 @@ function load(){
     let cls = n.read ? '' : 'unread';
     return `<div class="card ${cls}"><b>${n.title||'Update'}</b><div class="meta">${date}</div><p style="font-size:13px;line-height:1.5;margin:6px 0">${n.text||''}</p><button class="btn btn-green" style="padding:8px 14px;font-size:12px" onclick="location.href='track-applications.html'">View Application →</button></div>`;
   }).join('');
-  notifs = notifs.map(n=>({...n, read:true}));
-  localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
+
+  // Mark local as read
+  let readLocal = toSaveLocal.map(n=>({...n, read:true}));
+  localStorage.setItem('jobway_notifications', JSON.stringify(readLocal));
 }
-function clearAll(){ localStorage.removeItem('jobway_notifications'); load(); }
+
+function clearAll(){ 
+  localStorage.removeItem('jobway_notifications'); 
+  // Note: Supabase notifications will come back from applications - to clear them, employer must not have apps. That's correct behavior.
+  load(); 
+}
+
 load();
+// Realtime - new status change shows instantly
+supabaseClient.channel('notif-apps').on('postgres_changes', {event:'*', schema:'public', table:'applications'}, ()=>load()).subscribe();
+setInterval(load, 5000);
 </script></body></html>
