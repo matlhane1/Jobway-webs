@@ -51,6 +51,7 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 <label>Company</label><input id="company" placeholder="e.g. Shoprite">
 <label>Location</label><input id="location" placeholder="e.g. Thohoyandou">
 <label>Salary</label><input id="salary" placeholder="e.g. R4500">
+<label>WhatsApp Number for Applicants</label><input id="whatsapp" placeholder="e.g. 0790608952">
 <label>Type</label><select id="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
 <label>Closing Date</label><input id="closing" type="date">
 <label>Description</label><textarea id="desc" rows="4" placeholder="Job requirements..."></textarea>
@@ -69,7 +70,7 @@ function compressImage(file, cb){
     img.onload = ()=>{
       const canvas = document.createElement('canvas');
       let w = img.width, h = img.height;
-      const max = 300; // logo max size 300px - small, fast, free
+      const max = 300;
       if(w>max){ h = h*max/w; w = max; }
       if(h>max){ w = w*max/h; h = max; }
       canvas.width=w; canvas.height=h;
@@ -105,9 +106,7 @@ const b=document.getElementById('post');
 b.textContent='Posting...';b.disabled=true;
 document.getElementById('msg').innerText='Uploading logo & job...';
 
-let logoUrl = logoData; // default = compressed base64 — always works, 100% free
-
-// Try Supabase Storage if bucket exists, else keep base64
+let logoUrl = logoData;
 if(logoFileObj){
   try{
     const fileName = Date.now() + '_' + logoFileObj.name.replace(/[^a-zA-Z0-9.-]/g,'_');
@@ -116,31 +115,50 @@ if(logoFileObj){
       const { data: pub } = supabaseClient.storage.from('company-logos').getPublicUrl(fileName);
       if(pub?.publicUrl) logoUrl = pub.publicUrl;
     }
-  }catch(e){ /* keep base64 */ }
+  }catch(e){}
 }
+
+let user=null;
+try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
+
+let wa = document.getElementById('whatsapp').value.trim();
+if(!wa && user) wa = user.phone || user.whatsapp_number || '';
 
 const job={
   title:titleVal,
   company:companyVal,
   location:document.getElementById('location').value,
   salary:document.getElementById('salary').value,
-  type:document.getElementById('type').value,
   description:document.getElementById('desc').value,
-  closing_date:document.getElementById('closing').value||null,
-  logo: logoUrl,
-  logo_url: logoUrl
+  whatsapp_number: wa,
+  type: document.getElementById('type').value,
+  closing_date: document.getElementById('closing').value||null,
+  logo_url: logoUrl,
+  // employer link
+  employer_id: (user && user.id && user.id.length>20) ? user.id : null,
 };
 
-const {error}=await supabaseClient.from('jobs').insert(job);
+const {data, error}=await supabaseClient.from('jobs').insert([job]).select().single();
 if(error){
-  // Fallback: save locally if Supabase column missing
-  let localJobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
-  localJobs.unshift({...job, city: job.location, salaryText: job.salary, desc: job.description, postedAt: Date.now(), closingDate: job.closing_date||'30 Nov 2026'});
-  localStorage.setItem('jobway_employer_jobs', JSON.stringify(localJobs));
-  document.getElementById('msg').innerHTML='✅ Job posted with logo (local)!';
-  alert('✅ Job posted with logo!'); location.href='jobs.html'; return;
+  console.log('Supabase job insert error', error);
+  // If column doesn't exist, retry with minimal fields
+  if(error.message.includes('column') || error.message.includes('type') || error.message.includes('logo')){
+    const minimal={title:titleVal, company:companyVal, location:job.location, salary:job.salary, description:job.description, whatsapp_number:wa, employer_id: job.employer_id};
+    const {error: err2}=await supabaseClient.from('jobs').insert([minimal]);
+    if(err2){
+      alert('Supabase error: '+err2.message+'\n\nRun this SQL:\nALTER TABLE jobs ADD COLUMN IF NOT EXISTS type TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS logo_url TEXT;');
+      b.textContent='Post Job →'; b.disabled=false; return;
+    }
+  } else {
+    alert('Error: '+error.message);
+    b.textContent='Post Job →'; b.disabled=false; return;
+  }
 }
+// Also save locally for instant display
+let localJobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
+localJobs.unshift({...job, city: job.location, salaryText: job.salary, desc: job.description, postedAt: Date.now(), closingDate: job.closing_date||'30 Nov 2026'});
+localStorage.setItem('jobway_employer_jobs', JSON.stringify(localJobs));
 document.getElementById('msg').innerHTML='✅ Job posted with logo!';
-alert('✅ Job posted with logo!');location.href='employer-dashboard.html';
+alert('✅ Job posted! It will show in jobs.html now.');location.href='employer-dashboard.html';
 };
 </script></body></html>
