@@ -64,17 +64,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 
 <script>
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-function getEmployerJobs(){return JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]')}
+
 function getDefaults(){return [
-{title:'Cashier',company:'Shoprite',location:'Pretoria North, Gauteng',city:'Gauteng',type:'Full-time',salaryText:'R5,500 - R6,800',desc:'Till operation, customer service, stock. Matric required. No experience needed, training provided.',duration:'Permanent',postedAt:Date.now()-4*3600000,closingDate:'13 Sept 2026',logo:null},
-{title:'Retail Assistant',company:'Boxer Superstores',location:'Umlazi, KZN',city:'KZN',type:'Part-time',salaryText:'R4,600 + benefits',desc:'Assist customers, pack shelves, keep store clean. Must be able to work weekends.',duration:'3 Months',postedAt:Date.now()-6*3600000,closingDate:'15 Sept 2026',logo:null},
-{title:'General Worker',company:'Takealot Warehouse',location:'Cape Town, Western Cape',city:'Western Cape',type:'Full-time',salaryText:'R5,000',desc:'Picking, packing, loading. Must be fit and reliable. Immediate start.',duration:'Permanent',postedAt:Date.now()-2*3600000,closingDate:'20 Sept 2026',logo:null}
+{title:'Cashier',company:'Shoprite',location:'Pretoria North, Gauteng',city:'Gauteng',type:'Full-time',salaryText:'R5,500 - R6,800',desc:'Till operation, customer service, stock. Matric required. No experience needed, training provided.',duration:'Permanent',postedAt:Date.now()-4*3600000,closingDate:'13 Sept 2026',logo:null, id:'default-1'},
+{title:'Retail Assistant',company:'Boxer Superstores',location:'Umlazi, KZN',city:'KZN',type:'Part-time',salaryText:'R4,600 + benefits',desc:'Assist customers, pack shelves, keep store clean. Must be able to work weekends.',duration:'3 Months',postedAt:Date.now()-6*3600000,closingDate:'15 Sept 2026',logo:null, id:'default-2'},
+{title:'General Worker',company:'Takealot Warehouse',location:'Cape Town, Western Cape',city:'Western Cape',type:'Full-time',salaryText:'R5,000',desc:'Picking, packing, loading. Must be fit and reliable. Immediate start.',duration:'Permanent',postedAt:Date.now()-2*3600000,closingDate:'20 Sept 2026',logo:null, id:'default-3'}
 ]}
 
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Posted today';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)} days ago`;}
-function initials(name){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function initials(name){return (name||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 
-let allJobs = [];
 async function fetchSupabaseJobs(){
   try{
     const { data } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
@@ -84,22 +83,28 @@ async function fetchSupabaseJobs(){
       salaryText:j.salary||'Market related',desc:j.description||'',duration:'Permanent',
       postedAt:j.created_at? new Date(j.created_at).getTime():Date.now(),
       closingDate:j.closing_date? new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',
-      logo:j.logo||j.logo_url||null,id:j.id
+      logo:j.logo||j.logo_url||null,id:j.id, employer_whatsapp:j.whatsapp_number
     }));
   }catch(e){return []}
 }
 
-function normalizeJob(j){
-  return {
-    title:j.title, company:j.company, location:j.location||j.city||'',
-    city:j.city||j.location||'', 
-    type: j.type || j.jobType || 'Full-time',
-    salaryText: j.salaryText || j.salary || 'Market related',
-    desc: j.desc || j.description || '',
-    postedAt: j.postedAt || Date.now(),
-    closingDate: j.closingDate || j.closing_date || '30 Sept 2026',
-    logo: j.logo || null
-  }
+let allJobsCache = [];
+let appliedIds = new Set();
+
+async function fetchMyApplications(){
+  try{
+    let user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null');
+    let { data } = await supabaseClient.from('applications').select('job_id, job_title, company').limit(200);
+    if(data){
+      data.forEach(a=>{
+        if(a.job_id) appliedIds.add(a.job_id);
+        if(a.job_title) appliedIds.add(a.job_title+'|'+a.company);
+      });
+    }
+    // fallback local
+    let localApps = JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
+    localApps.forEach(a=> appliedIds.add((a.job_title||a.title)+'|'+(a.company||'')));
+  }catch(e){}
 }
 
 async function render(){
@@ -108,9 +113,10 @@ async function render(){
  let qExp=document.getElementById('exp').value;
  let qSal=document.getElementById('salary').value;
  let supaJobs = await fetchSupabaseJobs();
- let localJobs = getEmployerJobs().map(normalizeJob);
- let jobs=[...supaJobs.map(normalizeJob),...localJobs,...getDefaults()];
+ await fetchMyApplications();
+ let jobs=[...supaJobs,...getDefaults()];
  let seen=new Set(); jobs=jobs.filter(j=>{const k=j.title+'|'+j.company; if(seen.has(k)) return false; seen.add(k); return true;});
+ allJobsCache = jobs;
  if(qCity) jobs=jobs.filter(j=>(j.location||'').includes(qCity));
  if(qType) jobs=jobs.filter(j=> (j.type||'').trim() === qType);
  if(qExp){
@@ -128,17 +134,18 @@ async function render(){
  }
 
  document.getElementById('count').innerText = `${jobs.length} jobs found${qCity?' in '+qCity:''}${qType?' • '+qType:''} • Updated today`;
- let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
 
  if(jobs.length===0){
    document.getElementById('list').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No jobs match this filter.<br><button class="btn btn-green" style="margin-top:10px" onclick="document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render()">Clear filters</button></div>`;
    return;
  }
 
- document.getElementById('list').innerHTML=jobs.map(j=>{
+ document.getElementById('list').innerHTML=jobs.map((j, idx)=>{
   let posted=timeAgo(j.postedAt);
-  let isApplied = apps.some(a=>a.job_title==j.title && a.company==j.company);
+  let isApplied = appliedIds.has(j.id) || appliedIds.has(j.title+'|'+j.company);
   let logoHtml = j.logo? `<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">${initials(j.company)}</div>` : `<div class="logo-fallback">${initials(j.company)}</div>`;
+  // Find index in cache for apply
+  let cacheIdx = allJobsCache.findIndex(c=>c.title==j.title && c.company==j.company);
   return `<div class="card">
     ${isApplied?'<div class="applied-badge">APPLIED</div>':''}
     <div class="company-row">
@@ -149,32 +156,78 @@ async function render(){
     <div class="badges"><span class="badge badge-green">${posted}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div>
     <div class="desc">${j.desc}</div>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn-apply" ${isApplied?'disabled style="opacity:0.6"':''} onclick="applyJob('${j.title.replace(/'/g,"\\'")}','${j.company.replace(/'/g,"\\'")}')">${isApplied?'Applied ✓':'Apply now'}</button>
-      <button class="btn-detail" onclick="alert('${j.title}\\n${j.company}\\n\\n${j.desc.replace(/'/g,"")}')">View details</button>
+      <button class="btn-apply" ${isApplied?'disabled style="opacity:0.6"':''} onclick="applyJob(${cacheIdx})">${isApplied?'Applied ✓':'Apply now'}</button>
+      <button class="btn-detail" onclick="alert('${(j.title||'').replace(/'/g,"")} \\n${(j.company||'').replace(/'/g,"")} \\n\\n${(j.desc||'').replace(/'/g,"").substring(0,300)}')">View details</button>
     </div>
   </div>`
  }).join('');
 }
 
-function applyJob(title,company){
+async function applyJob(cacheIdx){
+ let job = allJobsCache[cacheIdx];
+ if(!job) return;
  let profile=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
- if(!profile.cvName ||!profile.fullName){
+ let user = null;
+ try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
+ // Also try profiles table current user
+ if(!profile.fullName && user) profile = {fullName: user.full_name || user.name, email: user.email, whatsapp: user.phone || user.whatsapp_number, cvName: 'CV uploaded'};
+
+ if(!profile.fullName){
    if(confirm('You need a CV to apply. Upload CV in My Profile?')){
-     localStorage.setItem('jobway_pending_job',JSON.stringify({title,company}));
+     localStorage.setItem('jobway_pending_job',JSON.stringify({title:job.title,company:job.company}));
      location.href='profile.html';
    }
    return;
  }
- let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
- if(apps.some(a=>a.job_title==title && a.company==company)){
+
+ // Check duplicate
+ if(appliedIds.has(job.id) || appliedIds.has(job.title+'|'+job.company)){
    location.href='applications.html'; return;
  }
- apps.unshift({id:Date.now().toString(),job_title:title,company:company,name:profile.fullName,email:profile.email,whatsapp:profile.whatsapp,date:new Date().toISOString(),status:'Application Received',cvName:profile.cvName,hasCV:true});
- localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
- alert(`Applied for ${title} at ${company}. Track in My Applications.`);
+
+ // Save to Supabase - THIS IS THE FIX
+ let payload = {
+   job_id: job.id && job.id.toString().startsWith('default-') ? null : job.id,
+   jobseeker_name: profile.fullName || user?.full_name || 'Applicant',
+   jobseeker_email: profile.email || user?.email || '',
+   phone: profile.whatsapp || profile.phone || user?.phone || '',
+   job_title: job.title,
+   company: job.company,
+   status: 'Application Received',
+   cv_url: profile.cvUrl || profile.cv_url || '',
+ };
+
+ // Add jobseeker_id if we have UUID
+ if(user && user.id && user.id.length>20) payload.jobseeker_id = user.id;
+
+ let { data, error } = await supabaseClient.from('applications').insert([payload]).select().single();
+ if(error){
+   console.log('Supabase apply error', error);
+   // fallback local so user still sees something
+   let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
+   apps.unshift({id:Date.now().toString(),job_title:job.title,company:job.company,name:profile.fullName,email:profile.email,whatsapp:profile.whatsapp,date:new Date().toISOString(),status:'Application Received',cvName:profile.cvName});
+   localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
+   alert(`Applied for ${job.title} at ${job.company} (saved locally - Supabase error: ${error.message}). Track in My Applications.`);
+ } else {
+   // Also save to local for instant UI
+   let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
+   apps.unshift({id:data.id, job_title:job.title, company:job.company, name:payload.jobseeker_name, date:new Date().toISOString(), status:'Application Received'});
+   localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
+   alert(`Applied for ${job.title} at ${job.company}. Employer will see it now. Track in My Applications.`);
+ }
  location.href='applications.html';
 }
-function subscribeWA(){let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');if(!wa)return;localStorage.setItem('jobway_wa_alerts',wa);alert('You will get jobs on WhatsApp from 079 060 8952. We will not spam.');}
+
+async function subscribeWA(){
+  let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');
+  if(!wa) return;
+  let clean = wa.replace(/[^0-9]/g,'');
+  if(clean.startsWith('0')) clean='27'+clean.slice(1);
+  // Save to Supabase whatsapp_subscribers
+  await supabaseClient.from('whatsapp_subscribers').insert([{phone:clean, whatsapp_number:clean}]);
+  localStorage.setItem('jobway_wa_alerts',wa);
+  alert('You will get jobs on WhatsApp from 079 060 8952. We will not spam.');
+}
 render();
 </script>
 </body>
