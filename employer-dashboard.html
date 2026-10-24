@@ -95,10 +95,6 @@ function getCVUrl(a){
   let raw = a.cv_url || a.cvUrl || a.cv_file || a.cv_path || a.cv_filename || a.cvName || a.cv || '';
   if(!raw) return null;
   if(raw.startsWith('http')) return raw;
-  if(raw.includes('/')) {
-    const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
-    return data.publicUrl;
-  }
   const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
   return data.publicUrl;
 }
@@ -134,7 +130,6 @@ async function sendWhatsApp(app, newStatus){
 async function load(){
   let user = getCurrentUser();
   let { data: jobs } = await supabaseClient.from('jobs').select('*').order('created_at', {ascending:false});
-  // Filter by employer if possible, but don't hide all if employer_id missing
   if(user && user.id && jobs && jobs.length){
     let mine = jobs.filter(j=> j.employer_id===user.id || j.employer_email===user.email || !j.employer_id);
     if(mine.length>0) jobs = mine;
@@ -163,7 +158,7 @@ async function load(){
       let title=a.job_title || (a.jobs&&a.jobs.title) || a.title || 'Job';
       let comp=a.company || (a.jobs&&a.jobs.company) || '';
       let cvUrl = getCVUrl(a);
-      let cvName = a.cv_filename || a.cvName || a.cv_file || (cvUrl ? cvUrl.split('/').pop() : 'CV');
+      let cvName = a.cv_filename || a.cvName || a.cv_file || (cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV');
       let cvHTML='';
       if(cvUrl){
         cvHTML=`<a href="${cvUrl}" target="_blank" download="${cvName}" class="btn-cv">📄 Download CV - ${cvName}</a>`;
