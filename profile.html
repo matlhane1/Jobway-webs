@@ -89,14 +89,26 @@ let uploadedCvUrl = '';
 let uploadedCvPath = '';
 function logout(){ localStorage.clear(); location.href='index.html'; }
 function getUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; } }
+
 async function loadProfile(){
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  let user = getUser();
  if(user && user.id){
+   // 1. Try profiles
    let { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
    if(data){
-     p = {...p, fullName: data.full_name || p.fullName, email: data.email || p.email, whatsapp: data.phone || data.whatsapp_number || p.whatsapp, cvName: data.cv_name || p.cvName, cv_url: data.cv_url || p.cv_url, cv_filename: data.cv_name || p.cv_filename};
+     p = {...p, fullName: data.full_name || p.fullName, email: data.email || p.email, whatsapp: data.phone || data.whatsapp_number || p.whatsapp, cv_url: data.cv_url || p.cv_url, cvName: data.cv_url ? data.cv_url.split('/').pop() : p.cvName };
      if(data.cv_url) uploadedCvUrl = data.cv_url;
+   }
+   // 2. FALLBACK: if profiles has no CV, check candidate_cvs (your old uploads are here)
+   if(!uploadedCvUrl){
+     let { data: cv } = await supabaseClient.from('candidate_cvs').select('*').eq('user_id', user.id).single();
+     if(cv && cv.cv_url){
+       uploadedCvUrl = cv.cv_url;
+       p.cv_url = cv.cv_url;
+       p.cvName = cv.cv_url.split('/').pop();
+       p.fullName = p.fullName || cv.full_name;
+     }
    }
  }
  document.getElementById('fullName').value=p.fullName||user?.full_name||'';
@@ -104,10 +116,11 @@ async function loadProfile(){
  document.getElementById('whatsapp').value=p.whatsapp||user?.phone||'';
  document.getElementById('skills').value=(p.skills||[]).join(', ');
  document.getElementById('location').value=p.location||'Gauteng';
- if(p.cvName || p.cv_filename){ document.getElementById('fileName').innerText='✅ '+(p.cvName||p.cv_filename)+' ('+(p.cvSize||'')+')'; }
+ if(p.cvName){ document.getElementById('fileName').innerText='✅ '+p.cvName; }
  if(p.cv_url || uploadedCvUrl){
    let url = p.cv_url||uploadedCvUrl;
-   document.getElementById('cvLink').innerHTML = `<a href="${url}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV</a>`;
+   let fname = (p.cvName||url.split('/').pop());
+   document.getElementById('cvLink').innerHTML = `<a href="${url}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV — ${fname}</a><br><span style="font-size:11px;color:#8DB0BF">This CV will auto-attach to applications</span>`;
  }
  document.getElementById('candEmail').innerText='🔒 '+(localStorage.getItem('jobway_user_email')||p.email||'');
  renderSkills();
@@ -135,6 +148,7 @@ let box=document.getElementById('uploadBox');
 box.addEventListener('dragover',e=>{e.preventDefault(); box.classList.add('dragover')});
 box.addEventListener('dragleave',()=>box.classList.remove('dragover'));
 box.addEventListener('drop',e=>{e.preventDefault(); box.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]);});
+
 async function saveProfile(){
  let btn=document.getElementById('saveBtn');
  btn.innerText='Saving...'; btn.disabled=true;
@@ -155,7 +169,7 @@ async function saveProfile(){
      let { error: upErr } = await supabaseClient.storage.from('cvs').upload(filePath, currentFile, {upsert:true, contentType: currentFile.type});
      if(!upErr){
        let { data: pub } = supabaseClient.storage.from('cvs').getPublicUrl(filePath);
-       if(pub?.publicUrl){ cvUrl = pub.publicUrl; cvPath = filePath; cvName = currentFile.name; }
+       if(pub?.publicUrl){ cvUrl = pub.publicUrl; cvPath = filePath; cvName = currentFile.name; uploadedCvUrl = cvUrl; uploadedCvPath = filePath; }
        console.log('CV uploaded to cvs bucket:', cvUrl);
      } else {
        console.log('CV upload error', upErr);
@@ -163,6 +177,7 @@ async function saveProfile(){
      }
    }catch(e){ console.log('storage error', e); }
  }
+ // Local cache
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  p.fullName=fullName; p.email=email; p.whatsapp=whatsapp; p.skills=skills; p.location=locationVal;
  if(cvUrl){ p.cv_url=cvUrl; p.cvUrl=cvUrl; p.cv_path=cvPath; }
@@ -174,24 +189,42 @@ async function saveProfile(){
  let user = getUser() || {};
  user.full_name=fullName; user.email=email; user.phone=whatsapp; if(cvUrl) user.cv_url=cvUrl;
  localStorage.setItem('jobway_user', JSON.stringify(user));
+
+ // === FIX: Save to ALL 3 places so Profile / Jobs / Track all see same CV ===
  if(user && user.id && user.id.length>20){
-   let { error } = await supabaseClient.from('profiles').upsert({
+   // 1. profiles — ONLY use columns that exist (no cv_name, it breaks upsert)
+   let { error: profErr } = await supabaseClient.from('profiles').upsert({
      id: user.id,
      full_name: fullName,
      email: email,
      phone: whatsapp,
      whatsapp_number: whatsapp,
-     location: locationVal,
-     skills: skills,
      cv_url: cvUrl || null,
-     cv_name: cvName || null,
      updated_at: new Date().toISOString()
-   });
-   if(error) console.log('profiles upsert error', error);
+   }, { onConflict: 'id' });
+   if(profErr) console.log('profiles upsert error', profErr);
+
+   // 2. candidate_cvs — this is what jobs.html / track uses
+   if(cvUrl){
+     let { error: cvErr } = await supabaseClient.from('candidate_cvs').upsert({
+       user_id: user.id,
+       full_name: fullName,
+       email: email,
+       phone: whatsapp,
+       location: locationVal,
+       skills: skills,
+       cv_url: cvUrl
+     }, { onConflict: 'user_id' });
+     if(cvErr) console.log('candidate_cvs upsert error', cvErr);
+
+     // 3. Update all old applications so Track page no longer shows PaymentNotification
+     let { error: appErr } = await supabaseClient.from('applications').update({ cv_url: cvUrl }).eq('applicant_id', user.id);
+     if(appErr) console.log('applications update error', appErr);
+   }
  }
  document.getElementById('savedMsg').style.display='block';
  btn.innerText='✅ Saved!';
- if(cvUrl) document.getElementById('cvLink').innerHTML = `<a href="${cvUrl}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV — ${cvName}</a>`;
+ if(cvUrl) document.getElementById('cvLink').innerHTML = `<a href="${cvUrl}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV — ${cvName||cvUrl.split('/').pop()}</a>`;
  setTimeout(()=>{
    let pending=JSON.parse(localStorage.getItem('jobway_pending_job')||'null');
    if(pending){
