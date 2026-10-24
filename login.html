@@ -68,20 +68,67 @@ async function login(){
     if(error){ showMessage(error.message); btn.disabled=false; btn.textContent='Log In'; return; }
     const userId=data.user.id;
     let role = data.user.user_metadata?.role || 'seeker';
+    let fullName = data.user.user_metadata?.full_name || '';
+    let cvUrl = null;
     try{
-      const {data:profile} = await supabaseClient.from('profiles').select('role').eq('id', userId).single();
-      if(profile && profile.role) role = profile.role;
+      const {data:profile} = await supabaseClient.from('profiles').select('role, full_name, cv_url, phone').eq('id', userId).single();
+      if(profile){
+        if(profile.role) role = profile.role;
+        if(profile.full_name) fullName = profile.full_name;
+        if(profile.cv_url) cvUrl = profile.cv_url;
+      }
     }catch(e){}
-    // candidate = seeker (same thing)
+
+    // Also check candidate_cvs if profiles has no CV
+    if(!cvUrl){
+      try{
+        const {data: cvRow} = await supabaseClient.from('candidate_cvs').select('cv_url, full_name').eq('user_id', userId).single();
+        if(cvRow?.cv_url) cvUrl = cvRow.cv_url;
+        if(cvRow?.full_name && !fullName) fullName = cvRow.full_name;
+      }catch(e){}
+    }
+
     role = String(role).toLowerCase().trim();
     if(role === 'candidate') role = 'seeker';
     if(role !== 'employer') role = 'seeker';
+
+    // === FIX: ISOLATE USERS — wipe previous user's cached data if email changed ===
+    const lastEmail = localStorage.getItem('jobway_last_email');
+    if(lastEmail && lastEmail !== email){
+      console.log('New user login, clearing old cache:', lastEmail, '->', email);
+      localStorage.removeItem('jobway_applied');
+      localStorage.removeItem('jobway_all_applications');
+      localStorage.removeItem('jobway_profile');
+      localStorage.removeItem('jobway_cv_url');
+      localStorage.removeItem('jobway_pending_job');
+    }
+    localStorage.setItem('jobway_last_email', email);
+
+    // === FIX: Save full jobway_user object (track page needs this!) ===
+    const jobwayUser = {
+      id: userId,
+      email: email,
+      full_name: fullName,
+      fullName: fullName,
+      role: role,
+      cv_url: cvUrl,
+      phone: data.user.phone || ''
+    };
+    localStorage.setItem('jobway_user', JSON.stringify(jobwayUser));
+    localStorage.setItem('user', JSON.stringify(jobwayUser)); // fallback key
+    localStorage.setItem('jobway_current_user', JSON.stringify(jobwayUser));
     localStorage.setItem('jobway_user_email', email);
     localStorage.setItem('jobway_logged_in','true');
     localStorage.setItem('user_role', role);
     localStorage.setItem('jobway_user_id', userId);
+    if(cvUrl) localStorage.setItem('jobway_cv_url', cvUrl);
+
+    // Also cache profile for profile.html
+    localStorage.setItem('jobway_profile', JSON.stringify({
+      fullName: fullName, email: email, cv_url: cvUrl, cvUrl: cvUrl
+    }));
+
     showMessage('Login successful! Redirecting...','success');
-    // FIXED: go directly to applications.html for seekers
     if(role === 'employer'){
       window.location.replace('employer-dashboard.html');
     } else {
