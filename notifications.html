@@ -5,30 +5,38 @@
 <div class="container">
 <h2>🔔 Notifications <span id="count"></span></h2>
 <div id="list"><p class="meta">Loading...</p></div>
-<div style="text-align:center;margin-top:20px"><button class="btn btn-white" onclick="clearAll()">Clear All</button></div>
+<div style="text-align:center;margin-top:20px"><button class="btn btn-white" onclick="clearAll()">Mark all as read</button></div>
 </div>
 <script>
 const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-
 function getUser(){
   try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
 }
-
+function fmtDate(d){ try{ if(!d) return ''; return new Date(d).toLocaleDateString('en-ZA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) }catch(e){ return ''; } }
 async function load(){
-  let localNotifs = JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
+  let user = getUser();
+  if(!user || !user.id){
+    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>Please login to see notifications</p><button class="btn btn-green" onclick="location.href='login.html'">Login</button></div>`;
+    return;
+  }
+  // FIXED 1: NO localStorage merge — privacy leak fixed. Only Supabase.
+  // FIXED 2: Use REAL column applicant_id, not jobseeker_id
+  // Source 1: notifications table (created by employer-dashboard when status changes)
+  let dbNotifs = [];
+  try{
+    let { data: nData, error } = await supabaseClient.from('notifications').select('*').eq('user_id', user.id).order('created_at', {ascending:false}).limit(30);
+    if(!error && nData) dbNotifs = nData.map(n=>({ id: n.id, title: n.title, text: n.message, date: n.created_at, read: n.is_read, fromTable: 'notifications' }));
+  }catch(e){ console.log('notifications table error', e); }
 
-  // 1. Build notifications from Supabase applications (REAL SOURCE OF TRUTH)
+  // Source 2: applications table — REAL SOURCE OF TRUTH, always in sync with Track
   let supaNotifs = [];
   try{
-    let user = getUser();
-    let query = supabaseClient.from('applications').select('*, jobs(title, company)').order('updated_at', {ascending:false}).limit(30);
-    if(user && user.id) query = query.eq('jobseeker_id', user.id);
-    else if(user && user.email) query = query.eq('jobseeker_email', user.email);
-    let { data: apps } = await query;
-    if(apps){
+    let query = supabaseClient.from('applications').select('*, jobs(title, company)').eq('applicant_id', user.id).order('updated_at', {ascending:false}).limit(30);
+    let { data: apps, error } = await query;
+    if(!error && apps){
       apps.forEach(app=>{
-        let title = app.job_title || (app.jobs && app.jobs.title) || 'Job';
-        let comp = app.company || (app.jobs && app.jobs.company) || '';
+        let title = app.jobs?.title || 'Job';
+        let comp = app.jobs?.company || '';
         let status = app.status || 'Application Received';
         let date = app.updated_at || app.created_at;
         let text = '';
@@ -38,24 +46,13 @@ async function load(){
         else if(status==='Under Review') text = `Your application for ${title} at ${comp} is now Under Review.`;
         else if(status==='Not Selected' || status==='Rejected') text = `Thank you for applying for ${title} at ${comp}. You were not selected this time, keep applying.`;
         else text = `Your application for ${title} at ${comp} status: ${status}`;
-
-        supaNotifs.push({id: 'supa-'+app.id, title:`Status: ${status} - ${title}`, text, date, read:false, fromSupabase:true});
+        supaNotifs.push({id: 'supa-'+app.id, title:`Status: ${status} - ${title}`, text, date, read:true, fromSupabase:true});
       });
     }
   }catch(e){ console.log(e); }
 
-  // 2. Merge local + supabase
-  let notifs = [...supaNotifs, ...localNotifs];
-
-  // 3. CLEAN TEXT
-  notifs = notifs.map(n=>{
-    let t = n.text||'';
-    t = t.replace(/Track:\s*https?:\/\/[^\s]+/gi, '').trim();
-    t = t.replace(/https?:\/\/jobway\.co\.za\/track-applications\.html/gi, '').trim();
-    return {...n, text: t};
-  });
-
-  // 4. DEDUPE
+  // FIXED: Merge DB notifications + application status, dedupe by title+text
+  let notifs = [...dbNotifs, ...supaNotifs];
   let seen = new Set();
   notifs = notifs.filter(n=>{
     let key = (n.title||'').trim().toLowerCase() + '|' + (n.text||'').trim().toLowerCase();
@@ -63,13 +60,7 @@ async function load(){
     seen.add(key);
     return true;
   });
-
-  // 5. Newest first
   notifs.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
-
-  // save cleaned local only (not supabase ones)
-  let toSaveLocal = notifs.filter(n=>!n.fromSupabase).slice(0,20);
-  localStorage.setItem('jobway_notifications', JSON.stringify(toSaveLocal));
 
   document.getElementById('count').innerText = notifs.length ? `(${notifs.length})` : '';
   if(!notifs.length){
@@ -77,24 +68,24 @@ async function load(){
     return;
   }
   document.getElementById('list').innerHTML = notifs.map(n=>{
-    let date = n.date ? new Date(n.date).toLocaleDateString('en-ZA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
     let cls = n.read ? '' : 'unread';
-    return `<div class="card ${cls}"><b>${n.title||'Update'}</b><div class="meta">${date}</div><p style="font-size:13px;line-height:1.5;margin:6px 0">${n.text||''}</p><button class="btn btn-green" style="padding:8px 14px;font-size:12px" onclick="location.href='track-applications.html'">View Application →</button></div>`;
+    return `<div class="card ${cls}"><b>${n.title||'Update'}</b><div class="meta">${fmtDate(n.date)}</div><p style="font-size:13px;line-height:1.5;margin:6px 0">${n.text||''}</p><button class="btn btn-green" style="padding:8px 14px;font-size:12px" onclick="location.href='track-applications.html'">View Application →</button></div>`;
   }).join('');
-
-  // Mark local as read
-  let readLocal = toSaveLocal.map(n=>({...n, read:true}));
-  localStorage.setItem('jobway_notifications', JSON.stringify(readLocal));
 }
-
-function clearAll(){ 
-  localStorage.removeItem('jobway_notifications'); 
-  // Note: Supabase notifications will come back from applications - to clear them, employer must not have apps. That's correct behavior.
-  load(); 
+async function clearAll(){
+  let user = getUser();
+  if(user?.id){
+    await supabaseClient.from('notifications').update({is_read:true}).eq('user_id', user.id);
+  }
+  load();
 }
-
 load();
-// Realtime - new status change shows instantly
-supabaseClient.channel('notif-apps').on('postgres_changes', {event:'*', schema:'public', table:'applications'}, ()=>load()).subscribe();
-setInterval(load, 5000);
+// FIXED: Realtime filtered to MY applications only — no leak
+let _u = getUser();
+if(_u?.id){
+  supabaseClient.channel('notif-apps-'+_u.id)
+    .on('postgres_changes', {event:'*', schema:'public', table:'applications', filter:'applicant_id=eq.'+_u.id}, ()=>load())
+    .on('postgres_changes', {event:'*', schema:'public', table:'notifications', filter:'user_id=eq.'+_u.id}, ()=>load())
+    .subscribe();
+}
 </script></body></html>
