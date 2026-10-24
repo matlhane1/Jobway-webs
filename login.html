@@ -78,8 +78,6 @@ async function login(){
         if(profile.cv_url) cvUrl = profile.cv_url;
       }
     }catch(e){}
-
-    // Also check candidate_cvs if profiles has no CV
     if(!cvUrl){
       try{
         const {data: cvRow} = await supabaseClient.from('candidate_cvs').select('cv_url, full_name').eq('user_id', userId).single();
@@ -87,15 +85,11 @@ async function login(){
         if(cvRow?.full_name && !fullName) fullName = cvRow.full_name;
       }catch(e){}
     }
-
     role = String(role).toLowerCase().trim();
     if(role === 'candidate') role = 'seeker';
     if(role !== 'employer') role = 'seeker';
-
-    // === FIX: ISOLATE USERS — wipe previous user's cached data if email changed ===
     const lastEmail = localStorage.getItem('jobway_last_email');
     if(lastEmail && lastEmail !== email){
-      console.log('New user login, clearing old cache:', lastEmail, '->', email);
       localStorage.removeItem('jobway_applied');
       localStorage.removeItem('jobway_all_applications');
       localStorage.removeItem('jobway_profile');
@@ -103,8 +97,6 @@ async function login(){
       localStorage.removeItem('jobway_pending_job');
     }
     localStorage.setItem('jobway_last_email', email);
-
-    // === FIX: Save full jobway_user object (track page needs this!) ===
     const jobwayUser = {
       id: userId,
       email: email,
@@ -115,19 +107,16 @@ async function login(){
       phone: data.user.phone || ''
     };
     localStorage.setItem('jobway_user', JSON.stringify(jobwayUser));
-    localStorage.setItem('user', JSON.stringify(jobwayUser)); // fallback key
+    localStorage.setItem('user', JSON.stringify(jobwayUser));
     localStorage.setItem('jobway_current_user', JSON.stringify(jobwayUser));
     localStorage.setItem('jobway_user_email', email);
     localStorage.setItem('jobway_logged_in','true');
     localStorage.setItem('user_role', role);
     localStorage.setItem('jobway_user_id', userId);
     if(cvUrl) localStorage.setItem('jobway_cv_url', cvUrl);
-
-    // Also cache profile for profile.html
     localStorage.setItem('jobway_profile', JSON.stringify({
       fullName: fullName, email: email, cv_url: cvUrl, cvUrl: cvUrl
     }));
-
     showMessage('Login successful! Redirecting...','success');
     if(role === 'employer'){
       window.location.replace('employer-dashboard.html');
@@ -140,8 +129,20 @@ document.getElementById('loginButton').addEventListener('click', login);
 document.getElementById('forgotLink').addEventListener('click', async ()=>{
   const email=document.getElementById('email').value.trim().toLowerCase();
   if(!email){showMessage('Enter your email address first.');return;}
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email);
-  if(error) showMessage(error.message); else showMessage('Password reset link sent.','success');
+  const linkEl=document.getElementById('forgotLink');
+  const origText=linkEl.textContent; linkEl.textContent='Sending...';
+  try{
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-reset-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ email })
+    });
+    const result = await res.json();
+    if(!res.ok) throw new Error(result.error || 'Failed to send');
+    showMessage('Password reset link sent to '+email+' - check inbox & spam.','success');
+  }catch(e){
+    showMessage('Error: '+e.message);
+  } finally { linkEl.textContent=origText; }
 });
 document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter') login();});
 </script>
