@@ -32,7 +32,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 .badge{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#A8C8D0;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600}
 .badge-green{background:rgba(1,249,198,0.12);color:#01F9C6;border-color:rgba(1,249,198,0.2)}
 .desc{color:#C8DDE3;font-size:13px;margin:8px 0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.btn-apply{background:#01F9C6;color:#08231C;border:none;border-radius:999px;padding:11px 18px;font-weight:900;cursor:pointer;flex:1;font-size:13px}
+.btn-apply{background:#01F9C6;color:#08231C;border:none;border-radius:999px;padding:11px 18px;font-weight:900;cursor:pointer;flex:1;font-size:13px;text-decoration:none;display:flex;align-items:center;justify-content:center}
 .btn-detail{background:#1A3E52;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer;flex:1;font-size:13px}
 .applied-badge{position:absolute;top:12px;right:12px;background:#30BA8F;color:#fff;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800}
 </style>
@@ -64,6 +64,13 @@ const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Posted today';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)} days ago`;}
 function initials(name){return (name||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 function getUser(){try{return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null');}catch(e){return null;}}
+function extractUrl(text, apply_url){
+  if(apply_url && apply_url.startsWith('http')) return apply_url;
+  if(!text) return 'https://www.careers24.com';
+  let m = text.match(/https?:\/\/[^\s\)]+/);
+  if(m) return m[0].replace(/[.,]$/,'');
+  return 'https://www.careers24.com';
+}
 async function fetchSupabaseJobs(){
   try{
     const { data, error } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
@@ -75,7 +82,8 @@ async function fetchSupabaseJobs(){
       if(j.salary_min && j.salary_max) salaryText=`R${j.salary_min} - R${j.salary_max}`;
       else if(j.salary_min) salaryText=`R${j.salary_min}+`;
       else if(j.salary) salaryText=j.salary;
-      return {title:j.title,company:company,location:j.location,city:j.location||'Gauteng',type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingDate:j.closing_date?new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',logo:j.logo_url||j.logo||null,id:j.id,employer_whatsapp:j.whatsapp_number};
+      let applyUrl = extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'');
+      return {title:j.title,company:company,location:j.location,city:j.location||'Gauteng',type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingDate:j.closing_date?new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',logo:j.logo_url||j.logo||null,id:j.id,employer_whatsapp:j.whatsapp_number,applyUrl:applyUrl};
     });
   }catch(e){return []}
 }
@@ -103,8 +111,12 @@ async function render(){
   let posted=timeAgo(j.postedAt);let isApplied=appliedIds.has(j.id);
   let logoHtml=j.logo?`<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">${initials(j.company)}</div>`:`<div class="logo-fallback">${initials(j.company)}</div>`;
   let cacheIdx=allJobsCache.findIndex(c=>c.title==j.title&&c.company==j.company);
-  return `<div class="card">${isApplied?'<div class="applied-badge">APPLIED</div>':''}<div class="company-row">${logoHtml}<div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${posted}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn-apply" ${isApplied?'disabled style="opacity:0.6"':''} onclick="applyJob(${cacheIdx})">${isApplied?'Applied ✓':'Apply now'}</button><button class="btn-detail" onclick="alert('${(j.title||'').replace(/'/g,"")} \\n${(j.company||'').replace(/'/g,"")} \\n\\n${(j.desc||'').replace(/'/g,"").substring(0,300)}')">View details</button></div></div>`
+  return `<div class="card">${isApplied?'<div class="applied-badge">APPLIED</div>':''}<div class="company-row">${logoHtml}<div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${posted}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><a class="btn-apply" href="${j.applyUrl}" target="_blank" rel="noopener" onclick="trackApply(${cacheIdx})">Apply now ↗</a><button class="btn-detail" onclick="viewDetails(${cacheIdx})">View details</button></div></div>`
  }).join('');
+}
+function viewDetails(cacheIdx){
+  let j = allJobsCache[cacheIdx]; if(!j) return;
+  alert(`${j.title}\n${j.company}\n${j.location} • ${j.type}\nCloses: ${j.closingDate}\n${j.salaryText}\n\n${j.desc}\n\nApply at: ${j.applyUrl}`);
 }
 async function getProfileCV(){
   let user=getUser();let p={};try{p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');}catch(e){}
@@ -119,18 +131,24 @@ async function getProfileCV(){
   if(cvUrl&&!cvUrl.startsWith('http')&&!cvUrl.startsWith('data:')){const {data}=supabaseClient.storage.from('cvs').getPublicUrl(cvUrl);cvUrl=data.publicUrl;}
   return {cvUrl,profile:p,user};
 }
+async function trackApply(cacheIdx){
+  let job=allJobsCache[cacheIdx]; if(!job) return;
+  let user=getUser(); if(!user||!user.id) return;
+  let {cvUrl,profile}=await getProfileCV();
+  let fullName=profile.fullName||profile.name||user?.full_name||'';
+  // Try to track but NEVER block the external link
+  try{
+    let payload={job_id:job.id,applicant_id:user.id,cv_url:cvUrl||'',cover_letter:`Applied for ${job.title} at ${job.company} — ${fullName}`,status:'Application Received'};
+    await supabaseClient.from('applications').insert([payload]);
+    appliedIds.add(job.id);
+  }catch(e){ console.log('track only', e); }
+  // Link already opens via <a href> - no redirect
+}
 async function applyJob(cacheIdx){
- let job=allJobsCache[cacheIdx];if(!job)return;
- let {cvUrl,profile,user}=await getProfileCV();
- let fullName=profile.fullName||profile.name||user?.full_name||'';
- if(!user||!user.id){alert('Please login first');location.href='login.html';return;}
- if(!fullName||!cvUrl){if(confirm('You need a CV to apply. Upload CV in My Profile?')){localStorage.setItem('jobway_pending_job',JSON.stringify({title:job.title,company:job.company}));location.href='profile.html';}return;}
- if(appliedIds.has(job.id)){location.href='track-applications.html';return;}
- let payload={job_id:job.id,applicant_id:user.id,cv_url:cvUrl,cover_letter:`Applied for ${job.title} at ${job.company} — ${fullName}`,status:'Application Received'};
- let {data,error}=await supabaseClient.from('applications').insert([payload]).select().single();
- if(error){console.log('apply error',error);if(error.code==='23505'){alert('You already applied for this job.');location.href='track-applications.html';return;}alert('Apply failed: '+error.message);return;}
- alert(`Applied for ${job.title} at ${job.company}. Employer will see your CV now. Track in My Applications.`);
- location.href='track-applications.html';
+  // Legacy fallback - also opens external site
+  let job=allJobsCache[cacheIdx]; if(!job) return;
+  await trackApply(cacheIdx);
+  window.open(job.applyUrl, '_blank');
 }
 async function subscribeWA(){
   let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');if(!wa)return;
