@@ -48,48 +48,70 @@ function getCurrentUser(){
   try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('jobway_current_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
 }
 function getCVUrl(a){
-  let raw = a.cv_url || a.cvUrl || a.cv_file || a.cv_filename || a.cvName || a.cv || '';
+  let raw = a.cv_url || a.cvUrl || '';
   if(!raw) return null;
   if(raw.startsWith('http')) return raw;
   if(raw.startsWith('data:')) return raw;
   const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
   return data.publicUrl;
 }
+
+// FIX 1: Clear stale cache when user changes
+function ensureFreshCache(user){
+  const lastEmail = localStorage.getItem('jobway_last_email');
+  const curEmail = user?.email || '';
+  if(lastEmail && lastEmail !== curEmail){
+    // Different user logged in — wipe old user's applications
+    localStorage.removeItem('jobway_applied');
+    localStorage.removeItem('jobway_all_applications');
+    localStorage.removeItem('jobway_profile');
+    console.log('Cleared old user cache:', lastEmail, '->', curEmail);
+  }
+  if(curEmail) localStorage.setItem('jobway_last_email', curEmail);
+}
+
 async function load(){
   let user = getCurrentUser();
-  let query = supabaseClient.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number, logo_url)').order('created_at', {ascending:false});
-  if(user && user.id){
-    query = query.eq('jobseeker_id', user.id);
-  } else if(user && user.email){
-    query = query.eq('jobseeker_email', user.email);
-  } else if(user && user.phone){
-    query = query.eq('phone', user.phone);
-  } else {
-    let local = JSON.parse(localStorage.getItem('jobway_applied')||localStorage.getItem('jobway_all_applications')||'[]');
-    if(local.length>0){ render(local); return; }
+  if(!user || (!user.id && !user.email)){
     document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>Please log in to track applications</p><button class="btn btn-green" onclick="location.href='login.html'">Log In</button></div>`;
     return;
   }
+  ensureFreshCache(user);
+
+  // FIX 2: Use REAL column names: applicant_id (not jobseeker_id)
+  let query = supabaseClient.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number, logo_url)').order('created_at', {ascending:false});
+  
+  if(user.id && user.id.length > 20){
+    query = query.eq('applicant_id', user.id);
+  } else if(user.email){
+    // Fallback: if no UUID, join via profiles to get id
+    let { data: prof } = await supabaseClient.from('profiles').select('id').eq('email', user.email).single();
+    if(prof?.id){
+      query = query.eq('applicant_id', prof.id);
+    } else {
+      // No profile yet — no applications possible
+      render([]); return;
+    }
+  }
+
   let { data: apps, error } = await query;
   if(error){
-    let local = JSON.parse(localStorage.getItem('jobway_applied')||'[]');
-    render(local); return;
+    console.log('applications error', error);
+    render([]); return;
   }
-  if((!apps || apps.length===0)){
-    let local = JSON.parse(localStorage.getItem('jobway_applied')||localStorage.getItem('jobway_all_applications')||'[]');
-    if(local.length>0){ render(local); return; }
-  }
+  // FIX 3: Do NOT fallback to localStorage — that is what leaks old user data
   render(apps||[]);
 }
+
 function render(all){
   document.getElementById('count').innerText=`(${all.length})`;
   if(all.length==0){
-    document.getElementById('list').innerHTML=`<div class="card" style="text-align:center"><p>No applications yet</p><p class="meta">Go apply for Cashier/General Worker first, then come back</p><button class="btn btn-green" onclick="location.href='jobs.html'">Go Apply</button></div>`;
+    document.getElementById('list').innerHTML=`<div class="card" style="text-align:center"><p>No applications yet for this account</p><p class="meta">Logged in as ${getCurrentUser()?.email||''}<br>Go apply for Cashier/General Worker first, then come back</p><button class="btn btn-green" onclick="location.href='jobs.html'">Go Apply</button></div>`;
     return;
   }
   document.getElementById('list').innerHTML=all.map(app=>{
-    let title = app.job_title || app.title || (app.jobs && app.jobs.title) || 'Job';
-    let comp = app.company || (app.jobs && app.jobs.company) || '';
+    let title = app.jobs?.title || 'Job';
+    let comp = app.jobs?.company || '';
     let logo = app.jobs?.logo_url ? `<img src="${app.jobs.logo_url}" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;float:right">` : '';
     let status = app.status||'Application Received';
     if(status==='Applied') status='Application Received';
@@ -112,17 +134,20 @@ function render(all){
     let hired = (status==='Hired')?`<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">${comp} will contact you for start date.</span></div>`:'';
     let rejected = (status==='Not Selected' || status==='Rejected')?`<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected for this job. Keep applying — new jobs every week.</div>`:'';
     let empPhone = getEmpPhone(app);
-    let myName = app.jobseeker_name || app.name || app.fullName || 'Applicant';
+    let myName = getCurrentUser()?.full_name || 'Applicant';
     let msg = `Hi ${comp}, I'm ${myName}. I applied for ${title} on JobWay. My status is ${status}. Can you please update me? Thank you.`;
     let waBtn = `<a href="https://wa.me/${empPhone}?text=${encodeURIComponent(msg)}" target="_blank" class="wa-btn">💬 Message Employer on WhatsApp</a>`;
     let cvUrl = getCVUrl(app);
-    let cvName = app.cv_filename || app.cvName || (cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV');
+    let cvName = cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV';
     let cvBtn = cvUrl ? `<br><a href="${cvUrl}" target="_blank" class="cv-link">📄 View My Submitted CV — ${cvName}</a>` : '';
-    return `<div class="card">${logo}<h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at || app.date)} • ${app.location||(app.jobs&&app.jobs.location)||''} ${app.salary||(app.jobs&&app.jobs.salary)? '• '+(app.salary||app.jobs.salary) : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hired}${rejected}${cvBtn}<br>${waBtn}</div>`;
+    return `<div class="card">${logo}<h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at)} • ${app.jobs?.location||''} ${app.jobs?.salary ? '• '+app.jobs.salary : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hired}${rejected}${cvBtn}<br>${waBtn}</div>`;
   }).join('');
 }
 load();
-supabaseClient.channel('applications-changes').on('postgres_changes', {event:'*', schema:'public', table:'applications'}, ()=>load()).subscribe();
+let _user = getCurrentUser();
+if(_user?.id){
+  supabaseClient.channel('applications-changes-'+_user.id).on('postgres_changes', {event:'*', schema:'public', table:'applications', filter:'applicant_id=eq.'+_user.id}, ()=>load()).subscribe();
+}
 </script>
 </body>
 </html>
