@@ -6,18 +6,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// === CANDIDATE ONLY LOCK - POPIA ===
 (function(){
   const logged = localStorage.getItem('jobway_logged_in');
   const role = localStorage.getItem('user_role');
-  if(!logged){
-    location.href = 'login.html';
-    return;
-  }
-  if(role === 'employer'){
-    alert('⛔ This is Candidate Profile. Employer cannot upload CV.');
-    location.href = 'employer-dashboard.html';
-  }
+  if(!logged){ location.href = 'login.html'; return; }
+  if(role === 'employer'){ alert('⛔ This is Candidate Profile. Employer cannot upload CV.'); location.href = 'employer-dashboard.html'; }
 })();
 </script>
 <style>
@@ -46,14 +39,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <div class="logo">JobWay <span style="font-size:10px;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:3px 8px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif">CANDIDATE ONLY</span></div>
 <div class="nav-cta">
 <button class="btn btn-dark" onclick="location.href='jobs.html'">💼 Jobs</button>
-<button class="btn btn-dark" onclick="location.href='seeker-dashboard.html'">📊 Track</button>
+<button class="btn btn-dark" onclick="location.href='track-applications.html'">📊 Track</button>
 <button class="btn btn-green" style="width:auto;padding:10px 14px;margin-top:0" onclick="logout()">Log Out</button>
 </div>
 </div>
-
 <div class="container">
 <div class="banner">📱 Official WhatsApp: 079 060 8952 — CV attached to all applications<br><small id="candEmail" style="font-size:11px;opacity:0.9"></small></div>
-
 <div class="card">
 <h3 style="font-family:'Space Grotesk',sans-serif">👤 My Profile</h3>
 <p style="font-size:11px;color:#8DB0BF;margin-top:4px">Upload CV once — 1-Click Apply everywhere (saved to cloud)</p>
@@ -63,28 +54,23 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 <input class="input" id="email" placeholder="you@gmail.com">
 <label class="label">WhatsApp Number (for alerts from 079 060 8952)</label>
 <input class="input" id="whatsapp" placeholder="e.g. 072 123 4567">
-
 <label class="label">📄 Upload CV (PDF, DOC, DOCX - max 5MB)</label>
 <div class="upload-box" id="uploadBox" onclick="document.getElementById('cvFile').click()">
 <div style="font-size:32px">📄</div>
 <div style="font-weight:800;margin-top:6px">Click to upload CV or drag & drop</div>
-<div style="color:#8DB0BF;font-size:11px;margin-top:4px">PDF, DOC, DOCX supported</div>
+<div style="color:#8DB0BF;font-size:11px;margin-top:4px">PDF, DOC, DOCX supported — Stored in cvs bucket (PUBLIC)</div>
 <div class="file-name" id="fileName"></div>
 <input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx,application/pdf" onchange="handleFile(this.files[0])">
 </div>
 <div id="cvLink" style="text-align:center;margin-top:8px"></div>
-
 <label class="label">Skills (comma separated)</label>
 <input class="input" id="skills" placeholder="e.g. Serving, POS, Customer Service, Cashier">
 <div id="skillsPreview" style="margin-top:8px"></div>
-
 <label class="label">Location</label>
 <select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Limpopo</option><option>Eastern Cape</option><option>Remote</option></select>
-
 <button class="btn btn-green" id="saveBtn" onclick="saveProfile()">💾 Save Profile + CV</button>
 <div id="savedMsg" style="text-align:center;color:#01F9C6;font-size:12px;margin-top:10px;display:none">✅ Profile saved! CV will be sent with every application</div>
 </div>
-
 <div class="card">
 <h4 style="color:#01F9C6;font-family:'Space Grotesk',sans-serif">📎 How CV works:</h4>
 <p style="font-size:12px;color:#8DB0BF;margin-top:6px;line-height:1.5">
@@ -96,26 +82,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;m
 </p>
 </div>
 </div>
-
 <script>
 const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
 let currentFile = null;
 let uploadedCvUrl = '';
-
+let uploadedCvPath = '';
 function logout(){ localStorage.clear(); location.href='index.html'; }
-
-function getUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
-}
-
+function getUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; } }
 async function loadProfile(){
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  let user = getUser();
- // Try Supabase first
  if(user && user.id){
    let { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
    if(data){
-     p = {...p, fullName: data.full_name || p.fullName, email: data.email || p.email, whatsapp: data.phone || data.whatsapp_number || p.whatsapp, cvName: data.cv_name || p.cvName, cv_url: data.cv_url || p.cv_url};
+     p = {...p, fullName: data.full_name || p.fullName, email: data.email || p.email, whatsapp: data.phone || data.whatsapp_number || p.whatsapp, cvName: data.cv_name || p.cvName, cv_url: data.cv_url || p.cv_url, cv_filename: data.cv_name || p.cv_filename};
      if(data.cv_url) uploadedCvUrl = data.cv_url;
    }
  }
@@ -124,9 +104,10 @@ async function loadProfile(){
  document.getElementById('whatsapp').value=p.whatsapp||user?.phone||'';
  document.getElementById('skills').value=(p.skills||[]).join(', ');
  document.getElementById('location').value=p.location||'Gauteng';
- if(p.cvName){document.getElementById('fileName').innerText='✅ '+p.cvName+' ('+(p.cvSize||'')+')';}
+ if(p.cvName || p.cv_filename){ document.getElementById('fileName').innerText='✅ '+(p.cvName||p.cv_filename)+' ('+(p.cvSize||'')+')'; }
  if(p.cv_url || uploadedCvUrl){
-   document.getElementById('cvLink').innerHTML = `<a href="${p.cv_url||uploadedCvUrl}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV</a>`;
+   let url = p.cv_url||uploadedCvUrl;
+   document.getElementById('cvLink').innerHTML = `<a href="${url}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV</a>`;
  }
  document.getElementById('candEmail').innerText='🔒 '+(localStorage.getItem('jobway_user_email')||p.email||'');
  renderSkills();
@@ -137,17 +118,15 @@ function renderSkills(){
  document.getElementById('skillsPreview').innerHTML=arr.map(s=>`<span class="badge-skill">${s}</span>`).join('');
 }
 document.getElementById('skills').addEventListener('input',renderSkills);
-
 function handleFile(file){
  if(!file) return;
  if(file.size>5*1024*1024){alert('File too big! Max 5MB'); return;}
  currentFile = file;
  document.getElementById('fileName').innerText='✅ '+file.name+' ('+(file.size/1024).toFixed(0)+'KB) - Ready to upload on Save';
- // Also save small preview locally
  let reader=new FileReader();
  reader.onload=function(e){
    let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
-   p.cvName=file.name; p.cvSize=(file.size/1024).toFixed(0)+'KB'; p.cvType=file.type;
+   p.cvName=file.name; p.cv_filename=file.name; p.cvSize=(file.size/1024).toFixed(0)+'KB'; p.cvType=file.type;
    localStorage.setItem('jobway_profile',JSON.stringify(p));
  };
  reader.readAsDataURL(file);
@@ -156,7 +135,6 @@ let box=document.getElementById('uploadBox');
 box.addEventListener('dragover',e=>{e.preventDefault(); box.classList.add('dragover')});
 box.addEventListener('dragleave',()=>box.classList.remove('dragover'));
 box.addEventListener('drop',e=>{e.preventDefault(); box.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]);});
-
 async function saveProfile(){
  let btn=document.getElementById('saveBtn');
  btn.innerText='Saving...'; btn.disabled=true;
@@ -166,35 +144,36 @@ async function saveProfile(){
  let skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean);
  let locationVal=document.getElementById('location').value;
  if(!fullName||!email){ alert('Fill name & email'); btn.innerText='💾 Save Profile + CV'; btn.disabled=false; return; }
-
- // 1. Upload CV to Storage if new file selected
  let cvUrl = uploadedCvUrl;
- let cvName = document.getElementById('fileName').innerText.replace('✅ ','') || '';
+ let cvName = '';
+ try{ let p0=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); cvName = p0.cvName||p0.cv_filename||''; }catch(e){}
+ let cvPath = uploadedCvPath;
  if(currentFile){
    try{
      let cleanName = currentFile.name.replace(/[^a-zA-Z0-9.-]/g,'_');
      let filePath = Date.now()+'_'+cleanName;
-     let { error: upErr } = await supabaseClient.storage.from('cvs').upload(filePath, currentFile, {upsert:true});
+     let { error: upErr } = await supabaseClient.storage.from('cvs').upload(filePath, currentFile, {upsert:true, contentType: currentFile.type});
      if(!upErr){
        let { data: pub } = supabaseClient.storage.from('cvs').getPublicUrl(filePath);
-       if(pub?.publicUrl) cvUrl = pub.publicUrl;
+       if(pub?.publicUrl){ cvUrl = pub.publicUrl; cvPath = filePath; cvName = currentFile.name; }
+       console.log('CV uploaded to cvs bucket:', cvUrl);
+     } else {
+       console.log('CV upload error', upErr);
+       alert('CV upload failed: '+upErr.message+' — but profile will still save. Check bucket cvs is PUBLIC.');
      }
    }catch(e){ console.log('storage error', e); }
  }
-
- // 2. Save to localStorage (instant)
  let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
  p.fullName=fullName; p.email=email; p.whatsapp=whatsapp; p.skills=skills; p.location=locationVal;
- if(cvUrl) p.cv_url=cvUrl; if(cvUrl) p.cvUrl=cvUrl;
- if(currentFile) p.cvName=currentFile.name;
+ if(cvUrl){ p.cv_url=cvUrl; p.cvUrl=cvUrl; p.cv_path=cvPath; }
+ if(cvName){ p.cvName=cvName; p.cv_filename=cvName; }
+ if(currentFile) p.cvSize=(currentFile.size/1024).toFixed(0)+'KB';
  localStorage.setItem('jobway_profile',JSON.stringify(p));
  localStorage.setItem('jobway_user_email', email);
- // Also save to jobway_user for other pages
+ localStorage.setItem('jobway_cv_url', cvUrl||'');
  let user = getUser() || {};
- user.full_name=fullName; user.email=email; user.phone=whatsapp;
+ user.full_name=fullName; user.email=email; user.phone=whatsapp; if(cvUrl) user.cv_url=cvUrl;
  localStorage.setItem('jobway_user', JSON.stringify(user));
-
- // 3. Save to Supabase profiles table
  if(user && user.id && user.id.length>20){
    let { error } = await supabaseClient.from('profiles').upsert({
      id: user.id,
@@ -205,23 +184,22 @@ async function saveProfile(){
      location: locationVal,
      skills: skills,
      cv_url: cvUrl || null,
-     cv_name: currentFile ? currentFile.name : (p.cvName||null),
+     cv_name: cvName || null,
      updated_at: new Date().toISOString()
    });
    if(error) console.log('profiles upsert error', error);
  }
-
  document.getElementById('savedMsg').style.display='block';
- btn.innerText='✅ Saved!'; 
+ btn.innerText='✅ Saved!';
+ if(cvUrl) document.getElementById('cvLink').innerHTML = `<a href="${cvUrl}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV — ${cvName}</a>`;
  setTimeout(()=>{
    let pending=JSON.parse(localStorage.getItem('jobway_pending_job')||'null');
    if(pending){
      localStorage.removeItem('jobway_pending_job');
      alert('✅ Profile + CV saved! Now 1-Click Apply to '+pending.title+'\nGo to Jobs and press Apply Now');
-     location.href='jobs.html';
-     return;
+     location.href='jobs.html'; return;
    }
-   alert('✅ Profile + CV saved to cloud!\nNow go to Jobs and Apply - your CV will auto-attach\nYou will get updates from 079 060 8952');
+   alert('✅ Profile + CV saved to cloud (cvs bucket)!\nNow go to Jobs and Apply - your CV will auto-attach\nYou will get updates from 079 060 8952');
    location.href='jobs.html';
  },500);
 }
