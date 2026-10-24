@@ -38,28 +38,26 @@ body{margin:0;background:#11283a;color:#fff;font-family:'Plus Jakarta Sans',Aria
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 function fmtDate(d){ try{ if(!d) return ''; let date=new Date(d); if(isNaN(date)) return d; return date.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return d; } }
 function formatPhone(p){ if(!p) return ''; let c=p.toString().replace(/[^0-9]/g,''); if(c.startsWith('0')) c='27'+c.slice(1); return c; }
 function getEmpPhone(app){
-  let raw = app.employer_whatsapp || (app.jobs && app.jobs.whatsapp_number) || app.jobs?.whatsapp_number || '0790608952';
+  let raw = app.employer_whatsapp || (app.jobs && app.jobs.whatsapp_number) || '0790608952';
   return formatPhone(raw);
 }
 function getCurrentUser(){
-  try{
-    return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('jobway_current_user')||localStorage.getItem('user')||'null');
-  }catch(e){ return null; }
+  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('jobway_current_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
 }
 function getCVUrl(a){
-  let raw = a.cv_url || a.cvUrl || a.cv_file || a.cv_filename || a.cvName || '';
+  let raw = a.cv_url || a.cvUrl || a.cv_file || a.cv_filename || a.cvName || a.cv || '';
   if(!raw) return null;
   if(raw.startsWith('http')) return raw;
+  if(raw.startsWith('data:')) return raw;
   const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
   return data.publicUrl;
 }
 async function load(){
   let user = getCurrentUser();
-  let query = supabaseClient.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number)').order('created_at', {ascending:false});
+  let query = supabaseClient.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number, logo_url)').order('created_at', {ascending:false});
   if(user && user.id){
     query = query.eq('jobseeker_id', user.id);
   } else if(user && user.email){
@@ -67,7 +65,6 @@ async function load(){
   } else if(user && user.phone){
     query = query.eq('phone', user.phone);
   } else {
-    // Not logged in - try localStorage migration
     let local = JSON.parse(localStorage.getItem('jobway_applied')||localStorage.getItem('jobway_all_applications')||'[]');
     if(local.length>0){ render(local); return; }
     document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>Please log in to track applications</p><button class="btn btn-green" onclick="location.href='login.html'">Log In</button></div>`;
@@ -75,10 +72,8 @@ async function load(){
   }
   let { data: apps, error } = await query;
   if(error){
-    console.log('Supabase error', error);
     let local = JSON.parse(localStorage.getItem('jobway_applied')||'[]');
-    render(local);
-    return;
+    render(local); return;
   }
   if((!apps || apps.length===0)){
     let local = JSON.parse(localStorage.getItem('jobway_applied')||localStorage.getItem('jobway_all_applications')||'[]');
@@ -95,6 +90,7 @@ function render(all){
   document.getElementById('list').innerHTML=all.map(app=>{
     let title = app.job_title || app.title || (app.jobs && app.jobs.title) || 'Job';
     let comp = app.company || (app.jobs && app.jobs.company) || '';
+    let logo = app.jobs?.logo_url ? `<img src="${app.jobs.logo_url}" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;float:right">` : '';
     let status = app.status||'Application Received';
     if(status==='Applied') status='Application Received';
     if(status==='Approved') status='Hired';
@@ -111,11 +107,7 @@ function render(all){
     }).join('');
     let interview = '';
     if(app.interview_date || status==='Interview Scheduled'){
-      interview=`<div class="interview-box">📅 <b>INTERVIEW SCHEDULED</b><br>
-      <span>📅 Date: <b style="color:#fff">${app.interview_date||'To be confirmed'}</b><br>
-      🕐 Time: <b style="color:#fff">${app.interview_time||''}</b><br>
-      📍 Location: <b style="color:#fff">${app.interview_location||'Thohoyandou Office'}</b><br>
-      📝 ${app.interview_note||app.interview_notes||'Bring ID & CV'}</span></div>`;
+      interview=`<div class="interview-box">📅 <b>INTERVIEW SCHEDULED</b><br><span>📅 Date: <b style="color:#fff">${app.interview_date||'To be confirmed'}</b><br>🕐 Time: <b style="color:#fff">${app.interview_time||''}</b><br>📍 Location: <b style="color:#fff">${app.interview_location||'Thohoyandou Office'}</b><br>📝 ${app.interview_note||app.interview_notes||'Bring ID & CV'}</span></div>`;
     }
     let hired = (status==='Hired')?`<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">${comp} will contact you for start date.</span></div>`:'';
     let rejected = (status==='Not Selected' || status==='Rejected')?`<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected for this job. Keep applying — new jobs every week.</div>`:'';
@@ -124,8 +116,9 @@ function render(all){
     let msg = `Hi ${comp}, I'm ${myName}. I applied for ${title} on JobWay. My status is ${status}. Can you please update me? Thank you.`;
     let waBtn = `<a href="https://wa.me/${empPhone}?text=${encodeURIComponent(msg)}" target="_blank" class="wa-btn">💬 Message Employer on WhatsApp</a>`;
     let cvUrl = getCVUrl(app);
-    let cvBtn = cvUrl ? `<br><a href="${cvUrl}" target="_blank" download class="cv-link">📄 View My Submitted CV</a>` : '';
-    return `<div class="card"><h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at || app.date)} • ${app.location||(app.jobs&&app.jobs.location)||''} ${app.salary||(app.jobs&&app.jobs.salary)? '• '+(app.salary||app.jobs.salary) : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hired}${rejected}${cvBtn}<br>${waBtn}</div>`;
+    let cvName = app.cv_filename || app.cvName || (cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV');
+    let cvBtn = cvUrl ? `<br><a href="${cvUrl}" target="_blank" class="cv-link">📄 View My Submitted CV — ${cvName}</a>` : '';
+    return `<div class="card">${logo}<h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at || app.date)} • ${app.location||(app.jobs&&app.jobs.location)||''} ${app.salary||(app.jobs&&app.jobs.salary)? '• '+(app.salary||app.jobs.salary) : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hired}${rejected}${cvBtn}<br>${waBtn}</div>`;
   }).join('');
 }
 load();
