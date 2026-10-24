@@ -61,151 +61,81 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 </div>
 <script>
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-
-// FIXED: NO getDefaults() — fake jobs removed completely
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Posted today';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)} days ago`;}
 function initials(name){return (name||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
-function getUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
-}
+function getUser(){try{return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null');}catch(e){return null;}}
 async function fetchSupabaseJobs(){
   try{
     const { data, error } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
-    if(error){ console.log('jobs error', error); return []; }
+    if(error){console.log('jobs error',error);return [];}
     if(!data) return [];
-    return data.map(j=>({
-      title:j.title,company:j.company,location:j.location,city:j.location||'Gauteng',type:j.type||j.job_type||'Full-time',
-      salaryText:j.salary||'Market related',desc:j.description||'',duration:'Permanent',
-      postedAt:j.created_at? new Date(j.created_at).getTime():Date.now(),
-      closingDate:j.closing_date? new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',
-      logo:j.logo_url||j.logo||null,id:j.id, employer_whatsapp:j.whatsapp_number
-    }));
+    return data.map(j=>{
+      let company = j.company_name || j.company || 'Company';
+      let salaryText='Market related';
+      if(j.salary_min && j.salary_max) salaryText=`R${j.salary_min} - R${j.salary_max}`;
+      else if(j.salary_min) salaryText=`R${j.salary_min}+`;
+      else if(j.salary) salaryText=j.salary;
+      return {title:j.title,company:company,location:j.location,city:j.location||'Gauteng',type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingDate:j.closing_date?new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',logo:j.logo_url||j.logo||null,id:j.id,employer_whatsapp:j.whatsapp_number};
+    });
   }catch(e){return []}
 }
-let allJobsCache = [];
-let appliedIds = new Set();
+let allJobsCache=[];let appliedIds=new Set();
 async function fetchMyApplications(){
-  appliedIds = new Set();
-  try{
-    let user = getUser();
-    if(!user || !user.id) return;
-    let { data, error } = await supabaseClient.from('applications').select('job_id').eq('applicant_id', user.id).limit(200);
-    if(error){ console.log('fetch apps error', error); return; }
-    if(data) data.forEach(a=>{ if(a.job_id) appliedIds.add(a.job_id); });
-  }catch(e){}
+  appliedIds=new Set();
+  try{let user=getUser();if(!user||!user.id)return;let {data}=await supabaseClient.from('applications').select('job_id').eq('applicant_id',user.id).limit(200);if(data) data.forEach(a=>{if(a.job_id) appliedIds.add(a.job_id);});}catch(e){}
 }
 async function render(){
- let qCity=document.getElementById('loc').value;
- let qType=document.getElementById('type').value;
- let qExp=document.getElementById('exp').value;
- let qSal=document.getElementById('salary').value;
- let supaJobs = await fetchSupabaseJobs();
- await fetchMyApplications();
- // FIXED: only real jobs, no fake defaults
- let jobs=[...supaJobs];
- let seen=new Set(); jobs=jobs.filter(j=>{const k=j.title+'|'+j.company; if(seen.has(k)) return false; seen.add(k); return true;});
- allJobsCache = jobs;
+ let qCity=document.getElementById('loc').value;let qType=document.getElementById('type').value;let qExp=document.getElementById('exp').value;let qSal=document.getElementById('salary').value;
+ let supaJobs=await fetchSupabaseJobs();await fetchMyApplications();
+ let jobs=[...supaJobs];let seen=new Set();jobs=jobs.filter(j=>{const k=j.title+'|'+j.company;if(seen.has(k))return false;seen.add(k);return true;});
+ allJobsCache=jobs;
  if(qCity) jobs=jobs.filter(j=>(j.location||'').includes(qCity));
- if(qType) jobs=jobs.filter(j=> (j.type||'').trim() === qType);
+ if(qType) jobs=jobs.filter(j=>(j.type||'').trim()===qType);
  if(qExp){
-   if(qExp==='No experience') jobs=jobs.filter(j=> (j.desc||'').toLowerCase().includes('no experience'));
-   if(qExp==='Matric only') jobs=jobs.filter(j=> (j.desc||'').toLowerCase().includes('matric'));
-   if(qExp==='1+ years') jobs=jobs.filter(j=> (j.desc||'').toLowerCase().includes('year') || (j.desc||'').toLowerCase().includes('experience'));
+   if(qExp==='No experience') jobs=jobs.filter(j=>(j.desc||'').toLowerCase().includes('no experience'));
+   if(qExp==='Matric only') jobs=jobs.filter(j=>(j.desc||'').toLowerCase().includes('matric'));
+   if(qExp==='1+ years') jobs=jobs.filter(j=>(j.desc||'').toLowerCase().includes('year')||(j.desc||'').toLowerCase().includes('experience'));
  }
- if(qSal){
-   let min = parseInt(qSal);
-   jobs=jobs.filter(j=>{
-     let nums = (j.salaryText||'').replace(/[^0-9]/g,'');
-     let val = parseInt(nums||'0');
-     return val >= min;
-   });
- }
- document.getElementById('count').innerText = `${jobs.length} jobs found${qCity?' in '+qCity:''}${qType?' • '+qType:''} • Updated today`;
- if(jobs.length===0){
-   document.getElementById('list').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No jobs found in database yet.<br><span style="font-size:11px">Admin: create jobs in Supabase > jobs table</span><br><button class="btn btn-green" style="margin-top:10px" onclick="document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render()">Clear filters</button></div>`;
-   return;
- }
- document.getElementById('list').innerHTML=jobs.map((j, idx)=>{
-  let posted=timeAgo(j.postedAt);
-  let isApplied = appliedIds.has(j.id);
-  let logoHtml = j.logo? `<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">${initials(j.company)}</div>` : `<div class="logo-fallback">${initials(j.company)}</div>`;
-  let cacheIdx = allJobsCache.findIndex(c=>c.title==j.title && c.company==j.company);
-  return `<div class="card">
-    ${isApplied?'<div class="applied-badge">APPLIED</div>':''}
-    <div class="company-row">
-      ${logoHtml}
-      <div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div>
-    </div>
-    <div class="job-title">${j.title}</div>
-    <div class="badges"><span class="badge badge-green">${posted}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div>
-    <div class="desc">${j.desc}</div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn-apply" ${isApplied?'disabled style="opacity:0.6"':''} onclick="applyJob(${cacheIdx})">${isApplied?'Applied ✓':'Apply now'}</button>
-      <button class="btn-detail" onclick="alert('${(j.title||'').replace(/'/g,"")} \\n${(j.company||'').replace(/'/g,"")} \\n\\n${(j.desc||'').replace(/'/g,"").substring(0,300)}')">View details</button>
-    </div>
-  </div>`
+ if(qSal){let min=parseInt(qSal);jobs=jobs.filter(j=>(j.salaryMin||0)>=min||(j.salaryText||'').includes('Market'));}
+ document.getElementById('count').innerText=`${jobs.length} jobs found${qCity?' in '+qCity:''}${qType?' • '+qType:''} • Updated today`;
+ if(jobs.length===0){document.getElementById('list').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No jobs found in database yet.<br><span style="font-size:11px">Admin: create jobs in Supabase > jobs table</span><br><button class="btn btn-green" style="margin-top:10px" onclick="document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render()">Clear filters</button></div>`;return;}
+ document.getElementById('list').innerHTML=jobs.map((j)=>{
+  let posted=timeAgo(j.postedAt);let isApplied=appliedIds.has(j.id);
+  let logoHtml=j.logo?`<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">${initials(j.company)}</div>`:`<div class="logo-fallback">${initials(j.company)}</div>`;
+  let cacheIdx=allJobsCache.findIndex(c=>c.title==j.title&&c.company==j.company);
+  return `<div class="card">${isApplied?'<div class="applied-badge">APPLIED</div>':''}<div class="company-row">${logoHtml}<div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${posted}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn-apply" ${isApplied?'disabled style="opacity:0.6"':''} onclick="applyJob(${cacheIdx})">${isApplied?'Applied ✓':'Apply now'}</button><button class="btn-detail" onclick="alert('${(j.title||'').replace(/'/g,"")} \\n${(j.company||'').replace(/'/g,"")} \\n\\n${(j.desc||'').replace(/'/g,"").substring(0,300)}')">View details</button></div></div>`
  }).join('');
 }
 async function getProfileCV(){
-  let user = getUser();
-  let p = {};
-  try{ p = JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  let cvUrl = p.cv_url || p.cvUrl || user?.cv_url || localStorage.getItem('jobway_cv_url') || '';
-  if(!cvUrl && user?.id){
+  let user=getUser();let p={};try{p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');}catch(e){}
+  let cvUrl=p.cv_url||p.cvUrl||user?.cv_url||localStorage.getItem('jobway_cv_url')||'';
+  if(!cvUrl&&user?.id){
     try{
-      let { data: prof } = await supabaseClient.from('profiles').select('cv_url, full_name').eq('id', user.id).single();
-      if(prof?.cv_url) cvUrl = prof.cv_url;
-      if(prof?.full_name) p.fullName = prof.full_name;
-      if(!cvUrl){
-        let { data: crow } = await supabaseClient.from('candidate_cvs').select('cv_url').eq('user_id', user.id).single();
-        if(crow?.cv_url) cvUrl = crow.cv_url;
-      }
+      let {data:prof}=await supabaseClient.from('profiles').select('cv_url, full_name').eq('id',user.id).single();
+      if(prof?.cv_url) cvUrl=prof.cv_url;if(prof?.full_name) p.fullName=prof.full_name;
+      if(!cvUrl){let {data:crow}=await supabaseClient.from('candidate_cvs').select('cv_url').eq('user_id',user.id).single();if(crow?.cv_url) cvUrl=crow.cv_url;}
     }catch(e){}
   }
-  if(cvUrl && !cvUrl.startsWith('http') && !cvUrl.startsWith('data:')){
-    const { data } = supabaseClient.storage.from('cvs').getPublicUrl(cvUrl);
-    cvUrl = data.publicUrl;
-  }
-  return { cvUrl, profile: p, user };
+  if(cvUrl&&!cvUrl.startsWith('http')&&!cvUrl.startsWith('data:')){const {data}=supabaseClient.storage.from('cvs').getPublicUrl(cvUrl);cvUrl=data.publicUrl;}
+  return {cvUrl,profile:p,user};
 }
 async function applyJob(cacheIdx){
- let job = allJobsCache[cacheIdx];
- if(!job) return;
- let { cvUrl, profile, user } = await getProfileCV();
- let fullName = profile.fullName || profile.name || user?.full_name || '';
- if(!user || !user.id){ alert('Please login first'); location.href='login.html'; return; }
- if(!fullName || !cvUrl){
-   if(confirm('You need a CV to apply. Upload CV in My Profile?')){
-     localStorage.setItem('jobway_pending_job',JSON.stringify({title:job.title,company:job.company}));
-     location.href='profile.html';
-   }
-   return;
- }
- if(appliedIds.has(job.id)){ location.href='track-applications.html'; return; }
- // FIXED: 100% real payload — no null job_id, no fake job_title/company
- let payload = {
-   job_id: job.id,
-   applicant_id: user.id,
-   cv_url: cvUrl,
-   cover_letter: `Applied for ${job.title} at ${job.company} — ${fullName}`,
-   status: 'Application Received'
- };
- let { data, error } = await supabaseClient.from('applications').insert([payload]).select().single();
- if(error){
-   console.log('apply error', error);
-   if(error.code === '23505'){ alert('You already applied for this job.'); location.href='track-applications.html'; return; }
-   alert('Apply failed: ' + error.message);
-   return;
- }
+ let job=allJobsCache[cacheIdx];if(!job)return;
+ let {cvUrl,profile,user}=await getProfileCV();
+ let fullName=profile.fullName||profile.name||user?.full_name||'';
+ if(!user||!user.id){alert('Please login first');location.href='login.html';return;}
+ if(!fullName||!cvUrl){if(confirm('You need a CV to apply. Upload CV in My Profile?')){localStorage.setItem('jobway_pending_job',JSON.stringify({title:job.title,company:job.company}));location.href='profile.html';}return;}
+ if(appliedIds.has(job.id)){location.href='track-applications.html';return;}
+ let payload={job_id:job.id,applicant_id:user.id,cv_url:cvUrl,cover_letter:`Applied for ${job.title} at ${job.company} — ${fullName}`,status:'Application Received'};
+ let {data,error}=await supabaseClient.from('applications').insert([payload]).select().single();
+ if(error){console.log('apply error',error);if(error.code==='23505'){alert('You already applied for this job.');location.href='track-applications.html';return;}alert('Apply failed: '+error.message);return;}
  alert(`Applied for ${job.title} at ${job.company}. Employer will see your CV now. Track in My Applications.`);
  location.href='track-applications.html';
 }
 async function subscribeWA(){
-  let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');
-  if(!wa) return;
-  let clean = wa.replace(/[^0-9]/g,'');
-  if(clean.startsWith('0')) clean='27'+clean.slice(1);
-  await supabaseClient.from('whatsapp_subscribers').insert([{phone:clean, whatsapp_number:clean}]);
+  let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');if(!wa)return;
+  let clean=wa.replace(/[^0-9]/g,'');if(clean.startsWith('0'))clean='27'+clean.slice(1);
+  await supabaseClient.from('whatsapp_subscribers').insert([{phone:clean,whatsapp_number:clean}]);
   localStorage.setItem('jobway_wa_alerts',wa);
   alert('You will get jobs on WhatsApp from 079 060 8952. We will not spam.');
 }
