@@ -1,4 +1,5 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post a Job - JobWay</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
@@ -38,7 +39,7 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
   <div id="logoPlaceholder">
     <div style="font-size:28px">🏢</div>
     <div style="font-weight:800;font-size:13px;margin-top:4px">Tap to upload logo</div>
-    <div class="hint">PNG, JPG, SVG — Free • Auto-compressed • Max 5MB</div>
+    <div class="hint">PNG, JPG — Free • Auto-compressed • Max 5MB</div>
   </div>
   <div id="logoPreview" class="logo-preview" style="display:none">
     <img id="logoImg" src="">
@@ -62,6 +63,7 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
 let logoData = null;
 let logoFileObj = null;
+let compressedBlob = null;
 
 function compressImage(file, cb){
   const reader = new FileReader();
@@ -70,14 +72,17 @@ function compressImage(file, cb){
     img.onload = ()=>{
       const canvas = document.createElement('canvas');
       let w = img.width, h = img.height;
-      const max = 300;
+      const max = 400;
       if(w>max){ h = h*max/w; w = max; }
       if(h>max){ w = w*max/h; h = max; }
       canvas.width=w; canvas.height=h;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle='white'; ctx.fillRect(0,0,w,h);
       ctx.drawImage(img,0,0,w,h);
-      cb(canvas.toDataURL('image/png',0.85));
+      canvas.toBlob((blob)=>{
+        compressedBlob = blob;
+        cb(canvas.toDataURL('image/png',0.85));
+      }, 'image/png', 0.85);
     };
     img.src = e.target.result;
   };
@@ -94,7 +99,7 @@ document.getElementById('logoFile').addEventListener('change', function(){
     document.getElementById('logoImg').src = compressed;
     document.getElementById('logoPreview').style.display='block';
     document.getElementById('logoPlaceholder').style.display='none';
-    document.getElementById('logoName').innerText = file.name + ' • compressed • free upload';
+    document.getElementById('logoName').innerText = file.name + ' • compressed • will upload to company-logos';
   });
 });
 
@@ -106,16 +111,21 @@ const b=document.getElementById('post');
 b.textContent='Posting...';b.disabled=true;
 document.getElementById('msg').innerText='Uploading logo & job...';
 
-let logoUrl = logoData;
+let logoUrl = logoData; // fallback to base64 if upload fails
 if(logoFileObj){
   try{
     const fileName = Date.now() + '_' + logoFileObj.name.replace(/[^a-zA-Z0-9.-]/g,'_');
-    const { error: upErr } = await supabaseClient.storage.from('company-logos').upload(fileName, logoFileObj, { upsert: true });
+    // Upload COMPRESSED blob to correct bucket: company-logos (plural)
+    const uploadFile = compressedBlob || logoFileObj;
+    const { error: upErr } = await supabaseClient.storage.from('company-logos').upload(fileName, uploadFile, { upsert: true, contentType: 'image/png' });
     if(!upErr){
       const { data: pub } = supabaseClient.storage.from('company-logos').getPublicUrl(fileName);
       if(pub?.publicUrl) logoUrl = pub.publicUrl;
+      console.log('Logo uploaded:', logoUrl);
+    } else {
+      console.log('Logo upload error, using base64 fallback', upErr);
     }
-  }catch(e){}
+  }catch(e){ console.log('Logo upload failed', e); }
 }
 
 let user=null;
@@ -134,19 +144,18 @@ const job={
   type: document.getElementById('type').value,
   closing_date: document.getElementById('closing').value||null,
   logo_url: logoUrl,
-  // employer link
-  employer_id: (user && user.id && user.id.length>20) ? user.id : null,
+  employer_id: (user && user.id) ? user.id : null,
+  employer_email: user ? user.email : null,
 };
 
 const {data, error}=await supabaseClient.from('jobs').insert([job]).select().single();
 if(error){
   console.log('Supabase job insert error', error);
-  // If column doesn't exist, retry with minimal fields
-  if(error.message.includes('column') || error.message.includes('type') || error.message.includes('logo')){
-    const minimal={title:titleVal, company:companyVal, location:job.location, salary:job.salary, description:job.description, whatsapp_number:wa, employer_id: job.employer_id};
-    const {error: err2}=await supabaseClient.from('jobs').insert([minimal]);
+  if(error.message.includes('column') || error.message.includes('type') || error.message.includes('logo') || error.message.includes('employer_email')){
+    const minimal={title:titleVal, company:companyVal, location:job.location, salary:job.salary, description:job.description, whatsapp_number:wa, logo_url: logoUrl, employer_id: job.employer_id};
+    const {data: d2, error: err2}=await supabaseClient.from('jobs').insert([minimal]).select().single();
     if(err2){
-      alert('Supabase error: '+err2.message+'\n\nRun this SQL:\nALTER TABLE jobs ADD COLUMN IF NOT EXISTS type TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS logo_url TEXT;');
+      alert('Supabase error: '+err2.message+'\n\nRun this SQL in Supabase:\nALTER TABLE jobs ADD COLUMN IF NOT EXISTS type TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS logo_url TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employer_email TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS closing_date DATE;');
       b.textContent='Post Job →'; b.disabled=false; return;
     }
   } else {
@@ -154,7 +163,6 @@ if(error){
     b.textContent='Post Job →'; b.disabled=false; return;
   }
 }
-// Also save locally for instant display
 let localJobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
 localJobs.unshift({...job, city: job.location, salaryText: job.salary, desc: job.description, postedAt: Date.now(), closingDate: job.closing_date||'30 Nov 2026'});
 localStorage.setItem('jobway_employer_jobs', JSON.stringify(localJobs));
