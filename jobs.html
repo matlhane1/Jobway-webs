@@ -68,6 +68,9 @@ function getDefaults(){return [
 ]}
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Posted today';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)} days ago`;}
 function initials(name){return (name||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function getUser(){
+  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
+}
 async function fetchSupabaseJobs(){
   try{
     const { data } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
@@ -84,20 +87,14 @@ async function fetchSupabaseJobs(){
 let allJobsCache = [];
 let appliedIds = new Set();
 async function fetchMyApplications(){
+  appliedIds = new Set();
   try{
-    let user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null');
-    let query = supabaseClient.from('applications').select('job_id, job_title, company');
-    if(user && user.id) query = query.eq('jobseeker_id', user.id);
-    else if(user && user.email) query = query.eq('jobseeker_email', user.email);
-    let { data } = await query.limit(200);
-    if(data){
-      data.forEach(a=>{
-        if(a.job_id) appliedIds.add(a.job_id);
-        if(a.job_title) appliedIds.add(a.job_title+'|'+a.company);
-      });
-    }
-    let localApps = JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
-    localApps.forEach(a=> appliedIds.add((a.job_title||a.title)+'|'+(a.company||'')));
+    let user = getUser();
+    if(!user || !user.id) return;
+    // FIX: use REAL column applicant_id, not jobseeker_id
+    let { data } = await supabaseClient.from('applications').select('job_id').eq('applicant_id', user.id).limit(200);
+    if(data) data.forEach(a=>{ if(a.job_id) appliedIds.add(a.job_id); });
+    // Do NOT read localStorage jobway_all_applications here — it leaks other user's data
   }catch(e){}
 }
 async function render(){
@@ -132,7 +129,7 @@ async function render(){
  }
  document.getElementById('list').innerHTML=jobs.map((j, idx)=>{
   let posted=timeAgo(j.postedAt);
-  let isApplied = appliedIds.has(j.id) || appliedIds.has(j.title+'|'+j.company);
+  let isApplied = appliedIds.has(j.id);
   let logoHtml = j.logo? `<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">${initials(j.company)}</div>` : `<div class="logo-fallback">${initials(j.company)}</div>`;
   let cacheIdx = allJobsCache.findIndex(c=>c.title==j.title && c.company==j.company);
   return `<div class="card">
@@ -151,14 +148,24 @@ async function render(){
   </div>`
  }).join('');
 }
-function getProfileCV(){
+async function getProfileCV(){
+  let user = getUser();
   let p = {};
   try{ p = JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  let user = null;
-  try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
-  let cvUrl = p.cvUrl || p.cv_url || p.cvFile || p.cv_path || p.cv_filename || user?.cv_url || localStorage.getItem('jobway_cv_url') || '';
-  let cvName = p.cvName || p.cv_filename || (cvUrl ? cvUrl.split('/').pop() : '') || 'CV.pdf';
-  // If cvUrl is just filename, build public URL from cvs bucket
+  let cvUrl = p.cv_url || p.cvUrl || user?.cv_url || localStorage.getItem('jobway_cv_url') || '';
+  let cvName = p.cvName || (cvUrl ? cvUrl.split('/').pop() : '') || 'CV.pdf';
+  // FRESH: if local has no CV, fetch from DB (fixes profile page showing No CV)
+  if(!cvUrl && user?.id){
+    try{
+      let { data: prof } = await supabaseClient.from('profiles').select('cv_url, full_name, email, phone').eq('id', user.id).single();
+      if(prof?.cv_url) cvUrl = prof.cv_url;
+      if(prof?.full_name) p.fullName = prof.full_name;
+      if(!cvUrl){
+        let { data: crow } = await supabaseClient.from('candidate_cvs').select('cv_url').eq('user_id', user.id).single();
+        if(crow?.cv_url) cvUrl = crow.cv_url;
+      }
+    }catch(e){}
+  }
   if(cvUrl && !cvUrl.startsWith('http') && !cvUrl.startsWith('data:')){
     const { data } = supabaseClient.storage.from('cvs').getPublicUrl(cvUrl);
     cvUrl = data.publicUrl;
@@ -168,47 +175,44 @@ function getProfileCV(){
 async function applyJob(cacheIdx){
  let job = allJobsCache[cacheIdx];
  if(!job) return;
- let { cvUrl, cvName, profile, user } = getProfileCV();
- let fullName = profile.fullName || profile.name || user?.full_name || user?.name || '';
+ let { cvUrl, cvName, profile, user } = await getProfileCV();
+ let fullName = profile.fullName || profile.name || user?.full_name || '';
  let email = profile.email || user?.email || '';
- let phone = profile.whatsapp || profile.phone || user?.phone || user?.whatsapp_number || '';
- if(!fullName){
+ if(!user || !user.id){
+   alert('Please login first');
+   location.href='login.html'; return;
+ }
+ if(!fullName || !cvUrl){
    if(confirm('You need a CV to apply. Upload CV in My Profile?')){
      localStorage.setItem('jobway_pending_job',JSON.stringify({title:job.title,company:job.company}));
      location.href='profile.html';
    }
    return;
  }
- if(!cvUrl){
-   if(!confirm('You have no CV uploaded yet. Apply without CV? (Employer prefers CV). Go to profile to upload?')){
-     location.href='profile.html'; return;
-   }
- }
- if(appliedIds.has(job.id) || appliedIds.has(job.title+'|'+job.company)){
+ if(appliedIds.has(job.id)){
    location.href='track-applications.html'; return;
  }
+ // FIX: Use REAL columns only — applicant_id, job_id, cv_url, cover_letter, status
+ // No jobseeker_id, no job_title, no company — those don't exist and caused localStorage leak
+ let isDefaultJob = job.id && job.id.toString().startsWith('default-');
  let payload = {
-   job_id: job.id && job.id.toString().startsWith('default-') ? null : job.id,
-   jobseeker_name: fullName,
-   jobseeker_email: email,
-   phone: phone,
-   job_title: job.title,
-   company: job.company,
-   status: 'Application Received',
-   cv_url: cvUrl || '',
-   cv_filename: cvName || '',
+   job_id: isDefaultJob ? null : job.id,
+   applicant_id: user.id,
+   cv_url: cvUrl,
+   cover_letter: isDefaultJob ? `Applied for ${job.title} at ${job.company} — ${fullName} (${email})` : `Application for ${job.title} at ${job.company}`,
+   status: 'Application Received'
  };
- if(user && user.id && user.id.length>20) payload.jobseeker_id = user.id;
  let { data, error } = await supabaseClient.from('applications').insert([payload]).select().single();
  if(error){
-   let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
-   apps.unshift({id:Date.now().toString(),job_title:job.title,company:job.company,name:fullName,email:email,whatsapp:phone,date:new Date().toISOString(),status:'Application Received',cv_url:cvUrl, cvName:cvName});
-   localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
-   alert(`Applied for ${job.title} at ${job.company} (saved locally - Supabase: ${error.message}). Track in My Applications.`);
+   console.log('apply error', error);
+   // Check duplicate
+   if(error.code === '23505'){
+     alert('You already applied for this job.');
+     location.href='track-applications.html'; return;
+   }
+   alert(`Apply failed: ${error.message}. Your CV might not be linked. Go to Profile and re-upload CV.`);
+   location.href='profile.html'; return;
  } else {
-   let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
-   apps.unshift({id:data.id, job_title:job.title, company:job.company, name:fullName, date:new Date().toISOString(), status:'Application Received', cv_url: cvUrl});
-   localStorage.setItem('jobway_all_applications',JSON.stringify(apps));
    alert(`Applied for ${job.title} at ${job.company}. Employer will see your CV now. Track in My Applications.`);
  }
  location.href='track-applications.html';
