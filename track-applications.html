@@ -26,6 +26,7 @@ body{margin:0;background:#11283a;color:#fff;font-family:'Plus Jakarta Sans',Aria
 .hired-box{background:rgba(1,249,198,.1);border:1px solid rgba(1,249,198,.4);border-radius:14px;padding:14px;margin-top:12px}
 .wa-btn{display:inline-block;background:#25D366;color:#fff;padding:10px 16px;border-radius:999px;font-weight:800;font-size:12px;text-decoration:none;margin-top:12px}
 .cv-link{display:inline-block;background:#0F2230;border:1px solid rgba(1,249,198,.3);color:#01F9C6;padding:8px 12px;border-radius:999px;font-weight:700;font-size:12px;text-decoration:none;margin-top:8px}
+.ext-link{display:inline-block;background:#01F9C6;color:#11283a;padding:10px 16px;border-radius:999px;font-weight:800;font-size:12px;text-decoration:none;margin-top:12px;margin-left:6px}
 .notif{padding:10px 12px;border-radius:12px;font-size:12px;margin-bottom:12px;text-align:center;font-weight:700}
 </style>
 </head>
@@ -56,6 +57,15 @@ function getCVUrl(a){
   const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
   return data.publicUrl;
 }
+function getApplyUrl(job){
+  if(!job) return 'https://www.careers24.com';
+  if(job.apply_url && job.apply_url.startsWith('http')) return job.apply_url;
+  if(job.description){
+    let m = job.description.match(/https?:\/\/[^\s\)]+/);
+    if(m) return m[0].replace(/[.,]$/,'');
+  }
+  return 'https://www.careers24.com';
+}
 function ensureFreshCache(user){
   const lastEmail = localStorage.getItem('jobway_last_email');
   const curEmail = user?.email || '';
@@ -73,9 +83,8 @@ async function load(){
     return;
   }
   ensureFreshCache(user);
-  // FIXED: 100% Supabase only, NO localStorage fallback — privacy
-  // FIXED: Use applicant_id only, and JOIN jobs for real title/company
-  let query = supabaseClient.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number, logo_url)').order('created_at', {ascending:false});
+  // FIXED: Use REAL column names - company_name, salary_min/salary_max, apply_url
+  let query = supabaseClient.from('applications').select('*, jobs(title, company_name, location, salary_min, salary_max, salary, description, apply_url, whatsapp_number, logo_url, closing_date)').order('created_at', {ascending:false});
   let applicantId = user.id;
   if(!applicantId || applicantId.length < 20){
     if(user.email){
@@ -88,10 +97,23 @@ async function load(){
   let { data: apps, error } = await query;
   if(error){
     console.log('applications error', error);
+    // Fallback if join fails - load without join
+    let { data: apps2 } = await supabaseClient.from('applications').select('*').eq('applicant_id', applicantId).order('created_at', {ascending:false});
+    if(apps2){
+      // Try to fetch jobs manually
+      for(let a of apps2){
+        if(a.job_id){
+          let {data: j} = await supabaseClient.from('jobs').select('title, company_name, location, salary_min, salary_max, description, apply_url, closing_date, logo_url').eq('id', a.job_id).single();
+          if(j) a.jobs = j;
+        }
+      }
+      let clean = (apps2||[]).filter(a=> a.jobs);
+      render(clean);
+      return;
+    }
     document.getElementById('list').innerHTML = `<div class="card">Error loading: ${error.message}<br><span class="meta">If RLS error, check SQL policies</span></div>`;
     return;
   }
-  // FIXED: filter out broken apps where job_id is NULL (old default jobs) — they have no jobs.title
   let clean = (apps||[]).filter(a=> a.job_id && a.jobs);
   if(clean.length !== (apps||[]).length){
     console.log('Filtered broken apps with NULL job_id:', (apps||[]).length - clean.length);
@@ -100,7 +122,6 @@ async function load(){
 }
 function render(all){
   document.getElementById('count').innerText=`(${all.length})`;
-  // Notification banner — One Dashboard requirement
   let shortlisted = all.filter(a=> (a.status||'').toLowerCase().includes('shortlist'));
   let interviews = all.filter(a=> (a.status||'').toLowerCase().includes('interview') || a.interview_date);
   let hired = all.filter(a=> (a.status||'').toLowerCase().includes('hired') || a.status==='Approved');
@@ -116,7 +137,7 @@ function render(all){
   }
   document.getElementById('list').innerHTML=all.map(app=>{
     let title = app.jobs?.title || 'Job';
-    let comp = app.jobs?.company || '';
+    let comp = app.jobs?.company_name || app.jobs?.company || '';
     let logo = app.jobs?.logo_url ? `<img src="${app.jobs.logo_url}" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;float:right">` : '';
     let status = app.status||'Application Received';
     if(status==='Applied') status='Application Received';
@@ -142,10 +163,13 @@ function render(all){
     let myName = getCurrentUser()?.full_name || 'Applicant';
     let msg = `Hi ${comp}, I'm ${myName}. I applied for ${title} on JobWay. My status is ${status}. Can you please update me? Thank you.`;
     let waBtn = `<a href="https://wa.me/${empPhone}?text=${encodeURIComponent(msg)}" target="_blank" class="wa-btn">💬 Message Employer on WhatsApp</a>`;
+    let salaryText = app.jobs?.salary_min ? `R${app.jobs.salary_min}${app.jobs.salary_max? ' - R'+app.jobs.salary_max : '+'}` : (app.jobs?.salary || '');
+    let extUrl = getApplyUrl(app.jobs);
+    let extBtn = `<a href="${extUrl}" target="_blank" rel="noopener" class="ext-link">Apply on Original Site ↗</a>`;
     let cvUrl = getCVUrl(app);
     let cvName = cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV';
     let cvBtn = cvUrl ? `<br><a href="${cvUrl}" target="_blank" class="cv-link">📄 View My Submitted CV — ${cvName}</a>` : '';
-    return `<div class="card">${logo}<h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at)} • ${app.jobs?.location||''} ${app.jobs?.salary ? '• '+app.jobs.salary : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hiredBox}${rejected}${cvBtn}<br>${waBtn}</div>`;
+    return `<div class="card">${logo}<h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at)} • ${app.jobs?.location||''} ${salaryText ? '• '+salaryText : ''} ${app.jobs?.closing_date ? '• Closes: '+fmtDate(app.jobs.closing_date) : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hiredBox}${rejected}${cvBtn}<br>${waBtn}${extBtn}</div>`;
   }).join('');
 }
 load();
