@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>Employer Dashboard | JobWay.co.za</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,9 +22,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 .btn-dark{background:#1A3E52;color:#A8C8D0}
 .btn-green{background:#01F9C6;color:#0A1F2E}
 .btn-whats{background:#25D366;color:#fff}
+.btn-cv{background:#01F9C6;color:#0A1F2E;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:999px;font-weight:800;font-size:12px}
 .container{max-width:720px;margin:0 auto;padding:16px}
 .card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;margin-bottom:14px}
-.meta{color:#8DB0BF;font-size:12px;margin:6px 0;line-height:1.5}
+.meta{color:#8DB0BF;font-size:12px;margin:6px 0;line-height:1.6}
 .badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;display:inline-block}
 .b-green{background:#01F9C6;color:#0A1F2E}
 .b-grey{background:rgba(255,255,255,0.1);color:#A8C8D0}
@@ -81,24 +83,25 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const STATUSES=["Application Received","Under Review","Shortlisted","Interview Scheduled","Hired","Not Selected"];
 let currentInterviewId = null;
 let currentApps = [];
 let currentJobs = [];
-
 function logout(){ localStorage.removeItem('jobway_logged_in'); localStorage.removeItem('user_role'); location.href='index.html'; }
 function fmt(d){ try{ if(!d) return ''; return new Date(d).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}) }catch(e){ return d||'' } }
-function formatPhone(p){
-  if(!p) return '';
-  let c=p.toString().replace(/[^0-9]/g,'');
-  if(c.startsWith('0')) c='27'+c.slice(1);
-  return c;
+function formatPhone(p){ if(!p) return ''; let c=p.toString().replace(/[^0-9]/g,''); if(c.startsWith('0')) c='27'+c.slice(1); return c; }
+function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; } }
+function getCVUrl(a){
+  let raw = a.cv_url || a.cvUrl || a.cv_file || a.cv_path || a.cv_filename || a.cvName || a.cv || '';
+  if(!raw) return null;
+  if(raw.startsWith('http')) return raw;
+  if(raw.includes('/')) {
+    const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
+    return data.publicUrl;
+  }
+  const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
+  return data.publicUrl;
 }
-function getCurrentUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
-}
-
 function progressHTML(status){
   let steps=['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
   let idx=steps.indexOf(status); if(idx==-1) idx=0;
@@ -109,7 +112,6 @@ function progressHTML(status){
     return `<span class="p-badge ${cls}">${icon} ${s}</span>`;
   }).join('')}</div>`;
 }
-
 async function sendWhatsApp(app, newStatus){
   let phone=formatPhone(app.phone || app.whatsapp || app.whatsapp_number || app.jobseeker_phone || '');
   if(!phone){ alert(`Status saved as ${newStatus} but no WhatsApp number.`); return; }
@@ -117,53 +119,39 @@ async function sendWhatsApp(app, newStatus){
   let comp = app.company || (app.jobs && app.jobs.company) || 'JobWay';
   let name = app.jobseeker_name || app.name || 'Applicant';
   let msg='';
-  let notifText='';
-  if(newStatus==='Shortlisted'){ msg=`Hi ${name} 👋 Great news! You have been SHORTLISTED for ${jobTitle} at ${comp} on JobWay. We will contact you for next steps. Track: https://jobway.co.za/track-applications.html`; notifText=msg; }
-  else if(newStatus==='Interview Scheduled'){ msg=`Hi ${name} 📅 Interview Scheduled for ${jobTitle} at ${comp} on JobWay.\n\n📅 Date: ${app.interview_date||''}\n🕐 Time: ${app.interview_time||''}\n📍 Location: ${app.interview_location||''}\n📝 Note: ${app.interview_note||'Bring ID & CV'}\n\nPlease reply YES to confirm.`; notifText=msg; }
-  else if(newStatus==='Hired'){ msg=`Hi ${name} 🎉 Congratulations! You are HIRED for ${jobTitle} at ${comp} on JobWay.`; notifText=msg; }
-  else if(newStatus==='Under Review'){ msg=`Hi ${name}, update: Your application for ${jobTitle} at ${comp} is now Under Review. We'll update you soon. - JobWay`; notifText=msg; }
-  else if(newStatus==='Not Selected'){ msg=`Hi ${name}, thank you for applying for ${jobTitle} at ${comp}. Unfortunately you were not selected this time. Keep applying on JobWay.`; notifText=msg; }
-  else { msg=`Hi ${name}, JobWay update: Your application for ${jobTitle} at ${comp} is now: ${newStatus}. Track: https://jobway.co.za/track-applications.html`; notifText=msg; }
-
-  // Save notification to localStorage for bell (and try Supabase if table exists)
+  if(newStatus==='Shortlisted'){ msg=`Hi ${name} 👋 Great news! You have been SHORTLISTED for ${jobTitle} at ${comp} on JobWay. We will contact you for next steps. Track: https://jobway.co.za/track-applications.html`; }
+  else if(newStatus==='Interview Scheduled'){ msg=`Hi ${name} 📅 Interview Scheduled for ${jobTitle} at ${comp} on JobWay.\n\n📅 Date: ${app.interview_date||''}\n🕐 Time: ${app.interview_time||''}\n📍 Location: ${app.interview_location||''}\n📝 Note: ${app.interview_note||'Bring ID & CV'}\n\nPlease reply YES to confirm.`; }
+  else if(newStatus==='Hired'){ msg=`Hi ${name} 🎉 Congratulations! You are HIRED for ${jobTitle} at ${comp} on JobWay.`; }
+  else if(newStatus==='Under Review'){ msg=`Hi ${name}, update: Your application for ${jobTitle} at ${comp} is now Under Review. We'll update you soon. - JobWay`; }
+  else if(newStatus==='Not Selected'){ msg=`Hi ${name}, thank you for applying for ${jobTitle} at ${comp}. Unfortunately you were not selected this time. Keep applying on JobWay.`; }
+  else { msg=`Hi ${name}, JobWay update: Your application for ${jobTitle} at ${comp} is now: ${newStatus}. Track: https://jobway.co.za/track-applications.html`; }
   let notifs=JSON.parse(localStorage.getItem('jobway_notifications')||'[]');
-  let notifTitle=`Status: ${newStatus} - ${jobTitle}`;
-  let alreadyExists = notifs.some(n=> n.title===notifTitle && n.text===notifText);
-  if(!alreadyExists){
-    notifs.unshift({id:Date.now(), title:notifTitle, text:notifText, date:new Date().toISOString(), read:false, job:jobTitle});
-    if(notifs.length>20) notifs = notifs.slice(0,20);
-    localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
-  }
+  notifs.unshift({id:Date.now(), title:`Status: ${newStatus} - ${jobTitle}`, text:msg, date:new Date().toISOString(), read:false, job:jobTitle});
+  if(notifs.length>20) notifs = notifs.slice(0,20);
+  localStorage.setItem('jobway_notifications', JSON.stringify(notifs));
   window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`, '_blank');
 }
-
 async function load(){
   let user = getCurrentUser();
-  // Jobs
-  let jobsQuery = supabaseClient.from('jobs').select('*').order('created_at', {ascending:false});
-  if(user && user.id) jobsQuery = jobsQuery.eq('employer_id', user.id);
-  let { data: jobs } = await jobsQuery;
+  let { data: jobs } = await supabaseClient.from('jobs').select('*').order('created_at', {ascending:false});
+  // Filter by employer if possible, but don't hide all if employer_id missing
+  if(user && user.id && jobs && jobs.length){
+    let mine = jobs.filter(j=> j.employer_id===user.id || j.employer_email===user.email || !j.employer_id);
+    if(mine.length>0) jobs = mine;
+  }
   currentJobs = jobs || [];
-
-  // Applications - join jobs to get title/company
   let { data: apps, error } = await supabaseClient.from('applications').select('*, jobs(title, company, location, salary, whatsapp_number)').order('created_at', {ascending:false});
   if(error){
-    console.log(error);
-    // Fallback to localStorage
     let a1=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
     let a2=JSON.parse(localStorage.getItem('jobway_applied')||'[]');
     apps = a1.length?a1:a2;
     currentApps = apps;
-  } else {
-    currentApps = apps || [];
-  }
-
-  // If employer has specific jobs, filter apps to only those jobs
+  } else { currentApps = apps || []; }
   if(user && user.id && currentJobs.length>0){
     let myJobIds = currentJobs.map(j=>j.id);
-    currentApps = currentApps.filter(a=> !a.job_id || myJobIds.includes(a.job_id));
+    let filtered = currentApps.filter(a=> !a.job_id || myJobIds.includes(a.job_id));
+    if(filtered.length>0 || currentApps.length===0) currentApps = filtered;
   }
-
   document.getElementById('appCount').innerText=currentApps.length;
   document.getElementById('jobCount').innerText=currentJobs.length;
   document.getElementById('count').innerText=`(${currentApps.length} applicants)`;
@@ -174,15 +162,19 @@ async function load(){
       let name=a.jobseeker_name||a.name||a.fullName||'Applicant';
       let title=a.job_title || (a.jobs&&a.jobs.title) || a.title || 'Job';
       let comp=a.company || (a.jobs&&a.jobs.company) || '';
+      let cvUrl = getCVUrl(a);
+      let cvName = a.cv_filename || a.cvName || a.cv_file || (cvUrl ? cvUrl.split('/').pop() : 'CV');
       let cvHTML='';
-      if(a.cv_url){ cvHTML=`<a href="${a.cv_url}" target="_blank" class="btn btn-dark" style="padding:8px 12px;font-size:11px;text-decoration:none">📄 Download CV</a>`; }
-      else if(a.cvName){ cvHTML=`<span style="color:#FFB020;font-size:11px">📄 ${a.cvName} <br><span style="color:#8DB0BF">Ask via WhatsApp</span></span>`; }
-      else { cvHTML=`<span style="color:#FF8A9D;font-size:12px">No CV uploaded</span>`; }
+      if(cvUrl){
+        cvHTML=`<a href="${cvUrl}" target="_blank" download="${cvName}" class="btn-cv">📄 Download CV - ${cvName}</a>`;
+      } else {
+        cvHTML=`<span style="color:#FF8A9D;font-size:12px">No CV uploaded — Ask via WhatsApp</span>`;
+      }
       let interviewBox=a.interview_date?`<div class="interview-box">📅 <b>Interview:</b> ${a.interview_date} at ${a.interview_time} • ${a.interview_location}<br><span style="font-size:11px;color:#8DB0BF">${a.interview_note||''}</span></div>`:'';
       let badgeClass = a.status=='Shortlisted'?'b-green':a.status=='Hired'?'b-orange':a.status=='Not Selected'?'b-red':a.status=='Interview Scheduled'?'b-green':'b-grey';
       return `<div class="card">
         <div style="display:flex;justify-content:space-between"><b>${name}</b><span class="badge ${badgeClass}">${a.status||'Application Received'}</span></div>
-        <div class="meta">Applied for: <b style="color:#fff">${title} — ${comp}</b><br>Date: ${fmt(a.created_at||a.date)} • ${a.jobseeker_email||a.email||''} • WhatsApp: ${a.phone||a.whatsapp||'No number'}<br>CV: ${a.cv_url||a.cvName||'No CV'}</div>
+        <div class="meta">Applied for: <b style="color:#fff">${title} — ${comp}</b><br>Date: ${fmt(a.created_at||a.date)} • ${a.jobseeker_email||a.email||''} • WhatsApp: ${a.phone||a.whatsapp||'No number'}</div>
         ${progressHTML(a.status||'Application Received')}
         ${interviewBox}
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -191,7 +183,7 @@ async function load(){
           <button class="btn btn-dark" style="background:#1a3a2a;color:#01F9C6" onclick="updateStatus('${a.id}','Hired',true)">🎉 Hire + WhatsApp</button>
           <button class="btn btn-dark" style="background:#3a1a1a;color:#ff9a9a" onclick="updateStatus('${a.id}','Not Selected',true)">Reject</button>
         </div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${cvHTML}<button class="btn btn-whats" style="padding:8px 12px;font-size:11px" onclick="manualWhatsApp('${a.id}')">💬 WhatsApp Candidate</button></div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${cvHTML}<button class="btn btn-whats" style="padding:10px 14px;font-size:12px" onclick="manualWhatsApp('${a.id}')">💬 WhatsApp Candidate</button></div>
         <label style="font-size:11px;color:#8DB0BF;margin-top:12px;display:block">CHANGE STATUS</label>
         <select class="select" onchange="changeStatusOnly('${a.id}',this.value)">${STATUSES.map(s=>`<option ${a.status==s?'selected':''}>${s}</option>`).join('')}</select>
       </div>`;
@@ -199,38 +191,24 @@ async function load(){
   }
   document.getElementById('jobsList').innerHTML=currentJobs.length?currentJobs.map(j=>`<div class="card"><b>${j.title} • ${j.company}</b><br><span style="color:#8DB0BF;font-size:12px">${j.location||''} • ${j.salary||j.salaryText||''}</span></div>`).join(''):`<div class="card" style="text-align:center;color:#8DB0BF;font-size:13px">No jobs yet.</div>`;
 }
-
 async function updateStatus(id,newStatus, sendWA){
-  // Update Supabase
   let { error } = await supabaseClient.from('applications').update({status:newStatus}).eq('id', id);
   if(error){
-    // Fallback to local
     let apps=JSON.parse(localStorage.getItem('jobway_all_applications')||'[]');
     let idx=apps.findIndex(x=>x.id==id);
-    if(idx>=0){ apps[idx].status=newStatus; localStorage.setItem('jobway_all_applications', JSON.stringify(apps)); localStorage.setItem('jobway_applied', JSON.stringify(apps)); }
+    if(idx>=0){ apps[idx].status=newStatus; localStorage.setItem('jobway_all_applications', JSON.stringify(apps)); }
   } else {
-    // Update local copy
-    let app = currentApps.find(x=>x.id==id);
-    if(app) app.status=newStatus;
+    let app = currentApps.find(x=>x.id==id); if(app) app.status=newStatus;
   }
-  if(sendWA){
-    let app = currentApps.find(x=>x.id==id);
-    if(app) sendWhatsApp(app, newStatus);
-  }
+  if(sendWA){ let app = currentApps.find(x=>x.id==id); if(app) sendWhatsApp(app, newStatus); }
   load();
 }
-
 async function changeStatusOnly(id,newStatus){
   await supabaseClient.from('applications').update({status:newStatus}).eq('id', id);
-  if(confirm(`Status changed to ${newStatus}. Send WhatsApp to candidate?`)){
-    let app = currentApps.find(x=>x.id==id);
-    if(app) sendWhatsApp({...app, status:newStatus}, newStatus);
-  }
+  if(confirm(`Status changed to ${newStatus}. Send WhatsApp to candidate?`)){ let app = currentApps.find(x=>x.id==id); if(app) sendWhatsApp({...app, status:newStatus}, newStatus); }
   load();
 }
-
 function manualWhatsApp(id){ let app=currentApps.find(x=>x.id==id); if(app) sendWhatsApp(app, app.status||'Application Received'); }
-
 function openInterview(id){
   currentInterviewId=id;
   let app=currentApps.find(x=>x.id==id);
@@ -241,7 +219,6 @@ function openInterview(id){
   document.getElementById('interviewModal').classList.add('open');
 }
 function closeInterview(){ document.getElementById('interviewModal').classList.remove('open'); }
-
 async function confirmInterview(){
   let date=document.getElementById('intDate').value;
   let time=document.getElementById('intTime').value;
@@ -257,9 +234,6 @@ async function confirmInterview(){
   if(app) sendWhatsApp(app, 'Interview Scheduled');
   load();
 }
-
-function downloadCV(id){ let app=currentApps.find(x=>x.id==id); if(app && app.cv_url) window.open(app.cv_url,'_blank'); else alert('No CV file - Ask candidate to send via WhatsApp.'); }
-
 load();
 supabaseClient.channel('applications-changes').on('postgres_changes', {event:'*', schema:'public', table:'applications'}, ()=>load()).subscribe();
 </script>
