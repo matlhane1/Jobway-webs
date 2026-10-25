@@ -28,106 +28,81 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <div class="logo">JobWay</div>
 <h3 style="text-align:center;">Welcome back</h3>
 <p class="sub">Login with your WhatsApp number.<br>No email, no password.</p>
-
 <label class="label">WHATSAPP NUMBER</label>
 <input class="input" id="waNumber" type="tel" placeholder="e.g. 081 263 3193" inputmode="tel" autocomplete="tel">
-
 <button class="btn" id="loginButton" type="button">Login with WhatsApp →</button>
-
-<div style="display:flex;justify-content:center;margin-top:14px;">
-<a class="link" href="signup.html">No account? Create with WhatsApp →</a>
-</div>
-
+<div style="display:flex;justify-content:center;margin-top:14px;"><a class="link" href="signup.html">No account? Create with WhatsApp →</a></div>
 <div id="message" class="message"></div>
 <p class="small">🔒 Secure WhatsApp login<br>We filter jobs by your province & experience.<br>We never share your number.</p>
 </div>
-
 <script>
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 function showMessage(t,type='error'){
   const m=document.getElementById('message');
   m.textContent=t; m.className='message '+type;
 }
-
 async function login(){
-  let waNum=document.getElementById('waNumber').value.trim().replace(/\s/g,'');
+  let waNum=document.getElementById('waNumber').value.trim();
   const btn=document.getElementById('loginButton');
   document.getElementById('message').className='message';
-  if(!waNum || waNum.length < 9){showMessage('Please enter your WhatsApp number.');return;}
-
-  let clean = waNum.replace(/^\+/,'').replace(/\D/g,'');
+  if(!waNum || waNum.replace(/\D/g,'').length < 9){showMessage('Please enter your WhatsApp number.');return;}
+  let clean = waNum.replace(/\D/g,'');
   if(clean.startsWith('0')) clean = '27' + clean.slice(1);
   if(!clean.startsWith('27')) clean = '27' + clean;
-
   btn.disabled=true; btn.textContent='Checking...';
   try{
-    // Try to find user - check both phone and whatsapp_number
+    // FIXED: Never block on DB - try to find, if not found create, if DB fails still login
     let data = null;
-    let {data: d1} = await supabaseClient.from('whatsapp_subscribers').select('*').eq('phone', clean).maybeSingle();
-    if(d1) data = d1;
-    if(!data){
-      let {data: d2} = await supabaseClient.from('whatsapp_subscribers').select('*').eq('whatsapp_number', clean).maybeSingle();
-      if(d2) data = d2;
-    }
-    if(!data){
-      // Try 0 format
-      let alt = '0' + clean.slice(2);
-      let {data: d3} = await supabaseClient.from('whatsapp_subscribers').select('*').eq('phone', alt).maybeSingle();
-      if(d3) data = d3;
-    }
-
-    // FIX: NEVER lock out - if not found, create account and login anyway
-    if(!data){
-      showMessage('New number — creating your account...','success');
-      const {data: newUser, error: insErr} = await supabaseClient.from('whatsapp_subscribers').insert({
-        phone: clean,
-        whatsapp_number: clean,
-        province: 'Gauteng',
-        job_type: 'All Jobs',
-        is_active: true
-      }).select().single();
-      
-      if(!insErr && newUser) data = newUser;
-      else {
-        // Even if DB insert fails (RLS), still allow login locally - don't lock user
-        data = { whatsapp_number: clean, phone: clean, province: 'Gauteng' };
+    try{
+      let r1 = await supabaseClient.from('whatsapp_subscribers').select('*').eq('phone', clean).maybeSingle();
+      if(r1 && r1.data) data = r1.data;
+      if(!data){
+        let r2 = await supabaseClient.from('whatsapp_subscribers').select('*').eq('whatsapp_number', clean).maybeSingle();
+        if(r2 && r2.data) data = r2.data;
       }
+    }catch(e){ console.log('select fail',e); }
+
+    if(!data){
+      // Try create - if RLS blocks, we still continue
+      try{
+        let ins = await supabaseClient.from('whatsapp_subscribers').insert({phone:clean, whatsapp_number:clean, province:'Gauteng', job_type:'All Jobs', is_active:true}).select().single();
+        if(ins && ins.data) data = ins.data;
+      }catch(e){ console.log('insert fail',e); }
+      if(!data) data = {phone:clean, whatsapp_number:clean, province:'Gauteng'};
     }
 
-    // SUCCESS - Save for filtering
-    const prov = data.province || localStorage.getItem('userProvince') || 'Gauteng';
-    const name = data.full_name || localStorage.getItem('userName') || '';
-    
+    const prov = data.province || 'Gauteng';
+    // SAVE ALL KEYS - this stops jobs.html from kicking to homepage
     localStorage.setItem('userPhone', clean);
-    localStorage.setItem('userName', name);
+    localStorage.setItem('whatsapp_number', clean);
+    localStorage.setItem('phone', clean);
     localStorage.setItem('userProvince', prov);
+    localStorage.setItem('userName', data.full_name || '');
     localStorage.setItem('user_role', 'seeker');
     localStorage.setItem('jobway_logged_in','true');
-    localStorage.setItem('jobway_user', JSON.stringify({
-      whatsapp_number: clean,
-      phone: clean,
-      province: prov,
-      full_name: name
-    }));
+    localStorage.setItem('jobway_user', JSON.stringify({whatsapp_number:clean, phone:clean, province:prov, full_name: data.full_name || ''}));
+    localStorage.setItem('jobway_phone', clean);
+    sessionStorage.setItem('userPhone', clean);
 
-    showMessage('Welcome back! Showing jobs for you — Redirecting...','success');
-    setTimeout(()=>{ location.href='jobs.html'; }, 800);
-
+    showMessage('✅ Welcome! Opening jobs for ' + prov + '...','success');
+    // Use replace so back button doesn't go to login again, and add param to prove login
+    setTimeout(()=>{ window.location.replace('jobs.html?loggedin=1&phone='+clean); }, 600);
   }catch(err){
-    // LAST RESORT: if Supabase is down, still let them in - use localStorage only
     console.error(err);
+    // FINAL FALLBACK - even if everything fails, let them in
     localStorage.setItem('userPhone', clean);
     localStorage.setItem('jobway_logged_in','true');
-    showMessage('Logged in offline mode — Showing jobs...','success');
-    setTimeout(()=>{ location.href='jobs.html'; }, 800);
-    btn.disabled=false; btn.textContent='Login with WhatsApp →';
+    localStorage.setItem('jobway_user', JSON.stringify({phone:clean, whatsapp_number:clean}));
+    showMessage('✅ Logged in (offline mode) — opening jobs...','success');
+    setTimeout(()=>{ window.location.replace('jobs.html?loggedin=1'); }, 600);
   }
 }
 document.getElementById('loginButton').addEventListener('click', login);
 document.getElementById('waNumber').addEventListener('keydown',e=>{if(e.key==='Enter') login();});
+// Auto-focus input
+document.getElementById('waNumber').focus();
 </script>
 </body>
 </html>
