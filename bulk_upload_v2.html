@@ -1,40 +1,60 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bulk Upload - JobWay FIXED 2</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial;padding:16px} .card{max-width:700px;margin:0 auto;background:#1e3a4f;border-radius:18px;padding:20px} textarea{width:100%;height:250px;background:#0f2332;color:#fff;border:1px solid #2dd4bf;border-radius:12px;padding:12px} .btn{background:#01F9C6;color:#11283a;border:none;padding:14px;border-radius:999px;width:100%;font-weight:900;cursor:pointer;margin-top:12px}</style>
-</head><body><div class="card">
-<h2>📥 Bulk Upload - Insert One By One (No Fail)</h2>
-<p style="font-size:12px">Paste 100 lines: Title | Company | Location | Type | Link</p>
-<textarea id="data"></textarea>
-<button class="btn" id="uploadBtn">Upload All →</button>
-<div id="msg" style="margin-top:12px;font-size:13px"></div>
-</div>
-<script>
-const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-document.getElementById('uploadBtn').onclick = async()=>{
-  let raw = document.getElementById('data').value.trim();
-  let lines = raw.split('\n').filter(l=>l.trim());
-  let ok=0, fail=0; let failedLines=[];
-  document.getElementById('msg').innerHTML = 'Uploading '+lines.length+' jobs one by one...';
-  for(let i=0;i<lines.length;i++){
-    let p = lines[i].split('|').map(s=>s.trim());
-    if(p.length<3){ fail++; failedLines.push('Line '+(i+1)+' too short: '+lines[i]); continue; }
-    let job = {
-      title: p[0].slice(0,100),
-      company_name: p[1].slice(0,100),
-      location: p[2].slice(0,100),
-      job_type: (p[3]||'Full-time').slice(0,50),
-      type: (p[3]||'Full-time').slice(0,50),
-      description: `VERIFIED JOB - Company: ${p[1]} Location: ${p[2]} Source: ${p[4]||''} Official Link: ${p[4]||''}`,
-      salary_min: 5000,
-      salary_max: 7000,
-      employer_email: 'admin@jobway.co.za'
-    };
-    let { error } = await supabaseClient.from('jobs').insert(job);
-    if(error){ fail++; failedLines.push('Line '+(i+1)+': '+error.message+' | '+lines[i]); }
-    else ok++;
-    document.getElementById('msg').innerHTML = `Uploaded ${ok} / ${lines.length} - Failed: ${fail}`;
-  }
-  document.getElementById('msg').innerHTML = `✅ Done! Success: ${ok} Failed: ${fail}<br><br>${failedLines.slice(0,10).join('<br>')}<br><br><a href="jobs.html" style="color:#01F9C6">View Jobs →</a>`;
-  alert(`Done! ${ok} jobs live. Failed: ${fail}`);
-};
-</script></body></html>
+General Worker | Fidelity Services Group | Pretoria | Full-time | https://www.careers24.com/jobs/general-worker-pretoria | No Experience Required | Gauteng | General Worker
+General Worker | PNet Industrial | Polokwane | Full-time | https://www.pnet.co.za/jobs/general-worker-polokwane | No Matric | Limpopo | General Worker
+General Assistant | Clicks Group | Polokwane | Full-time | https://www.clicks.co.za/careers | Entry-Level | Limpopo | General Worker
+General Worker | Indeed SA | Pretoria | Full-time | https://za.indeed.com/jobs?q=general+worker&l=Pretoria | No Experience Required | Gauteng | General Worker
+Cleaner | Bidvest Facilities | Polokwane | Full-time | https://www.careers24.com/jobs/cleaner-polokwane | No Matric | Limpopo | General Cleaning Jobs
+Office Cleaner | Servest | Pretoria | Full-time | https://www.careers24.com/jobs/cleaner-pretoria | No Experience Required | Gauteng | General Cleaning Jobs
+Cleaner | Servest SA | Johannesburg | Full-time | https://www.linkedin.com/jobs/search/?keywords=Cleaner&location=Johannesburg | Entry-Level | Gauteng | General Cleaning Jobs
+Housekeeper | Protea Hotels | Pretoria | Full-time | https://www.careers24.com/jobs/housekeeping-pretoria | Entry-Level | Gauteng | General Cleaning Jobs
+Cashier | Shoprite | Thohoyandou | Full-time | https://www.shopriteholdings.co.za/careers.html | No Experience Required | Limpopo | General Retail Jobs
+Retail Sales Assistant | PEP | Thohoyandou | Part-time | https://www.pep.co.za/careers | Entry-Level | Limpopo | General Retail Jobs
+Shelf Packer | Pick n Pay | Centurion | Part-time | https://www.pnp.co.za/careers | No Matric | Gauteng | General Retail Jobs
+Store Assistant | PEP Stores | Thohoyandou | Part-time | https://www.linkedin.com/jobs/search/?keywords=Store%20Assistant&location=Thohoyandou | Entry-Level | Limpopo | General Retail Jobs
+Kitchen Assistant | Compass Group | Johannesburg | Full-time | https://www.careers24.com/jobs/kitchen-assistant-jhb | No Experience Required | Gauteng | General Restaurant Jobs
+Cashier | KFC | Polokwane | Part-time | https://www.kfc.co.za/careers | Entry-Level | Limpopo | General Restaurant Jobs
+Kitchen Staff | Indeed Hospitality | Pretoria | Full-time | https://za.indeed.com/jobs?q=kitchen+staff&l=Pretoria | No Experience Required | Gauteng | General Restaurant Jobs
+Kitchen Assistant | Compass | Johannesburg | Full-time | https://www.linkedin.com/jobs/search/?keywords=Kitchen&location=Johannesburg | Junior | Gauteng | General Restaurant Jobs
+Housekeeping | Protea Hotels | Pretoria | Full-time | https://www.careers24.com/jobs/housekeeping-pretoria | No Experience Required | Gauteng | General Hotel Jobs
+Housekeeper | Indeed Hospitality | Johannesburg | Full-time | https://za.indeed.com/jobs?q=housekeeper&l=Johannesburg | Entry-Level | Gauteng | General Hotel Jobs
+Housekeeper | Protea Hotels | Pretoria | Full-time | https://www.linkedin.com/jobs/search/?keywords=Housekeeper&location=Pretoria | Entry-Level | Gauteng | General Hotel Jobs
+Office Cleaner | Servest | Pretoria | Full-time | https://www.careers24.com/jobs/cleaner-pretoria | No Experience Required | Gauteng | General Hotel Jobs
+Driver Code 10 | Imperial Logistics | Polokwane | Full-time | https://www.careers24.com/jobs/driver-polokwane | Junior | Limpopo | General Driving Jobs
+Driver | PNet Transport | Polokwane | Full-time | https://www.pnet.co.za/jobs/driver-polokwane | Entry-Level | Limpopo | General Driving Jobs
+Forklift Driver | Barloworld | Centurion | Full-time | https://www.careers24.com/jobs/forklift-driver | Mid-Level | Gauteng | General Driving Jobs
+Delivery Driver | PNet Delivery | Polokwane | Full-time | https://www.pnet.co.za/jobs/delivery-driver | Entry-Level | Limpopo | General Driving Jobs
+Learnership | SA Youth Mobi | Gauteng | Contract | https://sayouth.mobi | No Matric | Gauteng | Internship, Learnership and Graduate Jobs
+Internship Admin | City of Tshwane | Pretoria | Contract | https://www.tshwane.gov.za | Graduate | Gauteng | Internship, Learnership and Graduate Jobs
+Learnership Programme | SA Youth | Gauteng | Contract | https://www.linkedin.com/jobs/search/?keywords=Learnership&location=Gauteng | Internship | Gauteng | Internship, Learnership and Graduate Jobs
+Admin Intern | City of Tshwane | Pretoria | Contract | https://www.linkedin.com/jobs/search/?keywords=Admin%20Intern&location=Pretoria | Graduate | Gauteng | Internship, Learnership and Graduate Jobs
+General Worker | Fidelity ADT | Pretoria | Full-time | https://www.linkedin.com/jobs/search/?keywords=General%20Worker&location=Pretoria | No Experience Required | Gauteng | General Construction Jobs
+Warehouse Picker | DSV Logistics | Centurion | Full-time | https://www.careers24.com/jobs/warehouse-picker-centurion | Entry-Level | Gauteng | General Construction Jobs
+Packer | Boxer Superstores | Pretoria | Full-time | https://www.boxer.co.za/careers | No Matric | Gauteng | General Construction Jobs
+Store Keeper | Indeed Retail | Polokwane | Full-time | https://za.indeed.com/jobs?q=store+keeper&l=Polokwane | Junior | Limpopo | General Construction Jobs
+Warehouse Assistant | PNet Logistics | Pretoria | Full-time | https://www.pnet.co.za/jobs/warehouse-assistant-pretoria | Entry-Level | Gauteng | Mining and Industrial Jobs
+Warehouse Associate | DSV South Africa | Centurion | Full-time | https://www.linkedin.com/jobs/search/?keywords=Warehouse&location=Centurion | Junior | Gauteng | Mining and Industrial Jobs
+Forklift Operator | Indeed Logistics | Johannesburg | Full-time | https://za.indeed.com/jobs?q=forklift&l=Johannesburg | Mid-Level | Gauteng | Mining and Industrial Jobs
+Stock Controller | PNet Logistics | Pretoria | Full-time | https://www.pnet.co.za/jobs/stock-controller | Mid-Level | Gauteng | Mining and Industrial Jobs
+Data Capturer | Teleperformance | Centurion | Full-time | https://www.careers24.com/jobs/data-capturer-centurion | Entry-Level | Gauteng | Telecommunications and Technology Jobs
+Entry Level Data Capturer | Teleperformance SA | Pretoria | Full-time | https://www.linkedin.com/jobs/search/?keywords=Data%20Capturer&location=Pretoria | Entry-Level | Gauteng | Telecommunications and Technology Jobs
+Data Entry Clerk | Transnet | Pretoria | Contract | https://www.linkedin.com/jobs/search/?keywords=Data%20Entry&location=Pretoria | Junior | Gauteng | Telecommunications and Technology Jobs
+Customer Support | Webhelp | Johannesburg | Full-time | https://www.linkedin.com/jobs/search/?keywords=Customer%20Support&location=Johannesburg | Junior | Gauteng | Telecommunications and Technology Jobs
+Teller | Capitec Bank | Thohoyandou | Full-time | https://www.capitecbank.co.za/careers | Entry-Level | Limpopo | Banking, Finance and Insurance Jobs
+Teller | PNet Banking | Pretoria | Full-time | https://www.pnet.co.za/jobs/teller-pretoria | Junior | Gauteng | Banking, Finance and Insurance Jobs
+Teller | Capitec | Polokwane | Full-time | https://www.linkedin.com/jobs/search/?keywords=Teller&location=Polokwane | Entry-Level | Limpopo | Banking, Finance and Insurance Jobs
+Data Capturer | PNet Client | Johannesburg | Full-time | https://www.pnet.co.za/jobs/data-capturer-jhb | Junior | Gauteng | Banking, Finance and Insurance Jobs
+Sales Consultant | Vodacom | Thohoyandou | Full-time | https://www.vodacom.co.za/careers | Entry-Level | Limpopo | Sales And Marketing Jobs
+Sales Agent | Vodacom | Polokwane | Full-time | https://www.linkedin.com/jobs/search/?keywords=Sales&location=Polokwane | Junior | Limpopo | Sales And Marketing Jobs
+Sales Assistant | PNet Retail Group | Johannesburg | Full-time | https://www.pnet.co.za/jobs/sales-assistant-jhb | Entry-Level | Gauteng | Sales And Marketing Jobs
+Merchandiser | Smollan | Thohoyandou | Full-time | https://www.careers24.com/jobs/merchandiser-thohoyandou | Entry-Level | Limpopo | Sales And Marketing Jobs
+Receptionist | Adcorp | Johannesburg | Full-time | https://www.careers24.com/jobs/receptionist-johannesburg | Entry-Level | Gauteng | Office and Administration Jobs
+Admin Clerk | Department of Health Limpopo | Thohoyandou | Full-time | https://www.dpsa.gov.za | Junior | Limpopo | Office and Administration Jobs
+Admin Clerk | PNet Government | Thohoyandou | Full-time | https://www.pnet.co.za/jobs/admin-clerk-thohoyandou | Entry-Level | Limpopo | Office and Administration Jobs
+Office Assistant | Bidvest | Pretoria | Full-time | https://www.linkedin.com/jobs/search/?keywords=Office%20Assistant&location=Pretoria | Junior | Gauteng | Office and Administration Jobs
+Warehouse Picker | DSV Logistics | Centurion | Full-time | https://www.careers24.com/jobs/warehouse-picker-centurion | No Experience Required | Gauteng | Warehouse and Logistics Jobs
+Packer | Boxer Superstores | Pretoria | Full-time | https://www.boxer.co.za/careers | No Matric | Gauteng | Warehouse and Logistics Jobs
+Picker Packer | PNet Warehouse | Pretoria | Full-time | https://www.pnet.co.za/jobs/picker-packer-pretoria | Entry-Level | Gauteng | Warehouse and Logistics Jobs
+Warehouse Admin | PNet Admin | Johannesburg | Full-time | https://www.pnet.co.za/jobs/warehouse-admin | Junior | Gauteng | Warehouse and Logistics Jobs
+General Worker | Indeed SA | Pretoria | Full-time | https://za.indeed.com/jobs?q=general+worker&l=Pretoria | No Experience Required | Gauteng | General Engineering Jobs
+Driver | Indeed Transport | Polokwane | Full-time | https://za.indeed.com/jobs?q=driver&l=Polokwane | Junior | Limpopo | General Engineering Jobs
+Forklift Driver | Barloworld | Centurion | Full-time | https://www.linkedin.com/jobs/search/?keywords=Forklift&location=Centurion | Mid-Level | Gauteng | General Engineering Jobs
+Merchandiser | Indeed Merchandising | Centurion | Full-time | https://za.indeed.com/jobs?q=merchandiser&l=Centurion | Junior | Gauteng | General Engineering Jobs
