@@ -90,36 +90,42 @@ document.getElementById("form").addEventListener("submit", async(e)=>{
   let clean=wa.replace(/^\+/,''); if(clean.startsWith('0')) clean='27'+clean.slice(1); if(!clean.startsWith('27')) clean='27'+clean;
   const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating...";
   try{
-    // FIXED: only columns that exist in BOTH tables
+    const finalProvince = prov || 'Gauteng';
+    const finalJob = jobType || 'All Jobs';
+    const finalExp = exp || 'Entry-Level';
+    // FIX 100% - location, province, skills all filled
     const payload = {
       phone: clean,
       whatsapp_number: clean,
       full_name: name,
       role: role,
-      province: prov || 'Gauteng',
-      experience: exp || 'Entry-Level',
-      job_type: jobType || 'All Jobs',
-      is_active: true
+      province: finalProvince,
+      location: finalProvince,
+      experience: finalExp,
+      job_type: finalJob,
+      skills: [finalJob],
+      is_active: true,
+      subscribed: true
     };
-
-    // 1. whatsapp_subscribers - your WhatsApp list
+    // 1. whatsapp_subscribers - for WhatsApp notifications filtering
     const {error: err1} = await supabaseClient.from('whatsapp_subscribers').upsert(payload, {onConflict: 'phone'});
-    if(err1) throw new Error('whatsapp_subscribers: '+err1.message);
-
-    // 2. profiles - YOUR ADMIN TABLE - FIXED: was 'users' before, now correct
+    if(err1) {
+      // if upsert fails due to missing unique, try insert
+      const {error: i1} = await supabaseClient.from('whatsapp_subscribers').insert(payload);
+      if(i1) throw new Error('whatsapp_subscribers: '+i1.message);
+    }
+    // 2. profiles - YOUR ADMIN TABLE
     const {error: err2} = await supabaseClient.from('profiles').upsert(payload, {onConflict: 'phone'});
     if(err2) {
-      console.warn('profiles insert:', err2.message);
-      // Try insert if upsert fails due to missing unique constraint
-      const {error: err2b} = await supabaseClient.from('profiles').insert(payload);
-      if(err2b) console.warn('profiles insert2:', err2b.message);
+      const {error: i2} = await supabaseClient.from('profiles').insert(payload);
+      if(i2) console.warn('profiles:', i2.message);
     }
-
     localStorage.setItem('userPhone',clean);
     localStorage.setItem('userName',name);
-    localStorage.setItem('userProvince',prov);
-    localStorage.setItem('userExperience',exp);
+    localStorage.setItem('userProvince',finalProvince);
+    localStorage.setItem('userExperience',finalExp);
     localStorage.setItem('user_role',role);
+    localStorage.setItem('user_job_type',finalJob);
     showStatus("✅ Welcome "+name+"! Redirecting...","ok");
     setTimeout(()=>{ location.href= role==="employer" ? "employer-dashboard.html" : "jobs.html"; },800);
   }catch(err){
