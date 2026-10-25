@@ -3,44 +3,39 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Real Jobs in SA | JobWay.co.za</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;min-height:100vh}
-.header{background:#0A1F2E;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(1,249,198,0.15);position:sticky;top:0;z-index:10}
-.logo-text{font-weight:900;color:#01F9C6;font-size:20px;font-family:'Space Grotesk',sans-serif}
+.header{background:#0A1F2E;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(1,249,198,.15);position:sticky;top:0;z-index:10}
+.logo-text{font-weight:900;color:#01F9C6;font-size:20px;cursor:pointer}
 .btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap}
-.btn-dark{background:#1A3E52;color:#A8C8D0}
-.btn-green{background:#01F9C6;color:#0A1F2E}
-.nav-cta{display:flex;gap:8px;align-items:center}
+.btn-dark{background:#1A3E52;color:#A8C8D0}.btn-green{background:#01F9C6;color:#0A1F2E}.btn-red{background:#FF4D4D;color:#fff}
 .container{max-width:700px;margin:0 auto;padding:14px}
-.trust-bar{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.18);border-radius:12px;padding:10px 14px;font-size:11.5px;color:#A8C8D0;text-align:center;margin:12px 0}
+.trust-bar{background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.18);border-radius:12px;padding:10px 14px;font-size:11.5px;color:#A8C8D0;text-align:center;margin:12px 0}
 .trust-bar b{color:#01F9C6}
-.filters{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.filters{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .select{background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;width:100%;font-size:13px}
-.btn-filter{padding:11px;border-radius:999px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px}
-.btn-wa{background:#1A3E52;color:#fff;border:1px solid rgba(1,249,198,0.2)}
-.btn-track{background:#01F9C6;color:#0A1F2E}
-.card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:16px;margin-bottom:12px;position:relative}
+.btn-filter{padding:11px;border-radius:999px;font-weight:800;border:none;cursor:pointer;font-size:12.5px}
+.btn-wa{background:#1A3E52;color:#fff;border:1px solid rgba(1,249,198,.2)}.btn-track{background:#01F9C6;color:#0A1F2E}
+.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;margin-bottom:12px;position:relative}
 .company-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.logo-img{width:46px;height:46px;object-fit:contain;background:white;border-radius:10px;padding:6px}
-.logo-fallback{width:46px;height:46px;background:#0F2230;border:1px solid rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#01F9C6}
+.logo-fallback{width:46px;height:46px;background:#0F2230;border:1px solid rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#01F9C6}
 .job-title{font-size:17px;font-weight:800;line-height:1.2}
 .job-meta{color:#8DB0BF;font-size:12px;margin:4px 0}
 .badges{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.badge{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#A8C8D0;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600}
-.badge-green{background:rgba(1,249,198,0.12);color:#01F9C6;border-color:rgba(1,249,198,0.2)}
+.badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#A8C8D0;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(1,249,198,.12);color:#01F9C6;border-color:rgba(1,249,198,.2)}
 .desc{color:#C8DDE3;font-size:13px;margin:8px 0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .btn-apply{background:#01F9C6;color:#08231C;border:none;border-radius:999px;padding:11px 18px;font-weight:900;cursor:pointer;flex:1;font-size:13px;text-decoration:none;display:flex;align-items:center;justify-content:center}
-.btn-detail{background:#1A3E52;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer;flex:1;font-size:13px}
-.applied-badge{position:absolute;top:12px;right:12px;background:#30BA8F;color:#fff;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800}
+.btn-detail{background:#1A3E52;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer;flex:1;font-size:13px}
 </style>
 </head>
 <body>
 <div class="header">
-<div class="logo-text" onclick="location.href='index.html'" style="cursor:pointer">JobWay</div>
-<div class="nav-cta">
+<div class="logo-text" onclick="location.href='index.html'">JobWay</div>
+<div style="display:flex;gap:8px">
 <button class="btn btn-dark" onclick="location.href='index.html'">Home</button>
 <button class="btn btn-dark" onclick="location.href='profile.html'">My CV</button>
 <button class="btn btn-green" onclick="location.href='track-applications.html'">Track my applications</button>
@@ -48,115 +43,103 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 </div>
 <div class="container">
 <div class="trust-bar">All jobs verified manually • <b>Never pay to apply</b> • Questions? WhatsApp <b>079 060 8952</b> (Mon-Fri 8am-6pm)</div>
+
+<!-- ADMIN ONLY: add ?admin=1 to URL to show delete button -->
+<div id="adminBar" style="display:none;background:#3A2025;border:1px solid #7A3540;border-radius:12px;padding:12px;text-align:center;margin-bottom:10px">
+<b>ADMIN MODE</b><br><span style="font-size:12px;color:#FFB4BE">This will delete ALL jobs from database</span><br>
+<button class="btn btn-red" style="margin-top:8px" onclick="deleteAllJobs()">🗑️ DELETE ALL JOBS</button>
+<button class="btn btn-dark" onclick="location.href='jobs.html'">Exit admin</button>
+<div id="delStatus" style="font-size:12px;margin-top:8px"></div>
+</div>
+
 <div class="filters">
-<select class="select" id="loc" onchange="render()"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
+<select class="select" id="loc" onchange="render()"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>KZN</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
 <select class="select" id="type" onchange="render()"><option value="">All Types</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Temporary</option></select>
 <select class="select" id="exp" onchange="render()"><option value="">Any Experience</option><option>No experience</option><option>1+ years</option><option>Matric only</option></select>
 <select class="select" id="salary" onchange="render()"><option value="">Any Salary</option><option value="3500">R3500+</option><option value="5000">R5000+</option><option value="8000">R8000+</option></select>
-<button class="btn-filter btn-wa" onclick="subscribeWA()">Get jobs on WhatsApp</button>
+<button class="btn-filter btn-wa" onclick="location.href='signup.html'">Get jobs on WhatsApp</button>
 <button class="btn-filter btn-track" onclick="location.href='track-applications.html'">Track my applications</button>
 </div>
 <div id="count" style="font-size:12px;color:#8DB0BF;margin:14px 2px"></div>
 <div id="list" style="margin-top:8px"></div>
 </div>
+
 <script>
-const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+
+// Show admin bar if ?admin=1
+if(new URLSearchParams(location.search).get('admin')==='1'){
+  document.getElementById('adminBar').style.display='block';
+}
+
+async function deleteAllJobs(){
+  if(!confirm('DELETE ALL JOBS? This cannot be undone!')) return;
+  document.getElementById('delStatus').textContent = 'Deleting...';
+  // Delete all rows - need a filter that matches all
+  const {error, count} = await supabaseClient.from('jobs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if(error){
+    document.getElementById('delStatus').textContent = 'Error: ' + error.message + ' — Fix: Go to Supabase > Authentication > Policies > jobs > Enable DELETE for anon, OR run SQL: DELETE FROM jobs;';
+    alert('RLS blocked delete. Go to Supabase Dashboard > SQL Editor and run:\n\nDELETE FROM jobs;');
+  } else {
+    document.getElementById('delStatus').textContent = 'All jobs deleted!';
+    setTimeout(()=>location.reload(), 800);
+  }
+}
+
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Posted today';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)} days ago`;}
-function initials(name){return (name||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
-function getUser(){try{return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null');}catch(e){return null;}}
-function extractUrl(text, apply_url){
-  if(apply_url && apply_url.startsWith('http')) return apply_url;
+function initials(n){return (n||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function extractUrl(text, url){
+  if(url && url.startsWith('http')) return url;
   if(!text) return 'https://www.careers24.com';
   let m = text.match(/https?:\/\/[^\s\)]+/);
-  if(m) return m[0].replace(/[.,]$/,'');
-  return 'https://www.careers24.com';
+  return m ? m[0].replace(/[.,]$/,'') : 'https://www.careers24.com';
 }
-async function fetchSupabaseJobs(){
+
+let allJobsCache=[];
+async function fetchJobs(){
   try{
-    const { data, error } = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(100);
-    if(error){console.log('jobs error',error);return [];}
-    if(!data) return [];
-    return data.map(j=>{
+    // Try both column names - your table uses province + location + job_type
+    const {data, error} = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(200);
+    if(error){ console.log('jobs error', error); return []; }
+    return (data||[]).map(j=>{
+      let loc = j.location || j.province || j.city || 'South Africa';
+      let prov = j.province || j.location || '';
       let company = j.company_name || j.company || 'Company';
       let salaryText='Market related';
       if(j.salary_min && j.salary_max) salaryText=`R${j.salary_min} - R${j.salary_max}`;
       else if(j.salary_min) salaryText=`R${j.salary_min}+`;
       else if(j.salary) salaryText=j.salary;
-      let applyUrl = extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'');
-      return {title:j.title,company:company,location:j.location,city:j.location||'Gauteng',type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingDate:j.closing_date?new Date(j.closing_date+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',logo:j.logo_url||j.logo||null,id:j.id,employer_whatsapp:j.whatsapp_number,applyUrl:applyUrl};
+      return {title:j.title,company:company,location:loc,province:prov,type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingDate:j.closing_date?new Date(j.closing_date).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'30 Sept 2026',id:j.id,applyUrl:extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'')};
     });
-  }catch(e){return []}
+  }catch(e){ console.log(e); return []; }
 }
-let allJobsCache=[];let appliedIds=new Set();
-async function fetchMyApplications(){
-  appliedIds=new Set();
-  try{let user=getUser();if(!user||!user.id)return;let {data}=await supabaseClient.from('applications').select('job_id').eq('applicant_id',user.id).limit(200);if(data) data.forEach(a=>{if(a.job_id) appliedIds.add(a.job_id);});}catch(e){}
-}
+
 async function render(){
- let qCity=document.getElementById('loc').value;let qType=document.getElementById('type').value;let qExp=document.getElementById('exp').value;let qSal=document.getElementById('salary').value;
- let supaJobs=await fetchSupabaseJobs();await fetchMyApplications();
- let jobs=[...supaJobs];let seen=new Set();jobs=jobs.filter(j=>{const k=j.title+'|'+j.company;if(seen.has(k))return false;seen.add(k);return true;});
- allJobsCache=jobs;
- if(qCity) jobs=jobs.filter(j=>(j.location||'').includes(qCity));
- if(qType) jobs=jobs.filter(j=>(j.type||'').trim()===qType);
- if(qExp){
-   if(qExp==='No experience') jobs=jobs.filter(j=>(j.desc||'').toLowerCase().includes('no experience'));
-   if(qExp==='Matric only') jobs=jobs.filter(j=>(j.desc||'').toLowerCase().includes('matric'));
-   if(qExp==='1+ years') jobs=jobs.filter(j=>(j.desc||'').toLowerCase().includes('year')||(j.desc||'').toLowerCase().includes('experience'));
- }
- if(qSal){let min=parseInt(qSal);jobs=jobs.filter(j=>(j.salaryMin||0)>=min||(j.salaryText||'').includes('Market'));}
- document.getElementById('count').innerText=`${jobs.length} jobs found${qCity?' in '+qCity:''}${qType?' • '+qType:''} • Updated today`;
- if(jobs.length===0){document.getElementById('list').innerHTML=`<div class="card" style="text-align:center;color:#8DB0BF">No jobs found in database yet.<br><span style="font-size:11px"/span><br><button class="btn btn-green" style="margin-top:10px" onclick="document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render()">Clear filters</button></div>`;return;}
- document.getElementById('list').innerHTML=jobs.map((j)=>{
-  let posted=timeAgo(j.postedAt);let isApplied=appliedIds.has(j.id);
-  let logoHtml=j.logo?`<img class="logo-img" src="${j.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="logo-fallback" style="display:none">${initials(j.company)}</div>`:`<div class="logo-fallback">${initials(j.company)}</div>`;
-  let cacheIdx=allJobsCache.findIndex(c=>c.title==j.title&&c.company==j.company);
-  return `<div class="card">${isApplied?'<div class="applied-badge">APPLIED</div>':''}<div class="company-row">${logoHtml}<div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${posted}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><a class="btn-apply" href="${j.applyUrl}" target="_blank" rel="noopener" onclick="trackApply(${cacheIdx})">Apply now ↗</a><button class="btn-detail" onclick="viewDetails(${cacheIdx})">View details</button></div></div>`
- }).join('');
-}
-function viewDetails(cacheIdx){
-  let j = allJobsCache[cacheIdx]; if(!j) return;
-  alert(`${j.title}\n${j.company}\n${j.location} • ${j.type}\nCloses: ${j.closingDate}\n${j.salaryText}\n\n${j.desc}\n\nApply at: ${j.applyUrl}`);
-}
-async function getProfileCV(){
-  let user=getUser();let p={};try{p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');}catch(e){}
-  let cvUrl=p.cv_url||p.cvUrl||user?.cv_url||localStorage.getItem('jobway_cv_url')||'';
-  if(!cvUrl&&user?.id){
-    try{
-      let {data:prof}=await supabaseClient.from('profiles').select('cv_url, full_name').eq('id',user.id).single();
-      if(prof?.cv_url) cvUrl=prof.cv_url;if(prof?.full_name) p.fullName=prof.full_name;
-      if(!cvUrl){let {data:crow}=await supabaseClient.from('candidate_cvs').select('cv_url').eq('user_id',user.id).single();if(crow?.cv_url) cvUrl=crow.cv_url;}
-    }catch(e){}
+  let qLoc=document.getElementById('loc').value;
+  let qType=document.getElementById('type').value;
+  let qExp=document.getElementById('exp').value;
+  let qSal=document.getElementById('salary').value;
+  let jobs = await fetchJobs();
+  allJobsCache = jobs;
+  let filtered = jobs.filter(j=>{
+    if(qLoc && !( (j.location||'').toLowerCase().includes(qLoc.toLowerCase()) || (j.province||'').toLowerCase().includes(qLoc.toLowerCase()) || (qLoc==='KZN' && (j.province||'').includes('KwaZulu')) )) return false;
+    if(qType && (j.type||'').trim() !== qType) return false;
+    if(qExp==='No experience' && !(j.desc||'').toLowerCase().includes('no experience')) return false;
+    if(qExp==='Matric only' && !(j.desc||'').toLowerCase().includes('matric')) return false;
+    if(qSal && (j.salaryMin||0) < parseInt(qSal) && !(j.salaryText||'').includes('Market')) return false;
+    return true;
+  });
+  document.getElementById('count').innerText = `${filtered.length} jobs found${qLoc?' in '+qLoc:''} • Updated today`;
+  if(filtered.length===0){
+    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center;color:#8DB0BF">No jobs found in database yet.<br><span style="font-size:11px">Jobs table is empty OR RLS blocking anon SELECT.<br>Fix in Supabase: Policies > jobs > Add SELECT for anon.</span><br><button class="btn btn-green" style="margin-top:12px" onclick="clearF()">Clear filters</button></div>`;
+    return;
   }
-  if(cvUrl&&!cvUrl.startsWith('http')&&!cvUrl.startsWith('data:')){const {data}=supabaseClient.storage.from('cvs').getPublicUrl(cvUrl);cvUrl=data.publicUrl;}
-  return {cvUrl,profile:p,user};
+  document.getElementById('list').innerHTML = filtered.map((j,idx)=>{
+    let cacheIdx = allJobsCache.indexOf(j);
+    return `<div class="card"><div class="company-row"><div class="logo-fallback">${initials(j.company)}</div><div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${timeAgo(j.postedAt)}</span><span class="badge">Closes: ${j.closingDate}</span><span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><a class="btn-apply" href="${j.applyUrl}" target="_blank">Apply now ↗</a><button class="btn-detail" onclick="alert('${j.title}\\n${j.company}\\n${j.location} • ${j.type}\\nCloses: ${j.closingDate}\\n${j.salaryText}\\n\\n${j.desc.replace(/'/g,"")}')">View details</button></div></div>`
+  }).join('');
 }
-async function trackApply(cacheIdx){
-  let job=allJobsCache[cacheIdx]; if(!job) return;
-  let user=getUser(); if(!user||!user.id) return;
-  let {cvUrl,profile}=await getProfileCV();
-  let fullName=profile.fullName||profile.name||user?.full_name||'';
-  // Try to track but NEVER block the external link
-  try{
-    let payload={job_id:job.id,applicant_id:user.id,cv_url:cvUrl||'',cover_letter:`Applied for ${job.title} at ${job.company} — ${fullName}`,status:'Application Received'};
-    await supabaseClient.from('applications').insert([payload]);
-    appliedIds.add(job.id);
-  }catch(e){ console.log('track only', e); }
-  // Link already opens via <a href> - no redirect
-}
-async function applyJob(cacheIdx){
-  // Legacy fallback - also opens external site
-  let job=allJobsCache[cacheIdx]; if(!job) return;
-  await trackApply(cacheIdx);
-  window.open(job.applyUrl, '_blank');
-}
-async function subscribeWA(){
-  let wa=prompt('Your WhatsApp number for alerts (e.g. 0791234567):');if(!wa)return;
-  let clean=wa.replace(/[^0-9]/g,'');if(clean.startsWith('0'))clean='27'+clean.slice(1);
-  await supabaseClient.from('whatsapp_subscribers').insert([{phone:clean,whatsapp_number:clean}]);
-  localStorage.setItem('jobway_wa_alerts',wa);
-  alert('You will get jobs on WhatsApp from 079 060 8952. We will not spam.');
-}
+function clearF(){document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render();}
 render();
 </script>
 </body>
