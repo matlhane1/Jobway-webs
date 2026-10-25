@@ -3,23 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login | JobWay</title>
+<title>Login | JobWay - WhatsApp Only</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
 .card{background:#1A3341;border:1px solid #25475A;border-radius:24px;padding:24px;width:100%;max-width:380px}
-.logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:16px}
+.logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:8px}
+.sub{text-align:center;color:#8DB0BF;font-size:13px;margin-bottom:16px}
 .label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
-.input{width:100%;background:#0F2230!important;border:1px solid #25475A;color:white!important;padding:14px 46px 14px 14px;border-radius:12px;margin-top:8px;outline:none;font-size:14px;color-scheme:dark}
-.btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:14px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer;font-size:15px}
+.input{width:100%;background:#0F2230!important;border:1px solid #25475A;color:white!important;padding:15px 14px;border-radius:12px;margin-top:8px;outline:none;font-size:15px;color-scheme:dark}
+.btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:15px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer;font-size:15px}
 .btn:disabled{opacity:.6}
-.pass-wrap{position:relative}
-.eye{position:absolute;right:10px;top:50%;transform:translateY(-8%);cursor:pointer;background:#11283A;border:1px solid #25475A;border-radius:8px;padding:6px 8px;font-size:11px;color:#01F9C6;font-weight:800}
-.small{font-size:11px;color:#8DB0BF;text-align:center;margin-top:12px;line-height:1.4}
+.small{font-size:11px;color:#8DB0BF;text-align:center;margin-top:12px;line-height:1.5}
 .link{color:#01F9C6;font-size:12px;text-decoration:none;font-weight:700;cursor:pointer}
-.message{display:none;margin-top:12px;padding:10px;border-radius:10px;font-size:12px;text-align:center}
+.message{display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:13px;text-align:center;line-height:1.4}
 .message.error{display:block;background:#3A2025;border:1px solid #7A3540;color:#FFB4BE}
 .message.success{display:block;background:#123A31;border:1px solid #1D705D;color:#9CFFE9}
 </style>
@@ -27,124 +26,91 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <body>
 <div class="card">
 <div class="logo">JobWay</div>
-<h3 style="text-align:center;margin-bottom:12px;">Login to Continue</h3>
-<label class="label">Email</label>
-<input class="input" id="email" type="email" placeholder="you@gmail.com" autocomplete="email">
-<label class="label">Password</label>
-<div class="pass-wrap">
-<input class="input" id="pass" type="password" placeholder="••••••••" autocomplete="current-password">
-<span class="eye" id="eyeButton">👁️ Show</span>
+<h3 style="text-align:center;">Welcome back</h3>
+<p class="sub">Login with your WhatsApp number.<br>No email, no password.</p>
+
+<label class="label">WHATSAPP NUMBER</label>
+<input class="input" id="waNumber" type="tel" placeholder="e.g. 081 263 3193" inputmode="tel" autocomplete="tel">
+
+<button class="btn" id="loginButton" type="button">Login with WhatsApp →</button>
+
+<div style="display:flex;justify-content:center;margin-top:14px;">
+<a class="link" href="signup.html">No account? Create with WhatsApp →</a>
 </div>
-<button class="btn" id="loginButton" type="button">Log In</button>
-<div style="display:flex;justify-content:space-between;margin-top:12px;">
-<a class="link" id="forgotLink">Forgot Password?</a>
-<a class="link" href="signup.html">Create account</a>
-</div>
+
 <div id="message" class="message"></div>
-<p class="small">🔒 Secure login<br>No account = No access</p>
+<p class="small">🔒 Secure WhatsApp login<br>We filter jobs by your province & experience.<br>We never share your number.</p>
 </div>
+
 <script>
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 function showMessage(t,type='error'){
   const m=document.getElementById('message');
   m.textContent=t; m.className='message '+type;
 }
-document.getElementById('eyeButton').onclick = function(){
-  const p=document.getElementById('pass');
-  const e=document.getElementById('eyeButton');
-  if(p.type==='password'){p.type='text';e.textContent='🙈 Hide';}else{p.type='password';e.textContent='👁️ Show';}
-};
+
 async function login(){
-  const email=document.getElementById('email').value.trim().toLowerCase();
-  const password=document.getElementById('pass').value;
+  let waNum=document.getElementById('waNumber').value.trim().replace(/\s/g,'');
   const btn=document.getElementById('loginButton');
   document.getElementById('message').className='message';
-  if(!email||!password){showMessage('Please enter your email and password.');return;}
-  btn.disabled=true; btn.textContent='Logging in...';
+  if(!waNum || waNum.length < 9){showMessage('Please enter your WhatsApp number.');return;}
+
+  // Clean: 081... -> 2781...
+  let clean = waNum.replace(/^\+/,'');
+  if(clean.startsWith('0')) clean = '27' + clean.slice(1);
+  if(!clean.startsWith('27')) clean = '27' + clean;
+
+  btn.disabled=true; btn.textContent='Checking...';
   try{
-    const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
-    if(error){ showMessage(error.message); btn.disabled=false; btn.textContent='Log In'; return; }
-    const userId=data.user.id;
-    let role = data.user.user_metadata?.role || 'seeker';
-    let fullName = data.user.user_metadata?.full_name || '';
-    let cvUrl = null;
-    try{
-      const {data:profile} = await supabaseClient.from('profiles').select('role, full_name, cv_url, phone').eq('id', userId).single();
-      if(profile){
-        if(profile.role) role = profile.role;
-        if(profile.full_name) fullName = profile.full_name;
-        if(profile.cv_url) cvUrl = profile.cv_url;
-      }
-    }catch(e){}
-    if(!cvUrl){
-      try{
-        const {data: cvRow} = await supabaseClient.from('candidate_cvs').select('cv_url, full_name').eq('user_id', userId).single();
-        if(cvRow?.cv_url) cvUrl = cvRow.cv_url;
-        if(cvRow?.full_name && !fullName) fullName = cvRow.full_name;
-      }catch(e){}
+    // 1. Check whatsapp_subscribers
+    let {data, error} = await supabaseClient.from('whatsapp_subscribers').select('*').eq('whatsapp_number', clean).maybeSingle();
+
+    // 2. Try with 0... format as fallback
+    if(!data){
+      let alt = '0' + clean.slice(2);
+      let r2 = await supabaseClient.from('whatsapp_subscribers').select('*').eq('whatsapp_number', alt).maybeSingle();
+      if(r2.data) data = r2.data;
     }
-    role = String(role).toLowerCase().trim();
-    if(role === 'candidate') role = 'seeker';
-    if(role !== 'employer') role = 'seeker';
-    const lastEmail = localStorage.getItem('jobway_last_email');
-    if(lastEmail && lastEmail !== email){
-      localStorage.removeItem('jobway_applied');
-      localStorage.removeItem('jobway_all_applications');
-      localStorage.removeItem('jobway_profile');
-      localStorage.removeItem('jobway_cv_url');
-      localStorage.removeItem('jobway_pending_job');
+    // 3. Try phone column
+    if(!data){
+      let r3 = await supabaseClient.from('whatsapp_subscribers').select('*').eq('phone', clean).maybeSingle();
+      if(r3.data) data = r3.data;
     }
-    localStorage.setItem('jobway_last_email', email);
-    const jobwayUser = {
-      id: userId,
-      email: email,
-      full_name: fullName,
-      fullName: fullName,
-      role: role,
-      cv_url: cvUrl,
-      phone: data.user.phone || ''
-    };
-    localStorage.setItem('jobway_user', JSON.stringify(jobwayUser));
-    localStorage.setItem('user', JSON.stringify(jobwayUser));
-    localStorage.setItem('jobway_current_user', JSON.stringify(jobwayUser));
-    localStorage.setItem('jobway_user_email', email);
+
+    if(!data){
+      showMessage('Number not found. Please create account first.');
+      btn.disabled=false; btn.textContent='Login with WhatsApp →';
+      setTimeout(()=>{ location.href='signup.html'; }, 1500);
+      return;
+    }
+
+    // SUCCESS - Save for filtering
+    localStorage.setItem('userPhone', data.whatsapp_number || clean);
+    localStorage.setItem('userName', data.full_name || '');
+    localStorage.setItem('userProvince', data.province || '');
+    localStorage.setItem('userExperience', data.experience_level || '');
+    localStorage.setItem('user_role', 'seeker');
     localStorage.setItem('jobway_logged_in','true');
-    localStorage.setItem('user_role', role);
-    localStorage.setItem('jobway_user_id', userId);
-    if(cvUrl) localStorage.setItem('jobway_cv_url', cvUrl);
-    localStorage.setItem('jobway_profile', JSON.stringify({
-      fullName: fullName, email: email, cv_url: cvUrl, cvUrl: cvUrl
+    localStorage.setItem('jobway_user', JSON.stringify({
+      full_name: data.full_name,
+      whatsapp_number: data.whatsapp_number,
+      province: data.province,
+      experience_level: data.experience_level
     }));
-    showMessage('Login successful! Redirecting...','success');
-    if(role === 'employer'){
-      window.location.replace('employer-dashboard.html');
-    } else {
-      window.location.replace('applications.html');
-    }
-  }catch(err){ showMessage('Error: '+err.message); btn.disabled=false; btn.textContent='Log In'; }
+
+    showMessage('Welcome back ' + (data.full_name||'') + '! Showing jobs for ' + (data.province||'you') + ' • ' + (data.experience_level||'') + ' — Redirecting...','success');
+    setTimeout(()=>{ location.href='index.html'; }, 900);
+
+  }catch(err){
+    showMessage('Error: '+err.message);
+    btn.disabled=false; btn.textContent='Login with WhatsApp →';
+  }
 }
 document.getElementById('loginButton').addEventListener('click', login);
-document.getElementById('forgotLink').addEventListener('click', async ()=>{
-  const email=document.getElementById('email').value.trim().toLowerCase();
-  if(!email){showMessage('Enter your email address first.');return;}
-  const linkEl=document.getElementById('forgotLink');
-  const origText=linkEl.textContent; linkEl.textContent='Sending...';
-  try{
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-reset-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
-      body: JSON.stringify({ email })
-    });
-    const result = await res.json();
-    if(!res.ok) throw new Error(result.error || 'Failed to send');
-    showMessage('Password reset link sent to '+email+' - check inbox & spam.','success');
-  }catch(e){
-    showMessage('Error: '+e.message);
-  } finally { linkEl.textContent=origText; }
-});
-document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter') login();});
+document.getElementById('waNumber').addEventListener('keydown',e=>{if(e.key==='Enter') login();});
 </script>
 </body>
 </html>
