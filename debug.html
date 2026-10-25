@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><body style="background:#0F2835;color:#fff;padding:20px;font-family:sans-serif">
+<h2>JobWay Debug</h2><div id="out">Loading...</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+async function run(){
+  let out = document.getElementById('out');
+  let {data, error, count} = await sb.from('jobs').select('*', {count:'exact'}).limit(5);
+  out.innerHTML = `<b>Error:</b> ${error ? error.message : 'none'}<br><b>Count:</b> ${count}<br><b>Rows returned:</b> ${data ? data.length : 0}<br><pre>${JSON.stringify(data, null, 2).slice(0,2000)}</pre><br><br><b>Project:</b> dmxumcjeetphwzvgzzuk<br>If count=0, jobs are in other project. Check other project:`;
+  // Check other project too
+  const sb2 = window.supabase.createClient("https://fqqjvwpfehetqhmzsnqx.supabase.co","sb_publishable_6ZsP1JmJ5vJwJvJwJvJwJvJwJvJw");
+  let r2 = await sb2.from('jobs').select('*', {count:'exact'}).limit(1);
+  out.innerHTML += `<br><br><b>Other project fqqj... count:</b> ${r2.count} error: ${r2.error ? r2.error.message : 'none'}`;
+}
+run();
+</script></body></html>
