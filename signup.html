@@ -15,7 +15,10 @@ body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',system-ui,san
 .label{font-size:11px;color:#A8C8D0;font-weight:700;margin:14px 0 6px;display:block;letter-spacing:.05em}
 .input,select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:14px 12px;border-radius:10px;font-size:16px;font-family:inherit}
 .input:focus,select:focus{border-color:#01F9C6;outline:none}
-.role{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.role-btn{padding:14px;min-height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#0F2230;color:#fff;cursor:pointer;text-align:left;font-family:inherit}.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,.08)}
+.role{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;position:relative;z-index:10}
+.role-btn{padding:14px;min-height:52px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#0F2230;color:#fff;cursor:pointer;text-align:left;font-family:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none;width:100%;display:block}
+.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,.12);box-shadow:0 0 0 1px #01F9C6 inset}
+.role-btn b{pointer-events:none}.role-btn span{pointer-events:none}
 .btn{width:100%;padding:14px;min-height:48px;border-radius:999px;border:0;font-weight:800;cursor:pointer;margin-top:16px;font-family:inherit;font-size:15px}.btn-green{background:#01F9C6;color:#0A1F2E}.btn:disabled{opacity:.6}
 .status{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;line-height:1.4;display:none;word-break:break-word}.status.show{display:block}.status.error{background:rgba(255,138,157,.12);border:1px solid rgba(255,138,157,.3);color:#FF8A9D}.status.ok{background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.2);color:#01F9C6}
 .check-row{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#C9E6EC;margin-top:12px;line-height:1.4}.check-row input{margin-top:2px;width:18px;height:18px;accent-color:#01F9C6;flex-shrink:0}
@@ -29,56 +32,26 @@ body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',system-ui,san
 <p style="text-align:center;color:#A8C8D0;font-size:13px">No email, no password. Just WhatsApp.<br>We filter jobs by your province & experience.</p>
 <div class="card">
 <label class="label">I AM A...</label>
-<div class="role"><button type="button" class="role-btn active" id="btn-seeker" onclick="setRole('seeker')"><b>Jobseeker</b><br><span style="font-size:12px;color:#A8C8D0">Find work</span></button><button type="button" class="role-btn" id="btn-employer" onclick="setRole('employer')"><b>Employer</b><br><span style="font-size:12px;color:#A8C8D0">Hire staff</span></button></div>
+<div class="role">
+<button type="button" class="role-btn active" id="btn-seeker"><b>Jobseeker</b><br><span style="font-size:12px;color:#A8C8D0">Find work</span></button>
+<button type="button" class="role-btn" id="btn-employer"><b>Employer</b><br><span style="font-size:12px;color:#A8C8D0">Hire staff</span></button>
+</div>
 
 <form id="form">
 <label class="label">FULL NAME *</label><input class="input" id="fn" required placeholder="Thandi Nkosi" autocomplete="name">
-
 <label class="label">WHATSAPP NUMBER *</label><input class="input" id="waNumber" type="tel" placeholder="e.g. 081 263 3193" inputmode="tel" required>
 <div class="hint">We will send job alerts to this number. Use 0... format.</div>
 
 <div id="seeker-fields">
 <label class="label">PROVINCE *</label>
-<select id="province" required>
-<option value="">Select Province</option>
-<option value="Gauteng">Gauteng</option>
-<option value="Limpopo">Limpopo</option>
-<option value="KwaZulu-Natal">KwaZulu-Natal</option>
-<option value="Western Cape">Western Cape</option>
-<option value="Eastern Cape">Eastern Cape</option>
-<option value="Free State">Free State</option>
-<option value="Mpumalanga">Mpumalanga</option>
-<option value="North West">North West</option>
-<option value="Northern Cape">Northern Cape</option>
-</select>
-
+<select id="province"><option value="">Select Province</option><option value="Gauteng">Gauteng</option><option value="Limpopo">Limpopo</option><option value="KwaZulu-Natal">KwaZulu-Natal</option><option value="Western Cape">Western Cape</option><option value="Eastern Cape">Eastern Cape</option><option value="Free State">Free State</option><option value="Mpumalanga">Mpumalanga</option><option value="North West">North West</option><option value="Northern Cape">Northern Cape</option></select>
 <label class="label">EXPERIENCE LEVEL *</label>
-<select id="experience" required>
-<option value="">Select Experience</option>
-<option value="No Matric">No Matric</option>
-<option value="No Experience Required">No Experience Required</option>
-<option value="Entry-Level">Entry-Level</option>
-<option value="Junior">Junior</option>
-<option value="Mid-Level">Mid-Level</option>
-<option value="Senior">Senior</option>
-<option value="Graduate">Graduate / Internship</option>
-</select>
-
+<select id="experience"><option value="">Select Experience</option><option value="No Matric">No Matric</option><option value="No Experience Required">No Experience Required</option><option value="Entry-Level">Entry-Level</option><option value="Junior">Junior</option><option value="Mid-Level">Mid-Level</option><option value="Senior">Senior</option><option value="Graduate">Graduate / Internship</option></select>
 <label class="label">WHAT JOBS DO YOU WANT? (optional)</label>
-<select id="jobType">
-<option value="">All Jobs</option>
-<option value="General Worker">General Worker</option>
-<option value="General Cleaning Jobs">General Cleaning Jobs</option>
-<option value="General Retail Jobs">General Retail Jobs</option>
-<option value="General Restaurant Jobs">General Restaurant Jobs</option>
-<option value="General Hotel Jobs">General Hotel Jobs</option>
-<option value="General Driving Jobs">General Driving Jobs</option>
-<option value="Office and Administration Jobs">Office and Administration Jobs</option>
-<option value="Warehouse and Logistics Jobs">Warehouse and Logistics Jobs</option>
-<option value="Sales And Marketing Jobs">Sales And Marketing Jobs</option>
-<option value="Banking, Finance and Insurance Jobs">Banking, Finance and Insurance Jobs</option>
-</select>
+<select id="jobType"><option value="">All Jobs</option><option value="General Worker">General Worker</option><option value="General Cleaning Jobs">General Cleaning Jobs</option><option value="General Retail Jobs">General Retail Jobs</option><option value="General Restaurant Jobs">General Restaurant Jobs</option><option value="General Hotel Jobs">General Hotel Jobs</option><option value="General Driving Jobs">General Driving Jobs</option><option value="Office and Administration Jobs">Office and Administration Jobs</option><option value="Warehouse and Logistics Jobs">Warehouse and Logistics Jobs</option><option value="Sales And Marketing Jobs">Sales And Marketing Jobs</option></select>
 </div>
+
+<div id="employer-note" style="display:none;background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.2);padding:12px;border-radius:10px;margin-top:14px;font-size:13px;line-height:1.5">As an Employer you will post jobs for R299. No province filter needed.</div>
 
 <label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy & POPIA - JobWay can WhatsApp me jobs</span></label>
 <input type="hidden" id="role" value="seeker">
@@ -98,10 +71,16 @@ function setRole(r){
   document.getElementById("role").value=r;
   document.getElementById("btn-seeker").classList.toggle("active",r==="seeker");
   document.getElementById("btn-employer").classList.toggle("active",r==="employer");
-  document.getElementById("seeker-fields").style.display = r==="seeker" ? "block" : "none";
-  document.getElementById("province").required = r==="seeker";
-  document.getElementById("experience").required = r==="seeker";
+  const isSeeker = r==="seeker";
+  document.getElementById("seeker-fields").style.display = isSeeker ? "block" : "none";
+  document.getElementById("employer-note").style.display = isSeeker ? "none" : "block";
+  document.getElementById("submitBtn").textContent = isSeeker ? "Get Jobs on WhatsApp →" : "Continue as Employer →";
 }
+document.getElementById("btn-seeker").addEventListener("click", function(e){ e.preventDefault(); setRole('seeker'); });
+document.getElementById("btn-employer").addEventListener("click", function(e){ e.preventDefault(); setRole('employer'); });
+document.getElementById("btn-seeker").addEventListener("touchstart", function(e){ e.preventDefault(); setRole('seeker'); }, {passive:false});
+document.getElementById("btn-employer").addEventListener("touchstart", function(e){ e.preventDefault(); setRole('employer'); }, {passive:false});
+
 function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
 
 document.getElementById("form").addEventListener("submit", async(e)=>{
@@ -111,54 +90,30 @@ document.getElementById("form").addEventListener("submit", async(e)=>{
  const role=document.getElementById("role").value;
  const province=document.getElementById("province").value;
  const experience=document.getElementById("experience").value;
- const jobType=document.getElementById("jobType").value;
+ const jobType=document.getElementById("jobType")?.value || "";
  if(!name || waNum.length < 9){showStatus("Please enter full name and valid WhatsApp number","error");return;}
  if(role==="seeker" && (!province || !experience)){showStatus("Please select Province and Experience — so we can filter jobs for you","error");return;}
  if(!document.getElementById("popia").checked){showStatus("Please accept POPIA","error");return;}
-
- // Clean number: 081... -> 2781...
  let clean = waNum.replace(/^\+/,'');
  if(clean.startsWith('0')) clean = '27' + clean.slice(1);
  if(!clean.startsWith('27')) clean = '27' + clean;
-
  const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating your WhatsApp account...";
  try{
-   // Check if already exists
    let {data: existing} = await supabase.from('whatsapp_subscribers').select('id').eq('whatsapp_number', clean).maybeSingle();
    if(existing){
-     // Update profile
      await supabase.from('whatsapp_subscribers').update({full_name:name, province: province||null, experience_level: experience||null, job_type: jobType||null, subscribed:true}).eq('whatsapp_number', clean);
    } else {
-     let {error} = await supabase.from('whatsapp_subscribers').insert({
-       full_name: name,
-       whatsapp_number: clean,
-       phone: clean,
-       province: province||null,
-       experience_level: experience||null,
-       job_type: jobType||null,
-       subscribed: true,
-       is_active: true,
-       email: clean + '@whatsapp.jobway.co.za'
-     });
+     let {error} = await supabase.from('whatsapp_subscribers').insert({full_name:name, whatsapp_number:clean, phone:clean, province:province||null, experience_level:experience||null, job_type:jobType||null, subscribed:true, is_active:true, email:clean+'@whatsapp.jobway.co.za'});
      if(error) throw error;
    }
-
-   // Save locally for filtering on index.html + jobs.html
    localStorage.setItem('userPhone', clean);
    localStorage.setItem('userName', name);
    localStorage.setItem('userProvince', province);
    localStorage.setItem('userExperience', experience);
    localStorage.setItem('user_role', role);
-   localStorage.setItem('jobway_user_email', clean + '@whatsapp.jobway.co.za');
-
-   showStatus("Welcome " + name + "! Showing jobs for " + province + " • " + experience + " — Redirecting...","ok");
-   setTimeout(()=>{ location.href = role==="employer" ? "employer-dashboard.html" : "index.html"; }, 1000);
-
- }catch(err){
-   console.error(err);
-   showStatus("Error: " + (err.message || "Could not create account. Try login."), "error");
-   btn.disabled=false;btn.textContent="Get Jobs on WhatsApp →";
- }
+   showStatus("Welcome " + name + "! Redirecting...","ok");
+   setTimeout(()=>{ location.href = role==="employer" ? "employer-dashboard.html" : "index.html"; }, 900);
+ }catch(err){ console.error(err); showStatus("Error: " + (err.message||"Could not create account"),"error"); btn.disabled=false; btn.textContent="Get Jobs on WhatsApp →"; }
 });
 </script>
 </body>
