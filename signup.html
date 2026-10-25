@@ -90,16 +90,29 @@ document.getElementById("form").addEventListener("submit", async(e)=>{
   let clean=wa.replace(/^\+/,''); if(clean.startsWith('0')) clean='27'+clean.slice(1); if(!clean.startsWith('27')) clean='27'+clean;
   const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating...";
   try{
-    // FIXED: only use columns that actually exist in your table
     const payload = {
       phone: clean,
       whatsapp_number: clean,
+      full_name: name,
+      name: name,
+      role: role,
       province: prov || 'Gauteng',
+      experience: exp || 'Entry-Level',
       job_type: jobType || 'All Jobs',
       is_active: true
     };
-    const {error} = await supabaseClient.from('whatsapp_subscribers').upsert(payload, {onConflict: 'phone'});
-    if(error) throw error;
+
+    // 1. Save to whatsapp_subscribers (for WhatsApp jobs)
+    const {error: err1} = await supabaseClient.from('whatsapp_subscribers').upsert(payload, {onConflict: 'phone'});
+    if(err1) throw err1;
+
+    // 2. Save to users table (THIS IS WHAT YOUR ADMIN TABLE READS)
+    const {error: err2} = await supabaseClient.from('users').upsert(payload, {onConflict: 'phone'});
+    if(err2) {
+      console.warn('users insert failed (will still continue):', err2.message);
+      // Try with whatsapp_number conflict instead
+      await supabaseClient.from('users').upsert(payload, {onConflict: 'whatsapp_number'});
+    }
 
     localStorage.setItem('userPhone',clean);
     localStorage.setItem('userName',name);
@@ -110,7 +123,7 @@ document.getElementById("form").addEventListener("submit", async(e)=>{
     setTimeout(()=>{ location.href= role==="employer" ? "employer-dashboard.html" : "jobs.html"; },800);
   }catch(err){
     console.error(err);
-    showStatus("Error: "+err.message+" — Run RLS fix in Supabase SQL","error");
+    showStatus("Error: "+err.message,"error");
     btn.disabled=false; btn.textContent="Get Jobs on WhatsApp →";
   }
 });
