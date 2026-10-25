@@ -32,20 +32,17 @@ body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;mi
 <p style="text-align:center;color:#A8C8D0;font-size:13px;line-height:1.5">No email, no password.<br>Everyone uses WhatsApp only.</p>
 <div class="card">
 <label class="label">I AM A...</label>
-<!-- NO BUTTON ELEMENT - uses DIV, cannot be blocked by form validation -->
 <div class="role-wrap">
 <div id="opt-seeker" class="role-opt active" onclick="setRole('seeker')">Jobseeker<small>Find work</small></div>
 <div id="opt-employer" class="role-opt" onclick="setRole('employer')">Employer<small>Hire staff</small></div>
 </div>
 <input type="hidden" id="role" value="seeker">
-
 <form id="form">
 <label class="label">FULL NAME *</label>
 <input class="input" id="fn" required placeholder="Thandi Nkosi">
 <label class="label">WHATSAPP NUMBER * (BOTH seeker & employer)</label>
 <input class="input" id="waNumber" type="tel" placeholder="e.g. 0812633193" required>
 <p style="font-size:11px;color:#6EA3AF;margin-top:4px">Use your WhatsApp number to login. 0... format.</p>
-
 <div id="seeker-fields">
 <label class="label">PROVINCE *</label>
 <select id="province"><option value="">Select Province</option><option>Gauteng</option><option>Limpopo</option><option>KwaZulu-Natal</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
@@ -54,20 +51,16 @@ body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;mi
 <label class="label">WHAT JOBS DO YOU WANT?</label>
 <select id="jobType"><option value="">All Jobs</option><option>General Worker</option><option>General Cleaning Jobs</option><option>General Retail Jobs</option><option>General Restaurant Jobs</option><option>General Hotel Jobs</option><option>General Driving Jobs</option><option>Office and Administration Jobs</option><option>Warehouse and Logistics Jobs</option></select>
 </div>
-
 <div id="employer-fields" style="display:none;background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.2);padding:12px;border-radius:10px;margin-top:14px;font-size:13px;line-height:1.5">
 <b style="color:#01F9C6">Employer mode ✓</b><br>Post a job starting from R299. Your WhatsApp is your login — no email needed.
 </div>
-
 <label class="check"><input type="checkbox" id="popia" required style="width:18px;height:18px;accent-color:#01F9C6"><span>I agree to Privacy & POPIA - JobWay can WhatsApp me</span></label>
 <button class="btn" id="submitBtn" type="submit">Get Jobs on WhatsApp →</button>
 </form>
 <div id="status" class="status"></div>
 <p style="text-align:center;font-size:12px;color:#6EA3AF;margin-top:14px">Already have account? <a href="login.html" style="color:#01F9C6;font-weight:700">Login with WhatsApp</a></p>
 </div></div>
-
 <script>
-// ROLE SWITCH - runs BEFORE Supabase so it never fails
 function setRole(r){
   document.getElementById('role').value=r;
   document.getElementById('opt-seeker').classList.toggle('active',r==='seeker');
@@ -81,7 +74,7 @@ function setRole(r){
 <script>
 const SUPABASE_URL="https://dmxumcjeetphwzvgzzuk.supabase.co";
 const SUPABASE_KEY="sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
-let supabase=null; try{supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);}catch(e){}
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
 document.getElementById("form").addEventListener("submit", async(e)=>{
   e.preventDefault();
@@ -91,21 +84,35 @@ document.getElementById("form").addEventListener("submit", async(e)=>{
   const prov=document.getElementById("province").value;
   const exp=document.getElementById("experience").value;
   const jobType=document.getElementById("jobType").value;
-  if(!name||wa.length<9){showStatus("Enter full name and WhatsApp number","error");return;}
+  if(!name || wa.length<9){showStatus("Enter full name and WhatsApp number","error");return;}
   if(role==="seeker" && (!prov||!exp)){showStatus("Please select Province + Experience","error");return;}
-  if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
+  if(!document.getElementById("popia").checked){showStatus("Accept POPIA to continue","error");return;}
   let clean=wa.replace(/^\+/,''); if(clean.startsWith('0')) clean='27'+clean.slice(1); if(!clean.startsWith('27')) clean='27'+clean;
   const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating...";
   try{
-    if(supabase){
-      let {data:ex}=await supabase.from('whatsapp_subscribers').select('id').eq('whatsapp_number',clean).maybeSingle();
-      if(ex){ await supabase.from('whatsapp_subscribers').update({full_name:name,province:prov||null,experience_level:exp||null,subscribed:true}).eq('whatsapp_number',clean); }
-      else{ let {error}=await supabase.from('whatsapp_subscribers').insert({full_name:name,whatsapp_number:clean,phone:clean,province:prov||null,experience_level:exp||null,job_type:jobType||null,subscribed:true,is_active:true,email:clean+'@whatsapp.jobway.co.za'}); if(error) throw error; }
-    }
-    localStorage.setItem('userPhone',clean); localStorage.setItem('userName',name); localStorage.setItem('userProvince',prov); localStorage.setItem('userExperience',exp); localStorage.setItem('user_role',role);
-    showStatus("Welcome "+name+"! Redirecting...","ok");
-    setTimeout(()=>{ location.href= role==="employer" ? "employer-dashboard.html" : "index.html"; },800);
-  }catch(err){ showStatus(err.message,"error"); btn.disabled=false; btn.textContent="Get Jobs on WhatsApp →"; }
+    // FIXED: only use columns that actually exist in your table
+    const payload = {
+      phone: clean,
+      whatsapp_number: clean,
+      province: prov || 'Gauteng',
+      job_type: jobType || 'All Jobs',
+      is_active: true
+    };
+    const {error} = await supabaseClient.from('whatsapp_subscribers').upsert(payload, {onConflict: 'phone'});
+    if(error) throw error;
+
+    localStorage.setItem('userPhone',clean);
+    localStorage.setItem('userName',name);
+    localStorage.setItem('userProvince',prov);
+    localStorage.setItem('userExperience',exp);
+    localStorage.setItem('user_role',role);
+    showStatus("✅ Welcome "+name+"! Redirecting...","ok");
+    setTimeout(()=>{ location.href= role==="employer" ? "employer-dashboard.html" : "jobs.html"; },800);
+  }catch(err){
+    console.error(err);
+    showStatus("Error: "+err.message+" — Run RLS fix in Supabase SQL","error");
+    btn.disabled=false; btn.textContent="Get Jobs on WhatsApp →";
+  }
 });
 </script>
 </body>
