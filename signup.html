@@ -4,111 +4,160 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0F2835">
-<title>Create Account | JobWay</title>
+<title>Create Account | JobWay - WhatsApp Only</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-height:100vh;min-height:100dvh}
+body{background:#0F2835;color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-height:100vh}
 .header{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
 .logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:20px;cursor:pointer}
 .wrap{max-width:480px;margin:0 auto;padding:20px 16px 32px}.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;margin-top:16px}
 .label{font-size:11px;color:#A8C8D0;font-weight:700;margin:14px 0 6px;display:block;letter-spacing:.05em}
-.input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:14px 12px;border-radius:10px;font-size:16px;font-family:inherit}
-.input:focus{border-color:#01F9C6;outline:none}
+.input,select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:14px 12px;border-radius:10px;font-size:16px;font-family:inherit}
+.input:focus,select:focus{border-color:#01F9C6;outline:none}
 .role{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.role-btn{padding:14px;min-height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#0F2230;color:#fff;cursor:pointer;text-align:left;font-family:inherit}.role-btn.active{border-color:#01F9C6;background:rgba(1,249,198,.08)}
 .btn{width:100%;padding:14px;min-height:48px;border-radius:999px;border:0;font-weight:800;cursor:pointer;margin-top:16px;font-family:inherit;font-size:15px}.btn-green{background:#01F9C6;color:#0A1F2E}.btn:disabled{opacity:.6}
 .status{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;line-height:1.4;display:none;word-break:break-word}.status.show{display:block}.status.error{background:rgba(255,138,157,.12);border:1px solid rgba(255,138,157,.3);color:#FF8A9D}.status.ok{background:rgba(1,249,198,.08);border:1px solid rgba(1,249,198,.2);color:#01F9C6}
-.pw-wrap{position:relative}.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:#A8C8D0;cursor:pointer;font-size:16px;padding:10px;min-width:44px;min-height:44px}
 .check-row{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#C9E6EC;margin-top:12px;line-height:1.4}.check-row input{margin-top:2px;width:18px;height:18px;accent-color:#01F9C6;flex-shrink:0}
+.hint{font-size:11px;color:#6EA3AF;margin-top:4px;line-height:1.5}
 </style>
 </head>
 <body>
-<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><button onclick="location.href='login.html'" style="background:#1A3E52;color:#fff;border:0;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">Log in</button></div>
+<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><button onclick="location.href='login.html'" style="background:#1A3E52;color:#fff;border:0;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">Log in with WhatsApp</button></div>
 <div class="wrap">
-<h1 style="font-family:'Space Grotesk';text-align:center;font-size:26px;margin:16px 0">Create your account</h1>
+<h1 style="font-family:'Space Grotesk';text-align:center;font-size:26px;margin:16px 0">Join with WhatsApp</h1>
+<p style="text-align:center;color:#A8C8D0;font-size:13px">No email, no password. Just WhatsApp.<br>We filter jobs by your province & experience.</p>
 <div class="card">
 <label class="label">I AM A...</label>
 <div class="role"><button type="button" class="role-btn active" id="btn-seeker" onclick="setRole('seeker')"><b>Jobseeker</b><br><span style="font-size:12px;color:#A8C8D0">Find work</span></button><button type="button" class="role-btn" id="btn-employer" onclick="setRole('employer')"><b>Employer</b><br><span style="font-size:12px;color:#A8C8D0">Hire staff</span></button></div>
+
 <form id="form">
-<label class="label">FULL NAME</label><input class="input" id="fn" required placeholder="Thandi Nkosi" autocomplete="name">
-<label class="label">EMAIL</label><input class="input" id="em" type="email" required placeholder="you@mail.com" autocomplete="email">
-<label class="label">PASSWORD</label>
-<div class="pw-wrap"><input class="input" id="pw" type="password" required placeholder="6+ characters" minlength="6" style="padding-right:48px" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw()">👁️</button></div>
-<div id="wa-wrap" class="check-row"><input type="checkbox" id="wa" checked><label for="wa">Get WhatsApp job alerts</label></div>
-<div id="wa-phone-wrap"><label class="label">WHATSAPP NUMBER</label><input class="input" id="waNumber" type="tel" placeholder="e.g. 0812633193" inputmode="tel" required></div>
-<label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy & POPIA</span></label>
+<label class="label">FULL NAME *</label><input class="input" id="fn" required placeholder="Thandi Nkosi" autocomplete="name">
+
+<label class="label">WHATSAPP NUMBER *</label><input class="input" id="waNumber" type="tel" placeholder="e.g. 081 263 3193" inputmode="tel" required>
+<div class="hint">We will send job alerts to this number. Use 0... format.</div>
+
+<div id="seeker-fields">
+<label class="label">PROVINCE *</label>
+<select id="province" required>
+<option value="">Select Province</option>
+<option value="Gauteng">Gauteng</option>
+<option value="Limpopo">Limpopo</option>
+<option value="KwaZulu-Natal">KwaZulu-Natal</option>
+<option value="Western Cape">Western Cape</option>
+<option value="Eastern Cape">Eastern Cape</option>
+<option value="Free State">Free State</option>
+<option value="Mpumalanga">Mpumalanga</option>
+<option value="North West">North West</option>
+<option value="Northern Cape">Northern Cape</option>
+</select>
+
+<label class="label">EXPERIENCE LEVEL *</label>
+<select id="experience" required>
+<option value="">Select Experience</option>
+<option value="No Matric">No Matric</option>
+<option value="No Experience Required">No Experience Required</option>
+<option value="Entry-Level">Entry-Level</option>
+<option value="Junior">Junior</option>
+<option value="Mid-Level">Mid-Level</option>
+<option value="Senior">Senior</option>
+<option value="Graduate">Graduate / Internship</option>
+</select>
+
+<label class="label">WHAT JOBS DO YOU WANT? (optional)</label>
+<select id="jobType">
+<option value="">All Jobs</option>
+<option value="General Worker">General Worker</option>
+<option value="General Cleaning Jobs">General Cleaning Jobs</option>
+<option value="General Retail Jobs">General Retail Jobs</option>
+<option value="General Restaurant Jobs">General Restaurant Jobs</option>
+<option value="General Hotel Jobs">General Hotel Jobs</option>
+<option value="General Driving Jobs">General Driving Jobs</option>
+<option value="Office and Administration Jobs">Office and Administration Jobs</option>
+<option value="Warehouse and Logistics Jobs">Warehouse and Logistics Jobs</option>
+<option value="Sales And Marketing Jobs">Sales And Marketing Jobs</option>
+<option value="Banking, Finance and Insurance Jobs">Banking, Finance and Insurance Jobs</option>
+</select>
+</div>
+
+<label class="check-row"><input type="checkbox" id="popia" required><span>I agree to Privacy & POPIA - JobWay can WhatsApp me jobs</span></label>
 <input type="hidden" id="role" value="seeker">
-<button class="btn btn-green" id="submitBtn" type="submit">Create account →</button>
+<button class="btn btn-green" id="submitBtn" type="submit">Get Jobs on WhatsApp →</button>
 </form>
 <div id="status" class="status"></div>
+<p style="text-align:center;font-size:12px;color:#6EA3AF;margin-top:14px">Already have account? <a href="login.html" style="color:#01F9C6;font-weight:700">Login with WhatsApp</a></p>
 </div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
-function setRole(r){document.getElementById("role").value=r;document.getElementById("btn-seeker").classList.toggle("active",r==="seeker");document.getElementById("btn-employer").classList.toggle("active",r==="employer");const s=r==="seeker";const w=document.getElementById("wa").checked;document.getElementById("wa-wrap").style.display=s?"flex":"none";document.getElementById("wa-phone-wrap").style.display=(s&&w)?"block":"none";document.getElementById("waNumber").required=(s&&w);}
-function togglePw(){const p=document.getElementById("pw");p.type=p.type==="password"?"text":"password";}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function setRole(r){
+  document.getElementById("role").value=r;
+  document.getElementById("btn-seeker").classList.toggle("active",r==="seeker");
+  document.getElementById("btn-employer").classList.toggle("active",r==="employer");
+  document.getElementById("seeker-fields").style.display = r==="seeker" ? "block" : "none";
+  document.getElementById("province").required = r==="seeker";
+  document.getElementById("experience").required = r==="seeker";
+}
 function showStatus(m,t){const s=document.getElementById("status");s.textContent=m;s.className="status show "+t;}
-document.getElementById("wa").addEventListener("change",function(){const s=document.getElementById("role").value==="seeker";document.getElementById("wa-phone-wrap").style.display=(s&&this.checked)?"block":"none";document.getElementById("waNumber").required=(s&&this.checked);});
-document.getElementById("form").addEventListener("submit",async(e)=>{
+
+document.getElementById("form").addEventListener("submit", async(e)=>{
  e.preventDefault();
  const name=document.getElementById("fn").value.trim();
- const email=document.getElementById("em").value.trim().toLowerCase();
- const password=document.getElementById("pw").value;
+ let waNum=document.getElementById("waNumber").value.trim().replace(/\s/g,'');
  const role=document.getElementById("role").value;
- const waChecked=document.getElementById("wa").checked;
- const waNum=document.getElementById("waNumber").value.trim();
- if(!name||!email.includes("@")||password.length<6){showStatus("Please fill name, valid email and 6+ char password","error");return;}
- if(role==="seeker"&&waChecked&&!waNum){showStatus("Enter WhatsApp number","error");return;}
- if(!document.getElementById("popia").checked){showStatus("Accept POPIA","error");return;}
- const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating account...";
+ const province=document.getElementById("province").value;
+ const experience=document.getElementById("experience").value;
+ const jobType=document.getElementById("jobType").value;
+ if(!name || waNum.length < 9){showStatus("Please enter full name and valid WhatsApp number","error");return;}
+ if(role==="seeker" && (!province || !experience)){showStatus("Please select Province and Experience — so we can filter jobs for you","error");return;}
+ if(!document.getElementById("popia").checked){showStatus("Please accept POPIA","error");return;}
+
+ // Clean number: 081... -> 2781...
+ let clean = waNum.replace(/^\+/,'');
+ if(clean.startsWith('0')) clean = '27' + clean.slice(1);
+ if(!clean.startsWith('27')) clean = '27' + clean;
+
+ const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating your WhatsApp account...";
  try{
-  const res = await fetch(SUPABASE_URL + "/auth/v1/signup", {
-    method:"POST",
-    headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"},
-    body: JSON.stringify({email:email,password:password,data:{full_name:name,role:role}})
-  });
-  const json = await res.json();
-  if(!res.ok){
-    if(json.msg && json.msg.toLowerCase().includes("already")) throw new Error("Account already exists, please login");
-    if(json.error_code === "email_exists") throw new Error("Account already exists, please login");
-    throw new Error(json.msg || json.message || "Signup failed");
-  }
-  let userId = json.user?.id;
-  let loginOk = false;
-  try{
-    const loginRes = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password",{
-      method:"POST",
-      headers:{"apikey":SUPABASE_KEY,"Content-Type":"application/json"},
-      body: JSON.stringify({email:email,password:password})
-    });
-    const loginJson = await loginRes.json();
-    if(loginRes.ok && loginJson.user){ userId = loginJson.user.id; loginOk=true; localStorage.setItem("jobway_token", loginJson.access_token); }
-  }catch(_){ }
-  if(userId){
-    try{
-      let clean = waNum.replace(/\s/g,'').replace(/^0/,'27');
-      await fetch(SUPABASE_URL + "/rest/v1/profiles",{
-        method:"POST",
-        headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
-        body: JSON.stringify({id:userId,email:email,full_name:name,role:role,whatsapp_number:waNum,phone:waNum})
-      });
-      if(role==="seeker" && waChecked && waNum){
-        await fetch(SUPABASE_URL + "/rest/v1/whatsapp_subscribers",{
-          method:"POST",
-          headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
-          body: JSON.stringify({email:email,full_name:name,whatsapp_number:clean,subscribed:true})
-        });
-      }
-    }catch(_){ }
-  }
-  localStorage.setItem("jobway_user_email",email);
-  localStorage.setItem("user_role",role);
-  if(loginOk){ showStatus("Account created! Redirecting...","ok"); setTimeout(()=>{location.href = role==="employer" ? "employer-dashboard.html" : "candidate-dashboard.html";},900); }
-  else{ showStatus("Account created! Please login.","ok"); setTimeout(()=>location.href='login.html',1200); }
+   // Check if already exists
+   let {data: existing} = await supabase.from('whatsapp_subscribers').select('id').eq('whatsapp_number', clean).maybeSingle();
+   if(existing){
+     // Update profile
+     await supabase.from('whatsapp_subscribers').update({full_name:name, province: province||null, experience_level: experience||null, job_type: jobType||null, subscribed:true}).eq('whatsapp_number', clean);
+   } else {
+     let {error} = await supabase.from('whatsapp_subscribers').insert({
+       full_name: name,
+       whatsapp_number: clean,
+       phone: clean,
+       province: province||null,
+       experience_level: experience||null,
+       job_type: jobType||null,
+       subscribed: true,
+       is_active: true,
+       email: clean + '@whatsapp.jobway.co.za'
+     });
+     if(error) throw error;
+   }
+
+   // Save locally for filtering on index.html + jobs.html
+   localStorage.setItem('userPhone', clean);
+   localStorage.setItem('userName', name);
+   localStorage.setItem('userProvince', province);
+   localStorage.setItem('userExperience', experience);
+   localStorage.setItem('user_role', role);
+   localStorage.setItem('jobway_user_email', clean + '@whatsapp.jobway.co.za');
+
+   showStatus("Welcome " + name + "! Showing jobs for " + province + " • " + experience + " — Redirecting...","ok");
+   setTimeout(()=>{ location.href = role==="employer" ? "employer-dashboard.html" : "index.html"; }, 1000);
+
  }catch(err){
-  console.error(err);
-  showStatus(err.message,"error");
-  btn.disabled=false;btn.textContent="Create account →";
+   console.error(err);
+   showStatus("Error: " + (err.message || "Could not create account. Try login."), "error");
+   btn.disabled=false;btn.textContent="Get Jobs on WhatsApp →";
  }
 });
 </script>
