@@ -58,7 +58,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <select class="select" id="type" onchange="render()"><option value="">All Types</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Temporary</option></select>
 <select class="select" id="exp" onchange="render()"><option value="">Any Experience</option><option>No experience</option><option>1+ years</option><option>Matric only</option></select>
 <select class="select" id="salary" onchange="render()"><option value="">Any Salary</option><option value="3500">R3500+</option><option value="5000">R5000+</option><option value="8000">R8000+</option></select>
-<button class="btn-filter btn-wa" onclick="location.href='signup.html'">Get jobs on WhatsApp</button>
+<button class="btn-filter btn-wa" onclick="location.href='join.html'">Get jobs on WhatsApp</button>
 <button class="btn-filter btn-track" onclick="location.href='track-applications.html'">Track my applications</button>
 </div>
 <div id="count" style="font-size:12px;color:#8DB0BF;margin:14px 2px"></div>
@@ -90,14 +90,10 @@ function extractUrl(text, url){
   let m = text.match(/https?:\/\/[^\s\)]+/);
   return m ? m[0].replace(/[.,]$/,'') : 'https://www.careers24.com';
 }
-// FIXED: Realtime closing logic
 function getClosingInfo(j){
   let closingRaw = j.closing_date || j.closingDate;
   let closingDate;
-  if(closingRaw){
-    closingDate = new Date(closingRaw);
-  } else {
-    // If no closing date in DB, auto = posted + 14 days
+  if(closingRaw){ closingDate = new Date(closingRaw); } else {
     const base = j.created_at ? new Date(j.created_at) : new Date();
     closingDate = new Date(base.getTime() + 14*24*60*60*1000);
   }
@@ -114,15 +110,30 @@ function closingBadge(info){
   if(info.diffDays <= 7) return `<span class="badge badge-yellow">Closes in ${info.diffDays} days • ${dateStr}</span>`;
   return `<span class="badge">Closes: ${dateStr} • ${info.diffDays} days left</span>`;
 }
+// NEW: 1-click WhatsApp gate - this is the fix for your 0 signups
+function handleApply(jobId, applyUrl, title){
+  const joined = localStorage.getItem('jobway_joined_phone');
+  if(!joined){
+    // Save which job they wanted, then send to join
+    localStorage.setItem('jobway_wanted_job', jobId);
+    localStorage.setItem('jobway_wanted_url', applyUrl);
+    localStorage.setItem('jobway_wanted_title', title);
+    window.location.href = 'join.html?job=' + encodeURIComponent(jobId);
+    return;
+  }
+  // Already joined - track and open
+  try{
+    supabaseClient.from('applications').insert([{ job_id: jobId, phone: joined, status: 'clicked_apply' }]);
+  }catch(e){}
+  window.open(applyUrl, '_blank');
+}
 
 let allJobsCache=[];
 async function fetchJobs(){
   try{
     const todayStr = new Date().toISOString().split('T')[0];
-    // FIXED: Server-side filter - only future closing dates, auto-hide expired
     const {data, error} = await supabaseClient.from('jobs').select('*').gte('closing_date', todayStr).eq('is_active', true).order('created_at',{ascending:false}).limit(300);
     let rows = data || [];
-    // Fallback: if query returns 0 due to null closing_date, fetch all and filter client-side
     if(error || rows.length===0){
       const res2 = await supabaseClient.from('jobs').select('*').order('created_at',{ascending:false}).limit(300);
       rows = res2.data || [];
@@ -137,7 +148,6 @@ async function fetchJobs(){
       else if(j.salary_min) salaryText=`R${j.salary_min}+`;
       else if(j.salary) salaryText=j.salary;
       const closingInfo = getClosingInfo(j);
-      // Client-side auto-hide expired as backup
       if(closingInfo.isExpired) return null;
       return {title:j.title,company:company,location:loc,province:prov,type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingInfo:closingInfo,closingDate:closingInfo.date.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}),id:j.id,applyUrl:extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'')};
     }).filter(Boolean);
@@ -165,7 +175,7 @@ async function render(){
     return;
   }
   document.getElementById('list').innerHTML = filtered.map((j)=>{
-    return `<div class="card"><div class="company-row"><div class="logo-fallback">${initials(j.company)}</div><div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${timeAgo(j.postedAt)}</span>${closingBadge(j.closingInfo)}<span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><a class="btn-apply" href="${j.applyUrl}" target="_blank">Apply now ↗</a><button class="btn-detail" onclick="alert('${j.title}\\n${j.company}\\n${j.location} • ${j.type}\\nCloses: ${j.closingDate}\\n${j.salaryText}\\n\\n${j.desc.replace(/'/g,"")}')">View details</button></div></div>`
+    return `<div class="card"><div class="company-row"><div class="logo-fallback">${initials(j.company)}</div><div style="flex:1"><div style="font-weight:800;font-size:13px">${j.company}</div><div class="job-meta">${j.location} • ${j.type}</div></div></div><div class="job-title">${j.title}</div><div class="badges"><span class="badge badge-green">${timeAgo(j.postedAt)}</span>${closingBadge(j.closingInfo)}<span class="badge">${j.salaryText}</span></div><div class="desc">${j.desc}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn-apply" onclick="handleApply('${j.id}', '${j.applyUrl}', '${j.title.replace(/'/g,"")}')">Apply now ↗</button><button class="btn-detail" onclick="alert('${j.title}\\n${j.company}\\n${j.location} • ${j.type}\\nCloses: ${j.closingDate}\\n${j.salaryText}\\n\\n${j.desc.replace(/'/g,"")}')">View details</button></div></div>`
   }).join('');
 }
 function clearF(){document.getElementById('loc').value='';document.getElementById('type').value='';document.getElementById('exp').value='';document.getElementById('salary').value='';render();}
