@@ -2,131 +2,132 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Join JobWay on WhatsApp</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0F2835;color:white;min-height:100vh;padding:16px}
-.container{max-width:420px;margin:0 auto;padding-top:30px}
+body{font-family:Arial,sans-serif;background:#0F2835;color:#fff;padding:16px}
+.container{max-width:420px;margin:0 auto;padding-top:25px}
 .logo{font-weight:900;color:#01F9C6;font-size:28px;text-align:center}
 .sub{text-align:center;color:#A8C8D0;font-size:13px;margin:8px 0 20px;line-height:1.5}
-.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:20px}
+.card{background:#11283A;border:1px solid #1e3a4a;border-radius:16px;padding:18px}
 label{font-size:12px;color:#8DB0BF;font-weight:700}
-input{width:100%;padding:14px;border-radius:12px;border:1px solid #25475A;background:#0F2230;color:#fff;font-size:15px;margin:6px 0 14px;outline:none}
-input:focus{border-color:#01F9C6}
-.btn{width:100%;padding:15px;border-radius:999px;border:none;font-weight:900;font-size:16px;cursor:pointer}
+input{width:100%;padding:13px;border-radius:10px;border:1px solid #25475A;background:#0F2230;color:#fff;font-size:15px;margin:6px 0 12px}
+.btn{width:100%;padding:14px;border-radius:50px;border:0;font-weight:900;font-size:16px}
 .btn-green{background:#01F9C6;color:#08231C}
-.btn-dark{background:#1A3E52;color:#fff;border:1px solid rgba(255,255,255,.15);margin-top:10px}
-.msg{text-align:center;font-size:13px;margin-top:14px;min-height:20px}
+.btn-dark{background:#1A3E52;color:#fff;border:1px solid #2a4a5e;margin-top:10px}
+.msg{text-align:center;font-size:13px;margin-top:12px;min-height:20px}
 .msg.success{color:#01F9C6}
 .msg.error{color:#FF8A9D}
-.trust{text-align:center;font-size:11px;color:#8DB0BF;margin-top:16px;line-height:1.5}
-.trust b{color:#01F9C6}
+.trust{text-align:center;font-size:11px;color:#8DB0BF;margin-top:14px;line-height:1.5}
 </style>
 </head>
 <body>
 <div class="container">
 <div class="logo">JobWay</div>
-<p class="sub">Get real jobs daily on WhatsApp.<br>No password needed. Free forever.</p>
-
+<p class="sub" id="subText">Get real jobs daily on WhatsApp.<br>No password needed. Free forever.</p>
 <div class="card">
 <label>YOUR NAME</label>
-<input id="name" placeholder="e.g. Thabo Mokoena" autocomplete="name">
-
+<input id="name" placeholder="e.g. Thabo Mokoena">
 <label>WHATSAPP NUMBER</label>
-<input id="phone" placeholder="e.g. 079 060 8952" type="tel" autocomplete="tel">
-
+<input id="phone" placeholder="e.g. 079 060 8952" type="tel">
 <button class="btn btn-green" id="joinBtn" onclick="join()">Join on WhatsApp →</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">← Back to Jobs</button>
 <div id="msg" class="msg"></div>
 </div>
-
-<p class="trust">✅ All jobs verified manually • <b>Never pay to apply</b><br>We only send jobs, no spam. Unsubscribe anytime.</p>
+<p class="trust">✅ All jobs verified • <b>Never pay to apply</b><br>We only send jobs, no spam. Unsubscribe anytime.</p>
 </div>
-
 <script>
-// Same Supabase as jobs.html - works on all networks
-let supabaseClient;
-try {
-  supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-} catch(e){}
+var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 
-async function join(){
-  const btn = document.getElementById('joinBtn');
-  const msgEl = document.getElementById('msg');
-  const name = document.getElementById('name').value.trim();
-  let phone = document.getElementById('phone').value.trim().replace(/[\s-]/g,'');
+function join(){
+  var btn = document.getElementById('joinBtn');
+  var msgEl = document.getElementById('msg');
+  var name = document.getElementById('name').value;
+  name = name.replace(/^\s+|\s+$/g, '');
+  var phone = document.getElementById('phone').value;
+  phone = phone.replace(/[\s-]/g, '');
 
   if(!name || name.length < 2){ msgEl.className='msg error'; msgEl.textContent='Please enter your name'; return; }
   if(!phone || phone.length < 10){ msgEl.className='msg error'; msgEl.textContent='Enter correct WhatsApp number e.g. 0790608952'; return; }
 
-  // Normalize SA numbers for all networks: 079... / 79... / +2779...
-  if(phone.startsWith('0')) phone = '+27' + phone.substring(1);
-  else if(phone.startsWith('27') && !phone.startsWith('+')) phone = '+' + phone;
-  else if(!phone.startsWith('+')) phone = '+27' + phone;
+  // Normalize SA: 079... -> +2779...
+  if(phone.charAt(0) === '0'){ phone = '+27' + phone.substring(1); }
+  else if(phone.indexOf('27') === 0 && phone.charAt(0) !== '+'){ phone = '+' + phone; }
+  else if(phone.charAt(0) !== '+'){ phone = '+27' + phone; }
 
   btn.textContent = 'Joining...';
   btn.disabled = true;
 
-  // 1. Save locally FIRST - so even if network fails, Apply still works
-  localStorage.setItem('jobway_joined_phone', phone);
-  localStorage.setItem('jobway_joined_name', name);
-  localStorage.setItem('jobway_joined_at', new Date().toISOString());
+  // 1. SAVE LOCALLY FIRST - so Apply works even if network slow
+  try{
+    localStorage.setItem('jobway_joined_phone', phone);
+    localStorage.setItem('jobway_joined_name', name);
+    localStorage.setItem('userPhone', phone);
+    localStorage.setItem('jobway_joined_at', new Date().toISOString());
+  }catch(e){}
 
-  // 2. Try to save to Supabase
-  try {
-    if(supabaseClient){
-      const { error } = await supabaseClient.from('whatsapp_subscribers').insert([{
-        name: name,
-        phone: phone,
-        source: 'website_join',
-        is_active: true
-      }]);
-      // If already exists, Supabase will error but we still let them in
-      if(error && !error.message.includes('duplicate') && !error.message.includes('already')){
-        console.log('DB insert note:', error.message);
-        // Don't block user - still continue, they are saved locally
+  // 2. Save to Supabase using plain XHR - works on old phones
+  try{
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', SUPABASE_URL + '/rest/v1/whatsapp_subscribers', true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Prefer', 'return=minimal');
+    xhr.onreadystatechange = function(){
+      if(xhr.readyState === 4){
+        finishJoin(name);
       }
-    }
-  } catch(e){
-    console.log('Network slow, saved locally', e);
+    };
+    xhr.onerror = function(){ finishJoin(name); };
+    xhr.timeout = 5000;
+    xhr.ontimeout = function(){ finishJoin(name); };
+    var data = JSON.stringify({ name: name, phone: phone, whatsapp_number: phone, source: 'website_join', is_active: true });
+    xhr.send(data);
+    // Fallback if supabase hangs
+    setTimeout(function(){ if(btn.disabled) finishJoin(name); }, 4000);
+  }catch(e){
+    finishJoin(name);
   }
-
-  msgEl.className='msg success';
-  msgEl.textContent = '✅ Done! Welcome ' + name.split(' ')[0] + ' — Redirecting...';
-
-  // 3. FIXED REDIRECT LOGIC - this is what you asked for
-  const wantedUrl = localStorage.getItem('jobway_wanted_url');
-  const wantedTitle = localStorage.getItem('jobway_wanted_title');
-  const jobParam = new URLSearchParams(location.search).get('job');
-
-  setTimeout(()=>{
-    if(wantedUrl && wantedUrl.startsWith('http')){
-      // User came from Apply button - open the job they wanted
-      localStorage.removeItem('jobway_wanted_url');
-      localStorage.removeItem('jobway_wanted_title');
-      window.open(wantedUrl, '_blank');
-      // Also go back to jobs list
-      window.location.href = 'jobs.html';
-    } else {
-      // Came directly - just go to jobs
-      window.location.href = 'jobs.html';
-    }
-  }, 1200);
 }
 
-// Auto-fill if they already joined before
-window.onload = ()=>{
-  const savedPhone = localStorage.getItem('jobway_joined_phone');
-  const savedName = localStorage.getItem('jobway_joined_name');
-  if(savedPhone) document.getElementById('phone').value = savedPhone;
-  if(savedName) document.getElementById('name').value = savedName;
-  // If they came from a job, show which job
-  const wantedTitle = localStorage.getItem('jobway_wanted_title');
-  if(wantedTitle){
-    document.querySelector('.sub').innerHTML = `You want to apply for:<br><b style="color:#01F9C6">${wantedTitle}</b><br>Enter your WhatsApp to continue.`;
-  }
+var joinedDone = false;
+function finishJoin(name){
+  if(joinedDone) return;
+  joinedDone = true;
+  var msgEl = document.getElementById('msg');
+  var firstName = name.split(' ')[0];
+  msgEl.className = 'msg success';
+  msgEl.textContent = '✅ Done! Welcome ' + firstName + ' — Redirecting...';
+  var wantedUrl = '';
+  try{ wantedUrl = localStorage.getItem('jobway_wanted_url') || ''; }catch(e){}
+  setTimeout(function(){
+    if(wantedUrl && wantedUrl.indexOf('http') === 0){
+      try{
+        localStorage.removeItem('jobway_wanted_url');
+        localStorage.removeItem('jobway_wanted_title');
+      }catch(e){}
+      window.open(wantedUrl, '_blank');
+      window.location.href = 'jobs.html';
+    } else {
+      window.location.href = 'jobs.html';
+    }
+  }, 800);
+}
+
+window.onload = function(){
+  try{
+    var savedPhone = localStorage.getItem('jobway_joined_phone');
+    var savedName = localStorage.getItem('jobway_joined_name');
+    if(savedPhone) document.getElementById('phone').value = savedPhone;
+    if(savedName) document.getElementById('name').value = savedName;
+    var wantedTitle = localStorage.getItem('jobway_wanted_title');
+    if(wantedTitle){
+      document.getElementById('subText').innerHTML = 'You want to apply for:<br><b style="color:#01F9C6">' + wantedTitle + '</b><br>Enter your WhatsApp to continue.';
+    }
+  }catch(e){}
 };
 </script>
 </body>
