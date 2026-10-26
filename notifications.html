@@ -1,91 +1,107 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notifications - JobWay</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:22px}.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:650px;margin:0 auto;padding:16px}.card{background:#1a3446;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}.meta{color:#8fb3c1;font-size:12px;margin:6px 0}.unread{border-left:4px solid #01F9C6}</style></head><body>
-<div class="header"><div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobWay</div><div><button class="btn btn-white" onclick="location.href='track-applications.html'">My Applications</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='jobs.html'">Jobs</button></div></div>
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notifications - JobWay</title>
+<style>body{margin:0;background:#11283a;color:#fff;font-family:Arial}.header{background:#0d1f2d;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.logo{color:#01F9C6;font-weight:900;font-size:20px}.btn{border:0;border-radius:12px;padding:9px 14px;font-weight:800;font-size:13px}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:480px;margin:0 auto;padding:14px}.card{background:#1a3446;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid #1e3a4a}.meta{color:#8fb3c1;font-size:12px;margin:6px 0}.unread{border-left:4px solid #01F9C6}</style></head><body>
+<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><div><button class="btn btn-white" onclick="location.href='track-applications.html'">My Applications</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='jobs.html'">Jobs</button></div></div>
 <div class="container">
 <h2>🔔 Notifications <span id="count"></span></h2>
 <div id="list"><p class="meta">Loading...</p></div>
-<div style="text-align:center;margin-top:20px"><button class="btn btn-white" onclick="clearAll()">Mark all as read</button></div>
+<div style="text-align:center;margin-top:16px"><button class="btn btn-white" onclick="clearAll()">Mark all as read</button></div>
 </div>
 <script>
-const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+
 function getUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
+  try{ return JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null'); }catch(e){ return null; }
 }
-function fmtDate(d){ try{ if(!d) return ''; return new Date(d).toLocaleDateString('en-ZA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) }catch(e){ return ''; } }
-async function load(){
-  let user = getUser();
+function fmtDate(d){
+  try{ if(!d) return ''; var dt = new Date(d); return dt.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getHours() + ':' + (dt.getMinutes()<10?'0':'') + dt.getMinutes(); }catch(e){ return ''; }
+}
+function xhrGet(url, cb){
+  try{
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+    xhr.timeout = 7000;
+    xhr.onreadystatechange = function(){ if(xhr.readyState === 4){ if(xhr.status === 200){ try{ cb(JSON.parse(xhr.responseText)); }catch(e){ cb([]); } } else cb([]); } };
+    xhr.onerror = function(){ cb([]); };
+    xhr.ontimeout = function(){ cb([]); };
+    xhr.send();
+  }catch(e){ cb([]); }
+}
+
+function load(){
+  var user = getUser();
   if(!user || !user.id){
-    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>Please login to see notifications</p><button class="btn btn-green" onclick="location.href='login.html'">Login</button></div>`;
+    document.getElementById('list').innerHTML = '<div class="card" style="text-align:center"><p>Please login to see notifications</p><button class="btn btn-green" onclick="location.href=\'login.html\'">Login</button></div>';
     return;
   }
-  // FIXED 1: NO localStorage merge — privacy leak fixed. Only Supabase.
-  // FIXED 2: Use REAL column applicant_id, not jobseeker_id
-  // Source 1: notifications table (created by employer-dashboard when status changes)
-  let dbNotifs = [];
-  try{
-    let { data: nData, error } = await supabaseClient.from('notifications').select('*').eq('user_id', user.id).order('created_at', {ascending:false}).limit(30);
-    if(!error && nData) dbNotifs = nData.map(n=>({ id: n.id, title: n.title, text: n.message, date: n.created_at, read: n.is_read, fromTable: 'notifications' }));
-  }catch(e){ console.log('notifications table error', e); }
-
-  // Source 2: applications table — REAL SOURCE OF TRUTH, always in sync with Track
-  let supaNotifs = [];
-  try{
-    let query = supabaseClient.from('applications').select('*, jobs(title, company)').eq('applicant_id', user.id).order('updated_at', {ascending:false}).limit(30);
-    let { data: apps, error } = await query;
-    if(!error && apps){
-      apps.forEach(app=>{
-        let title = app.jobs?.title || 'Job';
-        let comp = app.jobs?.company || '';
-        let status = app.status || 'Application Received';
-        let date = app.updated_at || app.created_at;
-        let text = '';
-        if(status==='Shortlisted') text = `Great news! You have been SHORTLISTED for ${title} at ${comp}. We will contact you for next steps.`;
-        else if(status==='Interview Scheduled') text = `Interview Scheduled for ${title} at ${comp}. Date: ${app.interview_date||''} Time: ${app.interview_time||''} Location: ${app.interview_location||'Thohoyandou Office'}`;
-        else if(status==='Hired') text = `Congratulations! You are HIRED for ${title} at ${comp}. Check your Track page.`;
-        else if(status==='Under Review') text = `Your application for ${title} at ${comp} is now Under Review.`;
-        else if(status==='Not Selected' || status==='Rejected') text = `Thank you for applying for ${title} at ${comp}. You were not selected this time, keep applying.`;
-        else text = `Your application for ${title} at ${comp} status: ${status}`;
-        supaNotifs.push({id: 'supa-'+app.id, title:`Status: ${status} - ${title}`, text, date, read:true, fromSupabase:true});
-      });
+  // 1. notifications table
+  xhrGet(SUPABASE_URL + '/rest/v1/notifications?select=*&user_id=eq.' + user.id + '&order=created_at.desc&limit=30', function(nData){
+    var dbNotifs = [];
+    for(var i=0;i<nData.length;i++){
+      var n = nData[i];
+      dbNotifs.push({ id: n.id, title: n.title, text: n.message, date: n.created_at, read: n.is_read });
     }
-  }catch(e){ console.log(e); }
-
-  // FIXED: Merge DB notifications + application status, dedupe by title+text
-  let notifs = [...dbNotifs, ...supaNotifs];
-  let seen = new Set();
-  notifs = notifs.filter(n=>{
-    let key = (n.title||'').trim().toLowerCase() + '|' + (n.text||'').trim().toLowerCase();
-    if(seen.has(key)) return false;
-    seen.add(key);
-    return true;
+    // 2. applications table - source of truth
+    xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*,jobs(title,company)&applicant_id=eq.' + user.id + '&order=updated_at.desc&limit=30', function(apps){
+      var supaNotifs = [];
+      for(var j=0;j<apps.length;j++){
+        var app = apps[j];
+        var title = (app.jobs && app.jobs.title) || 'Job';
+        var comp = (app.jobs && app.jobs.company) || '';
+        var status = app.status || 'Application Received';
+        var date = app.updated_at || app.created_at;
+        var text = '';
+        if(status === 'Shortlisted') text = 'Great news! You have been SHORTLISTED for ' + title + ' at ' + comp + '. We will contact you.';
+        else if(status === 'Interview Scheduled') text = 'Interview Scheduled for ' + title + ' at ' + comp + '. Date: ' + (app.interview_date || '') + ' Time: ' + (app.interview_time || '');
+        else if(status === 'Hired') text = 'Congratulations! You are HIRED for ' + title + ' at ' + comp + '. Check your Track page.';
+        else if(status === 'Under Review') text = 'Your application for ' + title + ' at ' + comp + ' is now Under Review.';
+        else if(status === 'Not Selected' || status === 'Rejected') text = 'Thank you for applying for ' + title + ' at ' + comp + '. You were not selected this time.';
+        else text = 'Your application for ' + title + ' at ' + comp + ' status: ' + status;
+        supaNotifs.push({ id: 'supa-' + app.id, title: 'Status: ' + status + ' - ' + title, text: text, date: date, read: true });
+      }
+      var notifs = dbNotifs.concat(supaNotifs);
+      // Dedupe
+      var seen = {};
+      var filtered = [];
+      for(var k=0;k<notifs.length;k++){
+        var key = (notifs[k].title || '').toLowerCase() + '|' + (notifs[k].text || '').toLowerCase();
+        if(!seen[key]){ seen[key] = true; filtered.push(notifs[k]); }
+      }
+      filtered.sort(function(a,b){ return new Date(b.date||0) - new Date(a.date||0); });
+      document.getElementById('count').innerHTML = filtered.length ? '(' + filtered.length + ')' : '';
+      if(!filtered.length){
+        document.getElementById('list').innerHTML = '<div class="card" style="text-align:center"><p>No notifications yet</p><p class="meta">When an employer shortlists you, it will appear here.</p><button class="btn btn-green" onclick="location.href=\'jobs.html\'">Browse Jobs</button></div>';
+        return;
+      }
+      var html = '';
+      for(var m=0;m<filtered.length;m++){
+        var n2 = filtered[m];
+        var cls = n2.read ? '' : 'unread';
+        html += '<div class="card ' + cls + '"><b>' + n2.title + '</b><div class="meta">' + fmtDate(n2.date) + '</div><p style="font-size:13px;line-height:1.5;margin:6px 0">' + n2.text + '</p><button class="btn btn-green" style="padding:8px 12px;font-size:12px" onclick="location.href=\'track-applications.html\'">View Application →</button></div>';
+      }
+      document.getElementById('list').innerHTML = html;
+    });
   });
-  notifs.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
-
-  document.getElementById('count').innerText = notifs.length ? `(${notifs.length})` : '';
-  if(!notifs.length){
-    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>No notifications yet</p><p class="meta">When an employer shortlists you or schedules an interview, it will appear here.</p><button class="btn btn-green" onclick="location.href='jobs.html'">Browse Jobs</button></div>`;
-    return;
-  }
-  document.getElementById('list').innerHTML = notifs.map(n=>{
-    let cls = n.read ? '' : 'unread';
-    return `<div class="card ${cls}"><b>${n.title||'Update'}</b><div class="meta">${fmtDate(n.date)}</div><p style="font-size:13px;line-height:1.5;margin:6px 0">${n.text||''}</p><button class="btn btn-green" style="padding:8px 14px;font-size:12px" onclick="location.href='track-applications.html'">View Application →</button></div>`;
-  }).join('');
 }
-async function clearAll(){
-  let user = getUser();
-  if(user?.id){
-    await supabaseClient.from('notifications').update({is_read:true}).eq('user_id', user.id);
-  }
-  load();
+
+function clearAll(){
+  var user = getUser();
+  if(user && user.id){
+    try{
+      var xhr = new XMLHttpRequest();
+      xhr.open('PATCH', SUPABASE_URL + '/rest/v1/notifications?user_id=eq.' + user.id, true);
+      xhr.setRequestHeader('apikey', SUPABASE_KEY);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Prefer', 'return=minimal');
+      xhr.onreadystatechange = function(){ if(xhr.readyState === 4) load(); };
+      xhr.send(JSON.stringify({ is_read: true }));
+    }catch(e){ load(); }
+  } else load();
 }
 load();
-// FIXED: Realtime filtered to MY applications only — no leak
-let _u = getUser();
-if(_u?.id){
-  supabaseClient.channel('notif-apps-'+_u.id)
-    .on('postgres_changes', {event:'*', schema:'public', table:'applications', filter:'applicant_id=eq.'+_u.id}, ()=>load())
-    .on('postgres_changes', {event:'*', schema:'public', table:'notifications', filter:'user_id=eq.'+_u.id}, ()=>load())
-    .subscribe();
-}
 </script></body></html>
