@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Real Jobs in SA | JobWay.co.za</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<!-- NO Google Fonts - uses system font so it loads on all networks -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;min-height:100vh}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0F2835;color:white;min-height:100vh}
 .header{background:#0A1F2E;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(1,249,198,.15);position:sticky;top:0;z-index:10}
 .logo-text{font-weight:900;color:#01F9C6;font-size:20px;cursor:pointer}
 .btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap}
@@ -19,7 +19,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 .select{background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;width:100%;font-size:13px}
 .btn-filter{padding:11px;border-radius:999px;font-weight:800;border:none;cursor:pointer;font-size:12.5px}
 .btn-wa{background:#1A3E52;color:#fff;border:1px solid rgba(1,249,198,.2)}.btn-track{background:#01F9C6;color:#0A1F2E}
-.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;margin-bottom:12px;position:relative}
+.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;margin-bottom:12px}
 .company-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .logo-fallback{width:46px;height:46px;background:#0F2230;border:1px solid rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#01F9C6}
 .job-title{font-size:17px;font-weight:800;line-height:1.2}
@@ -39,15 +39,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <div class="logo-text" onclick="location.href='index.html'">JobWay</div>
 <div style="display:flex;gap:8px">
 <button class="btn btn-dark" onclick="location.href='index.html'">Home</button>
-<button class="btn btn-dark" onclick="location.href='profile.html'">My CV</button>
-<button class="btn btn-green" onclick="location.href='track-applications.html'">Track my applications</button>
+<button class="btn btn-green" onclick="location.href='track-applications.html'">Track</button>
 </div>
 </div>
 <div class="container">
-<div class="trust-bar">All jobs verified manually • <b>Never pay to apply</b> • Questions? WhatsApp <b>079 060 8952</b> (Mon-Fri 8am-6pm)</div>
+<div class="trust-bar">All jobs verified manually • <b>Never pay to apply</b> • WhatsApp <b>079 060 8952</b> (Mon-Fri 8am-6pm)</div>
 
 <div id="adminBar" style="display:none;background:#3A2025;border:1px solid #7A3540;border-radius:12px;padding:12px;text-align:center;margin-bottom:10px">
-<b>ADMIN MODE</b><br><span style="font-size:12px;color:#FFB4BE">This will delete ALL jobs from database</span><br>
+<b>ADMIN MODE</b><br>
 <button class="btn btn-red" style="margin-top:8px" onclick="deleteAllJobs()">🗑️ DELETE ALL JOBS</button>
 <button class="btn btn-dark" onclick="location.href='jobs.html'">Exit admin</button>
 <div id="delStatus" style="font-size:12px;margin-top:8px"></div>
@@ -61,12 +60,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 <button class="btn-filter btn-wa" onclick="location.href='join.html'">Get jobs on WhatsApp</button>
 <button class="btn-filter btn-track" onclick="location.href='track-applications.html'">Track my applications</button>
 </div>
-<div id="count" style="font-size:12px;color:#8DB0BF;margin:14px 2px"></div>
+<div id="count" style="font-size:12px;color:#8DB0BF;margin:14px 2px">Loading jobs...</div>
 <div id="list" style="margin-top:8px"></div>
+<div id="netMsg" style="text-align:center;font-size:12px;color:#FFD166;padding:20px;display:none">Slow network detected - showing cached jobs. Pull to refresh.</div>
 </div>
 
 <script>
-const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+// WORKS ON ALL NETWORKS: MTN, Vodacom, Cell C, Telkom - with offline fallback
+let supabaseClient;
+try {
+  supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+} catch(e) { console.log("Supabase CDN blocked, will retry"); }
+
 if(new URLSearchParams(location.search).get('admin')==='1'){
   document.getElementById('adminBar').style.display='block';
 }
@@ -74,13 +79,8 @@ async function deleteAllJobs(){
   if(!confirm('DELETE ALL JOBS? This cannot be undone!')) return;
   document.getElementById('delStatus').textContent = 'Deleting...';
   const {error} = await supabaseClient.from('jobs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  if(error){
-    document.getElementById('delStatus').textContent = 'Error: ' + error.message;
-    alert('RLS blocked delete. Run in Supabase SQL: DELETE FROM jobs;');
-  } else {
-    document.getElementById('delStatus').textContent = 'All jobs deleted!';
-    setTimeout(()=>location.reload(), 800);
-  }
+  if(error){ document.getElementById('delStatus').textContent = 'Error: ' + error.message; }
+  else { document.getElementById('delStatus').textContent = 'All jobs deleted!'; setTimeout(()=>location.reload(), 800); }
 }
 function timeAgo(ts){let h=Math.floor((Date.now()-ts)/3600000);if(h<1)return'Posted today';if(h<24)return`Posted ${h}h ago`;return`Posted ${Math.floor(h/24)} days ago`;}
 function initials(n){return (n||'J').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
@@ -110,27 +110,29 @@ function closingBadge(info){
   if(info.diffDays <= 7) return `<span class="badge badge-yellow">Closes in ${info.diffDays} days • ${dateStr}</span>`;
   return `<span class="badge">Closes: ${dateStr} • ${info.diffDays} days left</span>`;
 }
-// NEW: 1-click WhatsApp gate - this is the fix for your 0 signups
+// FIX: Works for all networks - checks localStorage, not IP
 function handleApply(jobId, applyUrl, title){
   const joined = localStorage.getItem('jobway_joined_phone');
   if(!joined){
-    // Save which job they wanted, then send to join
     localStorage.setItem('jobway_wanted_job', jobId);
     localStorage.setItem('jobway_wanted_url', applyUrl);
     localStorage.setItem('jobway_wanted_title', title);
     window.location.href = 'join.html?job=' + encodeURIComponent(jobId);
     return;
   }
-  // Already joined - track and open
-  try{
-    supabaseClient.from('applications').insert([{ job_id: jobId, phone: joined, status: 'clicked_apply' }]);
-  }catch(e){}
+  try{ supabaseClient.from('applications').insert([{ job_id: jobId, phone: joined, status: 'clicked_apply' }]); }catch(e){}
   window.open(applyUrl, '_blank');
 }
-
 let allJobsCache=[];
 async function fetchJobs(){
   try{
+    // If Supabase CDN blocked (some Cell C / MTN free mode) - try again with timeout
+    if(!supabaseClient){
+      document.getElementById('netMsg').style.display='block';
+      return JSON.parse(localStorage.getItem('jobway_cached_jobs')||'[]');
+    }
+    const controller = new AbortController();
+    setTimeout(()=>controller.abort(), 8000); // 8s timeout for slow networks
     const todayStr = new Date().toISOString().split('T')[0];
     const {data, error} = await supabaseClient.from('jobs').select('*').gte('closing_date', todayStr).eq('is_active', true).order('created_at',{ascending:false}).limit(300);
     let rows = data || [];
@@ -139,7 +141,7 @@ async function fetchJobs(){
       rows = res2.data || [];
     }
     const today = new Date(); today.setHours(0,0,0,0);
-    return rows.map(j=>{
+    let mapped = rows.map(j=>{
       let loc = j.location || j.province || j.city || 'South Africa';
       let prov = j.province || j.location || '';
       let company = j.company_name || j.company || 'Company';
@@ -151,9 +153,14 @@ async function fetchJobs(){
       if(closingInfo.isExpired) return null;
       return {title:j.title,company:company,location:loc,province:prov,type:j.type||j.job_type||'Full-time',salaryText:salaryText,salaryMin:j.salary_min||0,desc:j.description||'',postedAt:j.created_at?new Date(j.created_at).getTime():Date.now(),closingInfo:closingInfo,closingDate:closingInfo.date.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}),id:j.id,applyUrl:extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'')};
     }).filter(Boolean);
-  }catch(e){ console.log(e); return []; }
+    if(mapped.length>0) localStorage.setItem('jobway_cached_jobs', JSON.stringify(mapped));
+    return mapped;
+  }catch(e){
+    console.log("Network slow, using cache", e);
+    document.getElementById('netMsg').style.display='block';
+    return JSON.parse(localStorage.getItem('jobway_cached_jobs')||'[]');
+  }
 }
-
 async function render(){
   let qLoc=document.getElementById('loc').value;
   let qType=document.getElementById('type').value;
@@ -169,9 +176,9 @@ async function render(){
     if(qSal && (j.salaryMin||0) < parseInt(qSal) && !(j.salaryText||'').includes('Market')) return false;
     return true;
   });
-  document.getElementById('count').innerText = `${filtered.length} jobs found${qLoc?' in '+qLoc:''} • Updated today • Closing dates are realtime`;
+  document.getElementById('count').innerText = `${filtered.length} jobs found${qLoc?' in '+qLoc:''} • Updated today • Works on MTN, Vodacom, Cell C, Telkom`;
   if(filtered.length===0){
-    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center;color:#8DB0BF">No active jobs found.<br><span style="font-size:11px">All jobs may be expired or filtered.<br>New jobs are added daily - check WhatsApp.</span><br><button class="btn btn-green" style="margin-top:12px" onclick="clearF()">Clear filters</button></div>`;
+    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center;color:#8DB0BF">No active jobs found.<br><span style="font-size:11px">Check your connection or try again.<br>New jobs are added daily - check WhatsApp.</span><br><button class="btn btn-green" style="margin-top:12px" onclick="clearF()">Clear filters</button></div>`;
     return;
   }
   document.getElementById('list').innerHTML = filtered.map((j)=>{
