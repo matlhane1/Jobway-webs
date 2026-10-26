@@ -1,182 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Track Applications - JobWay.co.za</title>
-<meta name="robots" content="noindex, nofollow">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#11283a;color:#fff;font-family:'Plus Jakarta Sans',Arial,sans-serif}
-.header{background:#0d1f2d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(1,249,198,.15)}
-.logo{color:#01F9C6;font-weight:900;font-size:22px;cursor:pointer}
-.btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px}
-.btn-green{background:#01F9C6;color:#11283a}
-.btn-white{background:#fff;color:#11283a}
-.container{max-width:650px;margin:0 auto;padding:16px}
-.card{background:#1a3446;border-radius:22px;padding:18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.06)}
-.meta{color:#8fb3c1;font-size:13px;margin:6px 0;line-height:1.5}
-.badge{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}
-.s-active{background:#01F9C6;color:#11283a}
-.s-pending{background:rgba(255,255,255,.1);color:#8fb3c1;border:1px solid #2a4a5c}
-.s-done{background:rgba(1,249,198,.15);color:#01F9C6}
-.progress{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
-.interview-box{background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.3);border-radius:14px;padding:14px;margin-top:12px;font-size:13px}
-.hired-box{background:rgba(1,249,198,.1);border:1px solid rgba(1,249,198,.4);border-radius:14px;padding:14px;margin-top:12px}
-.wa-btn{display:inline-block;background:#25D366;color:#fff;padding:10px 16px;border-radius:999px;font-weight:800;font-size:12px;text-decoration:none;margin-top:12px}
-.cv-link{display:inline-block;background:#0F2230;border:1px solid rgba(1,249,198,.3);color:#01F9C6;padding:8px 12px;border-radius:999px;font-weight:700;font-size:12px;text-decoration:none;margin-top:8px}
-.ext-link{display:inline-block;background:#01F9C6;color:#11283a;padding:10px 16px;border-radius:999px;font-weight:800;font-size:12px;text-decoration:none;margin-top:12px;margin-left:6px}
-.notif{padding:10px 12px;border-radius:12px;font-size:12px;margin-bottom:12px;text-align:center;font-weight:700}
-</style>
-</head>
+<style>*{box-sizing:border-box}body{margin:0;background:#11283a;color:#fff;font-family:Arial,sans-serif}.header{background:#0d1f2d;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;border-bottom:1px solid #1e3a4a}.logo{color:#01F9C6;font-weight:900;font-size:20px}.btn{border:0;border-radius:20px;padding:9px 14px;font-weight:800;font-size:13px}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:480px;margin:0 auto;padding:14px}.card{background:#1a3446;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #1e3a4a}.meta{color:#8fb3c1;font-size:12px;margin:6px 0;line-height:1.5}.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}.s-active{background:#01F9C6;color:#11283a}.s-pending{background:#2a4a5c;color:#8fb3c1}.s-done{background:#143e4a;color:#01F9C6}.interview-box{background:#2a2410;border:1px solid #ffb020;border-radius:12px;padding:12px;margin-top:10px;font-size:13px}.hired-box{background:#0a3a2a;border:1px solid #01F9C6;border-radius:12px;padding:12px;margin-top:10px}.wa-btn{display:inline-block;background:#25D366;color:#fff;padding:9px 14px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;margin-top:10px}.ext-link{display:inline-block;background:#01F9C6;color:#11283a;padding:9px 14px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;margin-top:10px;margin-left:6px}.cv-link{display:inline-block;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:7px 11px;border-radius:20px;font-weight:700;font-size:12px;text-decoration:none;margin-top:8px}.notif{padding:10px;border-radius:10px;font-size:12px;margin-bottom:12px;text-align:center;font-weight:700}</style></head>
 <body>
 <div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><div><button class="btn btn-white" onclick="location.href='jobs.html'">← Jobs</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='notifications.html'">🔔 Bell</button></div></div>
 <div class="container">
-<h2 style="font-family:'Space Grotesk',sans-serif">📊 My Applications <span id="count" style="color:#01F9C6"></span></h2>
+<h2>📊 My Applications <span id="count" style="color:#01F9C6"></span></h2>
 <div id="banner"></div>
-<div id="list"><p class="meta">Loading from Supabase...</p></div>
+<div id="list"><p class="meta">Loading...</p></div>
 </div>
 <script>
-const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-function fmtDate(d){ try{ if(!d) return ''; let date=new Date(d); if(isNaN(date)) return d; return date.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return d; } }
-function formatPhone(p){ if(!p) return ''; let c=p.toString().replace(/[^0-9]/g,''); if(c.startsWith('0')) c='27'+c.slice(1); return c; }
-function getEmpPhone(app){
-  let raw = app.employer_whatsapp || (app.jobs && app.jobs.whatsapp_number) || '0790608952';
-  return formatPhone(raw);
-}
-function getCurrentUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('jobway_current_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
-}
+var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+
+function fmtDate(d){ try{ if(!d) return ''; var dt = new Date(d); if(isNaN(dt)) return d; return dt.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getFullYear(); }catch(e){ return d; } }
+function formatPhone(p){ if(!p) return ''; var c = p.toString().replace(/[^0-9]/g, ''); if(c.charAt(0) === '0') c = '27' + c.slice(1); return c; }
+function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null'); }catch(e){ return null; } }
 function getCVUrl(a){
-  let raw = a.cv_url || '';
+  var raw = a.cv_url || '';
   if(!raw) return null;
-  if(raw.startsWith('http') || raw.startsWith('data:')) return raw;
-  const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
-  return data.publicUrl;
+  if(raw.indexOf('http') === 0 || raw.indexOf('data:') === 0) return raw;
+  return SUPABASE_URL + '/storage/v1/object/public/cvs/' + raw;
 }
 function getApplyUrl(job){
   if(!job) return 'https://www.careers24.com';
-  if(job.apply_url && job.apply_url.startsWith('http')) return job.apply_url;
-  if(job.description){
-    let m = job.description.match(/https?:\/\/[^\s\)]+/);
-    if(m) return m[0].replace(/[.,]$/,'');
-  }
+  if(job.apply_url && job.apply_url.indexOf('http') === 0) return job.apply_url;
+  if(job.description){ var m = job.description.match(/https?:\/\/[^\s\)]+/); if(m) return m[0].replace(/[.,]$/, ''); }
   return 'https://www.careers24.com';
 }
-function ensureFreshCache(user){
-  const lastEmail = localStorage.getItem('jobway_last_email');
-  const curEmail = user?.email || '';
-  if(lastEmail && lastEmail !== curEmail){
-    localStorage.removeItem('jobway_applied');
-    localStorage.removeItem('jobway_all_applications');
-    localStorage.removeItem('jobway_profile');
-  }
-  if(curEmail) localStorage.setItem('jobway_last_email', curEmail);
+function xhrGet(url, cb){
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.setRequestHeader('apikey', SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+  xhr.timeout = 8000;
+  xhr.onreadystatechange = function(){ if(xhr.readyState === 4){ if(xhr.status === 200){ try{ cb(JSON.parse(xhr.responseText)); }catch(e){ cb([]); } } else cb([]); } };
+  xhr.onerror = function(){ cb([]); };
+  xhr.ontimeout = function(){ cb([]); };
+  try{ xhr.send(); }catch(e){ cb([]); }
 }
-async function load(){
-  let user = getCurrentUser();
-  if(!user || (!user.id && !user.email)){
-    document.getElementById('list').innerHTML = `<div class="card" style="text-align:center"><p>Please log in to track applications</p><button class="btn btn-green" onclick="location.href='login.html'">Log In</button></div>`;
-    return;
-  }
-  ensureFreshCache(user);
-  // FIXED: Use REAL column names - company_name, salary_min/salary_max, apply_url
-  let query = supabaseClient.from('applications').select('*, jobs(title, company_name, location, salary_min, salary_max, salary, description, apply_url, whatsapp_number, logo_url, closing_date)').order('created_at', {ascending:false});
-  let applicantId = user.id;
-  if(!applicantId || applicantId.length < 20){
-    if(user.email){
-      let { data: prof } = await supabaseClient.from('profiles').select('id').eq('email', user.email).single();
-      if(prof?.id) applicantId = prof.id;
-      else { render([]); return; }
-    } else { render([]); return; }
-  }
-  query = query.eq('applicant_id', applicantId);
-  let { data: apps, error } = await query;
-  if(error){
-    console.log('applications error', error);
-    // Fallback if join fails - load without join
-    let { data: apps2 } = await supabaseClient.from('applications').select('*').eq('applicant_id', applicantId).order('created_at', {ascending:false});
-    if(apps2){
-      // Try to fetch jobs manually
-      for(let a of apps2){
-        if(a.job_id){
-          let {data: j} = await supabaseClient.from('jobs').select('title, company_name, location, salary_min, salary_max, description, apply_url, closing_date, logo_url').eq('id', a.job_id).single();
-          if(j) a.jobs = j;
-        }
-      }
-      let clean = (apps2||[]).filter(a=> a.jobs);
-      render(clean);
-      return;
-    }
-    document.getElementById('list').innerHTML = `<div class="card">Error loading: ${error.message}<br><span class="meta">If RLS error, check SQL policies</span></div>`;
-    return;
-  }
-  let clean = (apps||[]).filter(a=> a.job_id && a.jobs);
-  if(clean.length !== (apps||[]).length){
-    console.log('Filtered broken apps with NULL job_id:', (apps||[]).length - clean.length);
-  }
-  render(clean);
-}
-function render(all){
-  document.getElementById('count').innerText=`(${all.length})`;
-  let shortlisted = all.filter(a=> (a.status||'').toLowerCase().includes('shortlist'));
-  let interviews = all.filter(a=> (a.status||'').toLowerCase().includes('interview') || a.interview_date);
-  let hired = all.filter(a=> (a.status||'').toLowerCase().includes('hired') || a.status==='Approved');
-  let banner = '';
-  if(hired.length) banner += `<div class="notif" style="background:rgba(1,249,198,.15);color:#01F9C6;border:1px solid rgba(1,249,198,.4)">🎉 You are Hired for ${hired.length} job(s)! Check below.</div>`;
-  else if(interviews.length) banner += `<div class="notif" style="background:rgba(255,176,32,.12);color:#FFB020;border:1px solid rgba(255,176,32,.4)">📅 ${interviews.length} Interview Scheduled — check details below</div>`;
-  else if(shortlisted.length) banner += `<div class="notif" style="background:rgba(1,249,198,.1);color:#01F9C6;border:1px solid rgba(1,249,198,.3)">⭐ You are Shortlisted for ${shortlisted.length} job(s)!</div>`;
-  document.getElementById('banner').innerHTML = banner;
 
-  if(all.length==0){
-    document.getElementById('list').innerHTML=`<div class="card" style="text-align:center"><p>No applications yet for this account</p><p class="meta">Logged in as ${getCurrentUser()?.email||''}<br>Go apply for Cashier/General Worker first, then come back</p><button class="btn btn-green" onclick="location.href='jobs.html'">Go Apply</button></div>`;
+function load(){
+  var user = getCurrentUser();
+  if(!user || (!user.id && !user.email)){
+    document.getElementById('list').innerHTML = '<div class="card" style="text-align:center"><p>Please log in to track applications</p><button class="btn btn-green" onclick="location.href=\'login.html\'">Log In</button></div>';
     return;
   }
-  document.getElementById('list').innerHTML=all.map(app=>{
-    let title = app.jobs?.title || 'Job';
-    let comp = app.jobs?.company_name || app.jobs?.company || '';
-    let logo = app.jobs?.logo_url ? `<img src="${app.jobs.logo_url}" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;float:right">` : '';
-    let status = app.status||'Application Received';
-    if(status==='Applied') status='Application Received';
-    if(status==='Approved') status='Hired';
-    if(status==='shortlisted') status='Shortlisted';
-    if(status==='interview') status='Interview Scheduled';
-    let steps=['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
-    let idx=steps.indexOf(status); 
-    if(status==='Not Selected' || status==='Rejected') idx=-1;
-    if(idx==-1 && status!=='Not Selected' && status!=='Rejected') idx=0;
-    let badges=steps.map((s,i)=>{
-      let cls=i<idx?'s-done':i==idx?'s-active':'s-pending';
-      let icon=i<idx?'✅':i==idx?'👁️':'';
-      return `<span class="badge ${cls}">${icon} ${s}</span>`;
-    }).join('');
-    let interview = '';
-    if(app.interview_date || status==='Interview Scheduled'){
-      interview=`<div class="interview-box">📅 <b>INTERVIEW SCHEDULED</b><br><span>📅 Date: <b style="color:#fff">${app.interview_date||'To be confirmed'}</b><br>🕐 Time: <b style="color:#fff">${app.interview_time||''}</b><br>📍 Location: <b style="color:#fff">${app.interview_location||'Thohoyandou Office'}</b><br>📝 ${app.interview_note||app.interview_notes||'Bring ID & CV'}</span></div>`;
+  var applicantId = user.id;
+  if(!applicantId || applicantId.length < 20){
+    // Try find by email
+    if(user.email){
+      xhrGet(SUPABASE_URL + '/rest/v1/profiles?select=id&email=eq.' + encodeURIComponent(user.email), function(profs){
+        if(profs && profs.length > 0) fetchApps(profs[0].id);
+        else render([]);
+      });
+    } else render([]);
+    return;
+  }
+  fetchApps(applicantId);
+}
+
+function fetchApps(applicantId){
+  xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*&applicant_id=eq.' + applicantId + '&order=created_at.desc', function(apps){
+    if(!apps || apps.length === 0){ render([]); return; }
+    // Fetch jobs one by one (simple, works on old phones)
+    var done = 0;
+    var clean = [];
+    if(apps.length === 0){ render([]); return; }
+    for(var i=0;i<apps.length;i++){
+      (function(app){
+        if(!app.job_id){ done++; if(done === apps.length) render(clean); return; }
+        xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&id=eq.' + app.job_id, function(jobs){
+          if(jobs && jobs.length > 0) app.jobs = jobs[0];
+          if(app.jobs) clean.push(app);
+          done++;
+          if(done === apps.length) render(clean);
+        });
+      })(apps[i]);
     }
-    let hiredBox = (status==='Hired')?`<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">${comp} will contact you for start date.</span></div>`:'';
-    let rejected = (status==='Not Selected' || status==='Rejected')?`<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected for this job. Keep applying — new jobs every week.</div>`:'';
-    let empPhone = getEmpPhone(app);
-    let myName = getCurrentUser()?.full_name || 'Applicant';
-    let msg = `Hi ${comp}, I'm ${myName}. I applied for ${title} on JobWay. My status is ${status}. Can you please update me? Thank you.`;
-    let waBtn = `<a href="https://wa.me/${empPhone}?text=${encodeURIComponent(msg)}" target="_blank" class="wa-btn">💬 Message Employer on WhatsApp</a>`;
-    let salaryText = app.jobs?.salary_min ? `R${app.jobs.salary_min}${app.jobs.salary_max? ' - R'+app.jobs.salary_max : '+'}` : (app.jobs?.salary || '');
-    let extUrl = getApplyUrl(app.jobs);
-    let extBtn = `<a href="${extUrl}" target="_blank" rel="noopener" class="ext-link">Apply on Original Site ↗</a>`;
-    let cvUrl = getCVUrl(app);
-    let cvName = cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV';
-    let cvBtn = cvUrl ? `<br><a href="${cvUrl}" target="_blank" class="cv-link">📄 View My Submitted CV — ${cvName}</a>` : '';
-    return `<div class="card">${logo}<h3 style="margin:0 0 6px">${title} - ${comp}</h3><div class="meta">Applied: ${fmtDate(app.created_at)} • ${app.jobs?.location||''} ${salaryText ? '• '+salaryText : ''} ${app.jobs?.closing_date ? '• Closes: '+fmtDate(app.jobs.closing_date) : ''}</div><div class="progress">${badges}</div><div class="meta"><b>Status:</b> ${status}</div>${interview}${hiredBox}${rejected}${cvBtn}<br>${waBtn}${extBtn}</div>`;
-  }).join('');
+  });
+}
+
+function render(all){
+  document.getElementById('count').innerHTML = '(' + all.length + ')';
+  var shortlisted = 0, interviews = 0, hired = 0;
+  for(var i=0;i<all.length;i++){ var s = (all[i].status || '').toLowerCase(); if(s.indexOf('shortlist') !== -1) shortlisted++; if(s.indexOf('interview') !== -1 || all[i].interview_date) interviews++; if(s.indexOf('hired') !== -1 || all[i].status === 'Approved') hired++; }
+  var banner = '';
+  if(hired) banner = '<div class="notif" style="background:#0a3a2a;color:#01F9C6">🎉 You are Hired for ' + hired + ' job(s)!</div>';
+  else if(interviews) banner = '<div class="notif" style="background:#2a2410;color:#FFB020">📅 ' + interviews + ' Interview Scheduled — check below</div>';
+  else if(shortlisted) banner = '<div class="notif" style="background:#0a3a2a;color:#01F9C6">⭐ Shortlisted for ' + shortlisted + ' job(s)!</div>';
+  document.getElementById('banner').innerHTML = banner;
+  if(all.length === 0){
+    document.getElementById('list').innerHTML = '<div class="card" style="text-align:center"><p>No applications yet</p><p class="meta">Go apply for Cashier/General Worker first</p><button class="btn btn-green" onclick="location.href=\'jobs.html\'">Go Apply</button></div>';
+    return;
+  }
+  var html = '';
+  for(var k=0;k<all.length;k++){
+    var app = all[k];
+    var title = (app.jobs && app.jobs.title) || 'Job';
+    var comp = (app.jobs && (app.jobs.company_name || app.jobs.company)) || '';
+    var status = app.status || 'Application Received';
+    if(status === 'Applied') status = 'Application Received';
+    if(status === 'Approved') status = 'Hired';
+    if(status === 'shortlisted') status = 'Shortlisted';
+    if(status === 'interview') status = 'Interview Scheduled';
+    var steps = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
+    var idx = steps.indexOf(status);
+    if((status === 'Not Selected' || status === 'Rejected')) idx = -1;
+    if(idx === -1 && status !== 'Not Selected' && status !== 'Rejected') idx = 0;
+    var badges = '';
+    for(var b=0;b<steps.length;b++){ var cls = b < idx ? 's-done' : (b === idx ? 's-active' : 's-pending'); var icon = b < idx ? '✅' : (b === idx ? '👁️' : ''); badges += '<span class="badge ' + cls + '">' + icon + ' ' + steps[b] + '</span>'; }
+    var interview = '';
+    if(app.interview_date || status === 'Interview Scheduled'){
+      interview = '<div class="interview-box">📅 <b>INTERVIEW SCHEDULED</b><br>Date: <b>' + (app.interview_date || 'To be confirmed') + '</b><br>Time: <b>' + (app.interview_time || '') + '</b><br>Location: <b>' + (app.interview_location || 'Thohoyandou Office') + '</b><br>' + (app.interview_note || 'Bring ID & CV') + '</div>';
+    }
+    var hiredBox = status === 'Hired' ? '<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">' + comp + ' will contact you.</span></div>' : '';
+    var rejected = (status === 'Not Selected' || status === 'Rejected') ? '<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected. Keep applying — new jobs every week.</div>' : '';
+    var empPhone = formatPhone((app.jobs && app.jobs.whatsapp_number) || '0790608952');
+    var myName = (getCurrentUser() && getCurrentUser().full_name) || 'Applicant';
+    var msg = 'Hi ' + comp + ', I\'m ' + myName + '. I applied for ' + title + ' on JobWay. Status: ' + status;
+    var waBtn = '<a href="https://wa.me/' + empPhone + '?text=' + encodeURIComponent(msg) + '" target="_blank" class="wa-btn">💬 Message Employer</a>';
+    var salaryText = (app.jobs && app.jobs.salary_min) ? 'R' + app.jobs.salary_min + (app.jobs.salary_max ? ' - R' + app.jobs.salary_max : '+') : '';
+    var extBtn = '<a href="' + getApplyUrl(app.jobs) + '" target="_blank" class="ext-link">Apply on Original Site ↗</a>';
+    var cvUrl = getCVUrl(app);
+    var cvBtn = cvUrl ? '<br><a href="' + cvUrl + '" target="_blank" class="cv-link">📄 View My Submitted CV</a>' : '';
+    html += '<div class="card"><h3 style="margin:0 0 6px">' + title + ' - ' + comp + '</h3><div class="meta">Applied: ' + fmtDate(app.created_at) + ' • ' + ((app.jobs && app.jobs.location) || '') + ' ' + salaryText + '</div><div>' + badges + '</div><div class="meta"><b>Status:</b> ' + status + '</div>' + interview + hiredBox + rejected + cvBtn + '<br>' + waBtn + extBtn + '</div>';
+  }
+  document.getElementById('list').innerHTML = html;
 }
 load();
-let _user = getCurrentUser();
-if(_user?.id && _user.id.length>20){
-  supabaseClient.channel('applications-changes-'+_user.id).on('postgres_changes', {event:'*', schema:'public', table:'applications', filter:'applicant_id=eq.'+_user.id}, ()=>load()).subscribe();
-}
-</script>
-</body>
-</html>
+</script></body></html>
