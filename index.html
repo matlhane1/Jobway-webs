@@ -70,8 +70,6 @@
 </style>
 </head>
 <body>
-<a href="https://wa.me/27790608952?text=JOIN" style="position:fixed; bottom:15px; left:10px; right:10px; z-index:9999; background:#25D366; color:white; text-align:center; padding:16px; border-radius:50px; font-weight:800; font-size:18px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.3);">📱 JOIN WHATSAPP FOR DAILY JOBS — FREE</a>
-
 <div class="top"><div class="top-inner">
 <div class="header-main">
 <a href="index.html" class="brand-logo"><svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg"><g><path d="M 8 36 C 24 14 42 24 58 32 C 72 40 96 10 124 4 L 114 4 L 133 1 L 136 27 L 125 16 C 104 23 84 45 62 44 C 48 43 30 22 8 36 Z" fill="#01F9C6"/><circle cx="82" cy="12" r="7" fill="#01F9C6"/><path d="M 72 21 Q 76 15 82 18 T 78 28 L 88 32 L 84 36 L 72 30 L 70 38 L 66 36 Z" fill="white"/></g><g transform="translate(0,56)"><text x="4" y="0" font-family="Space Grotesk, sans-serif" font-weight="800" font-size="34" fill="white">JobWay</text><text x="5" y="13" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="9.2" fill="#8FB3C1">your job, your way</text></g></svg></a>
@@ -85,12 +83,6 @@
 <div class="kicker">REAL JOBS IN SOUTH AFRICA — UPDATED TODAY</div>
 <div class="h1"><div class="n">Find work</div><div class="m">that pays.</div><div class="b">Fast.</div></div>
 <div class="sub">Cashier, Retail, General Worker, Call Centre and Driver jobs in Gauteng, Limpopo and SA. Apply with your CV in 60 seconds. No scams, no fees for jobseekers.</div>
-
-<div style="margin:15px 0; text-align:center;">
-  <a href="https://wa.me/27790608952?text=JOIN" style="background:#25D366; color:white; padding:15px 25px; border-radius:30px; font-weight:800; display:block; text-decoration:none; font-size:16px;">Get Jobs on WhatsApp — Tap to Join <span id="waCount">20</span>/1000</a>
-  <p style="font-size:13px; margin-top:8px; color:#ccc;">✅ <span id="waCount2">20</span> people joined today • <span id="waLeft">980</span> spots left • No fees</p>
-</div>
-
 <div class="search-box"><input id="qTitle" placeholder="Job title: Cashier, General Worker"><input id="qLoc" placeholder="Where: Pretoria, Thohoyandou"><button class="btn-search" onclick="doSearch()">Search</button></div>
 <div class="trust"><span>✓ POPIA compliant</span><span>✓ PayFast secured</span><span>✓ WhatsApp support</span><span>Pretoria, SA</span></div>
 </div>
@@ -147,7 +139,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://fqqjvwpfehetqhmzsnqx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxcWp2d3BmZWhldHFobXpzbmF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDcwNzQsImV4cCI6MjA3MjQyMzA3NH0.eF0P9tG5QnZc1PjQK1N1G0b3z0JfQZJfQZJfQZJfQ';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxcWp2d3BmZWhldHFobXpzbmF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDcwNzQsImV4cCI6MjA3MjQyMzA3NH0.eF0P9tG5QnZc1PjQK1N1G0b3z0JfQZJfQZJfQZJfQ'; // REPLACE WITH YOUR ANON KEY
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function doSearch(){
@@ -163,22 +155,11 @@ function doSearch(){
 document.getElementById('qTitle')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
 document.getElementById('qLoc')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
 
-async function updateWACount(){
-  try{
-    let {count} = await supabase.from('whatsapp_subscribers').select('*', {count:'exact', head:true});
-    if(count !== null){
-      document.getElementById('waCount').innerText = count;
-      document.getElementById('waCount2').innerText = count;
-      document.getElementById('waLeft').innerText = 1000 - count;
-    }
-  }catch(e){}
-}
-updateWACount();
-
 async function loadFilteredJobs(){
   const userPhone = localStorage.getItem('userPhone');
   const infoEl = document.getElementById('filter-info');
   let jobs = [];
+
   if(!userPhone){
     let {data} = await supabase.from('jobs').select('*').order('created_at',{ascending:false}).limit(12);
     jobs = data || [];
@@ -186,7 +167,9 @@ async function loadFilteredJobs(){
     displayJobs(jobs);
     return;
   }
+
   let {data: profile} = await supabase.from('whatsapp_subscribers').select('province, experience_level').eq('whatsapp_number', userPhone).single();
+
   if(!profile){
     let {data} = await supabase.from('jobs').select('*').order('created_at',{ascending:false}).limit(12);
     jobs = data || [];
@@ -194,10 +177,13 @@ async function loadFilteredJobs(){
     displayJobs(jobs);
     return;
   }
+
+  // Exact match: province + experience
   let {data} = await supabase.from('jobs').select('*')
     .eq('province', profile.province)
     .eq('experience_level', profile.experience_level)
     .order('created_at',{ascending:false});
+
   if(!data || data.length===0){
     let {data: fb} = await supabase.from('jobs').select('*').eq('province', profile.province).order('created_at',{ascending:false}).limit(12);
     jobs = fb || [];
@@ -208,6 +194,7 @@ async function loadFilteredJobs(){
   }
   displayJobs(jobs);
 }
+
 function displayJobs(jobs){
   const grid = document.getElementById('jobsGrid');
   if(!jobs || jobs.length===0){ grid.innerHTML='<p style="color:#A8C8D0">No jobs found for your filter. Try browsing all jobs.</p>'; return; }
@@ -223,4 +210,4 @@ function displayJobs(jobs){
 loadFilteredJobs();
 </script>
 </body>
-</html>
+</html> 
