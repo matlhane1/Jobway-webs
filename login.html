@@ -4,23 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login | JobWay - WhatsApp Only</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
-.card{background:#1A3341;border:1px solid #25475A;border-radius:24px;padding:24px;width:100%;max-width:380px}
-.logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:8px}
-.sub{text-align:center;color:#8DB0BF;font-size:13px;margin-bottom:16px}
+body{font-family:Arial,sans-serif;background:#0F2230;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+.card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:22px;width:100%;max-width:380px}
+.logo{font-weight:900;color:#01F9C6;font-size:26px;text-align:center;margin-bottom:6px}
+.sub{text-align:center;color:#8DB0BF;font-size:13px;margin-bottom:14px;line-height:1.4}
 .label{font-size:12px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
-.input{width:100%;background:#0F2230!important;border:1px solid #25475A;color:white!important;padding:15px 14px;border-radius:12px;margin-top:8px;outline:none;font-size:15px;color-scheme:dark}
-.btn{width:100%;background:#01F9C6;color:#08231C;border:none;padding:15px;border-radius:999px;font-weight:900;margin-top:16px;cursor:pointer;font-size:15px}
+.input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:14px;border-radius:10px;margin-top:8px;font-size:15px}
+.btn{width:100%;background:#01F9C6;color:#08231C;border:0;padding:14px;border-radius:50px;font-weight:900;margin-top:16px;font-size:15px}
 .btn:disabled{opacity:.6}
 .small{font-size:11px;color:#8DB0BF;text-align:center;margin-top:12px;line-height:1.5}
-.link{color:#01F9C6;font-size:12px;text-decoration:none;font-weight:700;cursor:pointer}
-.message{display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:13px;text-align:center;line-height:1.4}
-.message.error{display:block;background:#3A2025;border:1px solid #7A3540;color:#FFB4BE}
-.message.success{display:block;background:#123A31;border:1px solid #1D705D;color:#9CFFE9}
+.link{color:#01F9C6;font-size:12px;font-weight:700;text-decoration:none}
+.message{display:none;margin-top:12px;padding:11px;border-radius:10px;font-size:13px;text-align:center;line-height:1.4}
+.message.error{display:block;background:#3A2025;color:#FFB4BE}
+.message.success{display:block;background:#123A31;color:#9CFFE9}
 </style>
 </head>
 <body>
@@ -29,80 +27,101 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;d
 <h3 style="text-align:center;">Welcome back</h3>
 <p class="sub">Login with your WhatsApp number.<br>No email, no password.</p>
 <label class="label">WHATSAPP NUMBER</label>
-<input class="input" id="waNumber" type="tel" placeholder="e.g. 081 263 3193" inputmode="tel" autocomplete="tel">
-<button class="btn" id="loginButton" type="button">Login with WhatsApp →</button>
-<div style="display:flex;justify-content:center;margin-top:14px;"><a class="link" href="signup.html">No account? Create with WhatsApp →</a></div>
+<input class="input" id="waNumber" type="tel" placeholder="e.g. 081 263 3193">
+<button class="btn" id="loginButton" onclick="login()">Login with WhatsApp →</button>
+<div style="text-align:center;margin-top:14px;"><a class="link" href="signup.html">No account? Create with WhatsApp →</a></div>
 <div id="message" class="message"></div>
 <p class="small">🔒 Secure WhatsApp login<br>We filter jobs by your province & experience.<br>We never share your number.</p>
 </div>
 <script>
-const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-function showMessage(t,type='error'){
-  const m=document.getElementById('message');
-  m.textContent=t; m.className='message '+type;
+var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+
+function showMessage(t, type){
+  var m = document.getElementById('message');
+  m.textContent = t;
+  m.className = 'message ' + (type || 'error');
 }
-async function login(){
-  let waNum=document.getElementById('waNumber').value.trim();
-  const btn=document.getElementById('loginButton');
-  document.getElementById('message').className='message';
-  if(!waNum || waNum.replace(/\D/g,'').length < 9){showMessage('Please enter your WhatsApp number.');return;}
-  let clean = waNum.replace(/\D/g,'');
-  if(clean.startsWith('0')) clean = '27' + clean.slice(1);
-  if(!clean.startsWith('27')) clean = '27' + clean;
-  btn.disabled=true; btn.textContent='Checking...';
+
+function doLoginSuccess(clean, prov, fullName){
   try{
-    // FIXED: Never block on DB - try to find, if not found create, if DB fails still login
-    let data = null;
-    try{
-      let r1 = await supabaseClient.from('whatsapp_subscribers').select('*').eq('phone', clean).maybeSingle();
-      if(r1 && r1.data) data = r1.data;
-      if(!data){
-        let r2 = await supabaseClient.from('whatsapp_subscribers').select('*').eq('whatsapp_number', clean).maybeSingle();
-        if(r2 && r2.data) data = r2.data;
-      }
-    }catch(e){ console.log('select fail',e); }
-
-    if(!data){
-      // Try create - if RLS blocks, we still continue
-      try{
-        let ins = await supabaseClient.from('whatsapp_subscribers').insert({phone:clean, whatsapp_number:clean, province:'Gauteng', job_type:'All Jobs', is_active:true}).select().single();
-        if(ins && ins.data) data = ins.data;
-      }catch(e){ console.log('insert fail',e); }
-      if(!data) data = {phone:clean, whatsapp_number:clean, province:'Gauteng'};
-    }
-
-    const prov = data.province || 'Gauteng';
-    // SAVE ALL KEYS - this stops jobs.html from kicking to homepage
     localStorage.setItem('userPhone', clean);
     localStorage.setItem('whatsapp_number', clean);
     localStorage.setItem('phone', clean);
-    localStorage.setItem('userProvince', prov);
-    localStorage.setItem('userName', data.full_name || '');
+    localStorage.setItem('userProvince', prov || 'Gauteng');
+    localStorage.setItem('userName', fullName || '');
     localStorage.setItem('user_role', 'seeker');
-    localStorage.setItem('jobway_logged_in','true');
-    localStorage.setItem('jobway_user', JSON.stringify({whatsapp_number:clean, phone:clean, province:prov, full_name: data.full_name || ''}));
+    localStorage.setItem('jobway_logged_in', 'true');
+    localStorage.setItem('jobway_user', JSON.stringify({ whatsapp_number: clean, phone: clean, province: prov || 'Gauteng', full_name: fullName || '' }));
     localStorage.setItem('jobway_phone', clean);
+    localStorage.setItem('jobway_joined_phone', '+' + clean);
     sessionStorage.setItem('userPhone', clean);
+  }catch(e){}
+  showMessage('✅ Welcome! Opening jobs for ' + (prov || 'Gauteng') + '...', 'success');
+  setTimeout(function(){ window.location.replace('jobs.html?loggedin=1&phone=' + clean); }, 600);
+}
 
-    showMessage('✅ Welcome! Opening jobs for ' + prov + '...','success');
-    // Use replace so back button doesn't go to login again, and add param to prove login
-    setTimeout(()=>{ window.location.replace('jobs.html?loggedin=1&phone='+clean); }, 600);
-  }catch(err){
-    console.error(err);
-    // FINAL FALLBACK - even if everything fails, let them in
-    localStorage.setItem('userPhone', clean);
-    localStorage.setItem('jobway_logged_in','true');
-    localStorage.setItem('jobway_user', JSON.stringify({phone:clean, whatsapp_number:clean}));
-    showMessage('✅ Logged in (offline mode) — opening jobs...','success');
-    setTimeout(()=>{ window.location.replace('jobs.html?loggedin=1'); }, 600);
+function login(){
+  var waNum = document.getElementById('waNumber').value;
+  var btn = document.getElementById('loginButton');
+  document.getElementById('message').className = 'message';
+  if(!waNum || waNum.replace(/\D/g, '').length < 9){ showMessage('Please enter your WhatsApp number.'); return; }
+  var clean = waNum.replace(/\D/g, '');
+  if(clean.charAt(0) === '0') clean = '27' + clean.slice(1);
+  if(clean.indexOf('27') !== 0) clean = '27' + clean;
+
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+
+  // Try to find user in Supabase using plain XHR - works on old phones
+  var finished = false;
+  function finishOnce(prov, name){
+    if(finished) return;
+    finished = true;
+    doLoginSuccess(clean, prov, name);
+  }
+
+  try{
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', SUPABASE_URL + '/rest/v1/whatsapp_subscribers?select=*&or=(phone.eq.' + clean + ',whatsapp_number.eq.' + clean + ')&limit=1', true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+    xhr.timeout = 5000;
+    xhr.onreadystatechange = function(){
+      if(xhr.readyState === 4){
+        if(xhr.status === 200){
+          try{
+            var arr = JSON.parse(xhr.responseText);
+            if(arr && arr.length > 0){
+              finishOnce(arr[0].province || 'Gauteng', arr[0].full_name || '');
+              return;
+            }
+          }catch(e){}
+        }
+        // Not found - create new, but don't block login if it fails
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open('POST', SUPABASE_URL + '/rest/v1/whatsapp_subscribers', true);
+        xhr2.setRequestHeader('apikey', SUPABASE_KEY);
+        xhr2.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+        xhr2.setRequestHeader('Content-Type', 'application/json');
+        xhr2.setRequestHeader('Prefer', 'return=minimal');
+        xhr2.onreadystatechange = function(){ if(xhr2.readyState === 4) finishOnce('Gauteng', ''); };
+        xhr2.onerror = function(){ finishOnce('Gauteng', ''); };
+        xhr2.timeout = 4000;
+        xhr2.ontimeout = function(){ finishOnce('Gauteng', ''); };
+        try{ xhr2.send(JSON.stringify({ phone: clean, whatsapp_number: clean, province: 'Gauteng', job_type: 'All Jobs', is_active: true })); }
+        catch(e){ finishOnce('Gauteng', ''); }
+      }
+    };
+    xhr.onerror = function(){ finishOnce('Gauteng', ''); };
+    xhr.ontimeout = function(){ finishOnce('Gauteng', ''); };
+    xhr.send();
+    // Safety - never hang on old phone
+    setTimeout(function(){ finishOnce('Gauteng', ''); }, 6000);
+  }catch(e){
+    finishOnce('Gauteng', '');
   }
 }
-document.getElementById('loginButton').addEventListener('click', login);
-document.getElementById('waNumber').addEventListener('keydown',e=>{if(e.key==='Enter') login();});
-// Auto-focus input
-document.getElementById('waNumber').focus();
 </script>
 </body>
 </html>
