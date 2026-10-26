@@ -1,240 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile | JobWay</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function(){
-  const logged = localStorage.getItem('jobway_logged_in');
-  const role = localStorage.getItem('user_role');
-  if(!logged){ location.href = 'login.html'; return; }
-  if(role === 'employer'){ alert('⛔ This is Candidate Profile. Employer cannot upload CV.'); location.href = 'employer-dashboard.html'; }
-})();
-</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2230;color:white;min-height:100vh}
-.header{background:#11283A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:10}
-.logo{font-weight:900;color:#01F9C6;font-size:20px;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;gap:8px}
-.btn{border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap}
-.btn-dark{background:#2A3F4E;color:white}
-.btn-green{background:#01F9C6;color:#08231C;width:100%;padding:14px;margin-top:12px;font-size:15px;border-radius:999px;font-weight:900}
-.nav-cta{display:flex;flex-direction:row;gap:8px;align-items:center}
-.container{max-width:600px;margin:0 auto;padding:16px}
-.card{background:#1A3341;border:1px solid #25475A;border-radius:20px;padding:18px;margin-bottom:14px}
-.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:12px;margin-top:8px;font-family:'Plus Jakarta Sans',sans-serif}
-.input:focus{border-color:#01F9C6;outline:none}
-.label{font-size:11px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700;letter-spacing:0.3px;text-transform:uppercase}
-.upload-box{border:2px dashed #01F9C6;border-radius:16px;padding:20px;text-align:center;margin-top:10px;background:rgba(1,249,198,0.05);cursor:pointer;transition:0.2s}
-.upload-box.dragover{background:rgba(1,249,198,0.15);border-color:#01F9C6}
+body{font-family:Arial,sans-serif;background:#0F2230;color:#fff}
+.header{background:#11283A;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e3a4a;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;color:#01F9C6;font-size:18px}
+.btn{border:0;border-radius:20px;padding:9px 14px;font-weight:800;font-size:12px}
+.btn-dark{background:#2A3F4E;color:#fff}
+.btn-green{background:#01F9C6;color:#08231C;width:100%;padding:13px;margin-top:12px;font-size:14px;border-radius:50px;font-weight:900}
+.container{max-width:480px;margin:0 auto;padding:14px}
+.card{background:#1A3341;border:1px solid #25475A;border-radius:16px;padding:16px;margin-bottom:12px}
+.input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;margin-top:7px;font-size:14px}
+.label{font-size:11px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
+.upload-box{border:2px dashed #01F9C6;border-radius:12px;padding:16px;text-align:center;margin-top:10px;background:#0f2a2a}
 .file-name{color:#01F9C6;font-size:12px;margin-top:8px;font-weight:800}
-.badge-skill{background:#143E4A;color:#01F9C6;padding:6px 10px;border-radius:20px;font-size:11px;margin:4px;display:inline-block;font-weight:700}
-.banner{background:linear-gradient(135deg,#01F9C6,#30BA8F);color:#08231C;border-radius:16px;padding:12px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
+.badge-skill{background:#143E4A;color:#01F9C6;padding:5px 9px;border-radius:20px;font-size:11px;margin:3px;display:inline-block;font-weight:700}
+.banner{background:#01F9C6;color:#08231C;border-radius:12px;padding:11px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
 </style>
 </head>
 <body>
 <div class="header">
-<div class="logo">JobWay <span style="font-size:10px;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:3px 8px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif">CANDIDATE ONLY</span></div>
-<div class="nav-cta">
-<button class="btn btn-dark" onclick="location.href='jobs.html'">💼 Jobs</button>
-<button class="btn btn-dark" onclick="location.href='track-applications.html'">📊 Track</button>
-<button class="btn btn-green" style="width:auto;padding:10px 14px;margin-top:0" onclick="logout()">Log Out</button>
-</div>
+<div class="logo">JobWay <span style="font-size:10px;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:2px 7px;border-radius:20px">CANDIDATE ONLY</span></div>
+<div style="display:flex;gap:6px"><button class="btn btn-dark" onclick="location.href='jobs.html'">Jobs</button><button class="btn btn-dark" onclick="location.href='track-applications.html'">Track</button><button class="btn btn-green" style="width:auto;padding:9px 12px;margin-top:0" onclick="logout()">Log Out</button></div>
 </div>
 <div class="container">
-<div class="banner">📱 Official WhatsApp: 079 060 8952 — CV attached to all applications<br><small id="candEmail" style="font-size:11px;opacity:0.9"></small></div>
+<div class="banner">📱 WhatsApp: 079 060 8952 — CV attached to all applications</div>
 <div class="card">
-<h3 style="font-family:'Space Grotesk',sans-serif">👤 My Profile</h3>
-<p style="font-size:11px;color:#8DB0BF;margin-top:4px">Upload CV once — 1-Click Apply everywhere (saved to cloud)</p>
+<h3>👤 My Profile</h3>
+<p style="font-size:11px;color:#8DB0BF;margin-top:4px">Upload CV once — 1-Click Apply everywhere</p>
 <label class="label">Full Name</label>
 <input class="input" id="fullName" placeholder="e.g. Thabo Molefe">
-<label class="label">Email (for automatic notifications)</label>
+<label class="label">Email</label>
 <input class="input" id="email" placeholder="you@gmail.com">
-<label class="label">WhatsApp Number (for alerts from 079 060 8952)</label>
+<label class="label">WhatsApp Number</label>
 <input class="input" id="whatsapp" placeholder="e.g. 072 123 4567">
-<label class="label">📄 Upload CV (PDF, DOC, DOCX - max 5MB)</label>
-<div class="upload-box" id="uploadBox" onclick="document.getElementById('cvFile').click()">
-<div style="font-size:32px">📄</div>
-<div style="font-weight:800;margin-top:6px">Click to upload CV or drag & drop</div>
-<div style="color:#8DB0BF;font-size:11px;margin-top:4px">PDF, DOC, DOCX supported — Stored in cvs bucket (PUBLIC)</div>
+<label class="label">📄 Upload CV (PDF, DOC - max 5MB)</label>
+<div class="upload-box" onclick="document.getElementById('cvFile').click()">
+<div style="font-size:28px">📄</div>
+<div style="font-weight:800;margin-top:4px;font-size:13px">Click to upload CV</div>
+<div style="color:#8DB0BF;font-size:11px;margin-top:3px">PDF, DOC supported — Stored in cvs bucket</div>
 <div class="file-name" id="fileName"></div>
-<input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx,application/pdf" onchange="handleFile(this.files[0])">
+<input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx" onchange="handleFile(this.files[0])">
 </div>
 <div id="cvLink" style="text-align:center;margin-top:8px"></div>
 <label class="label">Skills (comma separated)</label>
-<input class="input" id="skills" placeholder="e.g. Serving, POS, Customer Service, Cashier">
+<input class="input" id="skills" placeholder="e.g. Serving, POS, Cashier">
 <div id="skillsPreview" style="margin-top:8px"></div>
 <label class="label">Location</label>
 <select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KZN</option><option>Limpopo</option><option>Eastern Cape</option><option>Remote</option></select>
 <button class="btn btn-green" id="saveBtn" onclick="saveProfile()">💾 Save Profile + CV</button>
 <div id="savedMsg" style="text-align:center;color:#01F9C6;font-size:12px;margin-top:10px;display:none">✅ Profile saved! CV will be sent with every application</div>
 </div>
-<div class="card">
-<h4 style="color:#01F9C6;font-family:'Space Grotesk',sans-serif">📎 How CV works:</h4>
-<p style="font-size:12px;color:#8DB0BF;margin-top:6px;line-height:1.5">
-1. Upload CV here once<br>
-2. When you click Apply in Jobs page, your CV is AUTOMATICALLY attached<br>
-3. Employer sees it in employer dashboard<br>
-4. No need to upload again - 1-Click Apply forever<br><br>
-<span style="color:#01F9C6">👁️ Employer sees your CV + profile only after you Apply - not before.</span>
-</p>
-</div>
+<div class="card"><h4 style="color:#01F9C6">📎 How CV works:</h4><p style="font-size:12px;color:#8DB0BF;margin-top:6px;line-height:1.5">1. Upload CV here once<br>2. Click Apply in Jobs — CV auto-attaches<br>3. Employer sees it in dashboard<br><br><span style="color:#01F9C6">Employer sees CV only after you Apply.</span></p></div>
 </div>
 <script>
-const supabaseClient = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
-let currentFile = null;
-let uploadedCvUrl = '';
-let uploadedCvPath = '';
-function logout(){ localStorage.clear(); location.href='index.html'; }
-function getUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; } }
+var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+var currentFile = null;
+var uploadedCvUrl = '';
+var uploadedCvPath = '';
 
-async function loadProfile(){
- let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
- let user = getUser();
- if(user && user.id){
-   // 1. Try profiles
-   let { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-   if(data){
-     p = {...p, fullName: data.full_name || p.fullName, email: data.email || p.email, whatsapp: data.phone || data.whatsapp_number || p.whatsapp, cv_url: data.cv_url || p.cv_url, cvName: data.cv_url ? data.cv_url.split('/').pop() : p.cvName };
-     if(data.cv_url) uploadedCvUrl = data.cv_url;
-   }
-   // 2. FALLBACK: if profiles has no CV, check candidate_cvs (your old uploads are here)
-   if(!uploadedCvUrl){
-     let { data: cv } = await supabaseClient.from('candidate_cvs').select('*').eq('user_id', user.id).single();
-     if(cv && cv.cv_url){
-       uploadedCvUrl = cv.cv_url;
-       p.cv_url = cv.cv_url;
-       p.cvName = cv.cv_url.split('/').pop();
-       p.fullName = p.fullName || cv.full_name;
-     }
-   }
- }
- document.getElementById('fullName').value=p.fullName||user?.full_name||'';
- document.getElementById('email').value=p.email||user?.email||localStorage.getItem('jobway_user_email')||'';
- document.getElementById('whatsapp').value=p.whatsapp||user?.phone||'';
- document.getElementById('skills').value=(p.skills||[]).join(', ');
- document.getElementById('location').value=p.location||'Gauteng';
- if(p.cvName){ document.getElementById('fileName').innerText='✅ '+p.cvName; }
- if(p.cv_url || uploadedCvUrl){
-   let url = p.cv_url||uploadedCvUrl;
-   let fname = (p.cvName||url.split('/').pop());
-   document.getElementById('cvLink').innerHTML = `<a href="${url}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV — ${fname}</a><br><span style="font-size:11px;color:#8DB0BF">This CV will auto-attach to applications</span>`;
- }
- document.getElementById('candEmail').innerText='🔒 '+(localStorage.getItem('jobway_user_email')||p.email||'');
- renderSkills();
+(function(){
+  var logged = localStorage.getItem('jobway_logged_in');
+  if(!logged){ window.location.href = 'login.html'; return; }
+})();
+
+function logout(){ try{ localStorage.clear(); }catch(e){} window.location.href = 'index.html'; }
+function getUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user') || 'null'); }catch(e){ return null; } }
+
+function xhrPost(table, payload, cb){
+  try{
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', SUPABASE_URL + '/rest/v1/' + table, true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Prefer', 'return=minimal');
+    xhr.timeout = 7000;
+    xhr.onreadystatechange = function(){ if(xhr.readyState === 4) cb(); };
+    xhr.onerror = function(){ cb(); };
+    xhr.ontimeout = function(){ cb(); };
+    xhr.send(JSON.stringify(payload));
+  }catch(e){ cb(); }
 }
+
+function loadProfile(){
+  var p = {};
+  try{ p = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); }catch(e){}
+  var user = getUser();
+  document.getElementById('fullName').value = p.fullName || (user && user.full_name) || '';
+  document.getElementById('email').value = p.email || (user && user.email) || localStorage.getItem('jobway_user_email') || '';
+  document.getElementById('whatsapp').value = p.whatsapp || (user && user.phone) || '';
+  document.getElementById('skills').value = (p.skills || []).join(', ');
+  document.getElementById('location').value = p.location || 'Gauteng';
+  if(p.cvName) document.getElementById('fileName').innerHTML = '✅ ' + p.cvName;
+  if(p.cv_url || uploadedCvUrl){
+    var url = p.cv_url || uploadedCvUrl;
+    document.getElementById('cvLink').innerHTML = '<a href="' + url + '" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV</a>';
+  }
+  renderSkills();
+}
+
 function renderSkills(){
- let val=document.getElementById('skills').value;
- let arr=val.split(',').map(s=>s.trim()).filter(Boolean);
- document.getElementById('skillsPreview').innerHTML=arr.map(s=>`<span class="badge-skill">${s}</span>`).join('');
+  var val = document.getElementById('skills').value;
+  var arr = val.split(',');
+  var html = '';
+  for(var i=0;i<arr.length;i++){ var s = arr[i].replace(/^\s+|\s+$/g, ''); if(s) html += '<span class="badge-skill">' + s + '</span>'; }
+  document.getElementById('skillsPreview').innerHTML = html;
 }
-document.getElementById('skills').addEventListener('input',renderSkills);
+document.getElementById('skills').addEventListener('input', renderSkills);
+
 function handleFile(file){
- if(!file) return;
- if(file.size>5*1024*1024){alert('File too big! Max 5MB'); return;}
- currentFile = file;
- document.getElementById('fileName').innerText='✅ '+file.name+' ('+(file.size/1024).toFixed(0)+'KB) - Ready to upload on Save';
- let reader=new FileReader();
- reader.onload=function(e){
-   let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
-   p.cvName=file.name; p.cv_filename=file.name; p.cvSize=(file.size/1024).toFixed(0)+'KB'; p.cvType=file.type;
-   localStorage.setItem('jobway_profile',JSON.stringify(p));
- };
- reader.readAsDataURL(file);
+  if(!file) return;
+  if(file.size > 5*1024*1024){ alert('File too big! Max 5MB'); return; }
+  currentFile = file;
+  document.getElementById('fileName').innerHTML = '✅ ' + file.name + ' (' + Math.round(file.size/1024) + 'KB) - Ready on Save';
 }
-let box=document.getElementById('uploadBox');
-box.addEventListener('dragover',e=>{e.preventDefault(); box.classList.add('dragover')});
-box.addEventListener('dragleave',()=>box.classList.remove('dragover'));
-box.addEventListener('drop',e=>{e.preventDefault(); box.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]);});
 
-async function saveProfile(){
- let btn=document.getElementById('saveBtn');
- btn.innerText='Saving...'; btn.disabled=true;
- let fullName=document.getElementById('fullName').value.trim();
- let email=document.getElementById('email').value.trim();
- let whatsapp=document.getElementById('whatsapp').value.trim();
- let skills=document.getElementById('skills').value.split(',').map(s=>s.trim()).filter(Boolean);
- let locationVal=document.getElementById('location').value;
- if(!fullName||!email){ alert('Fill name & email'); btn.innerText='💾 Save Profile + CV'; btn.disabled=false; return; }
- let cvUrl = uploadedCvUrl;
- let cvName = '';
- try{ let p0=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); cvName = p0.cvName||p0.cv_filename||''; }catch(e){}
- let cvPath = uploadedCvPath;
- if(currentFile){
-   try{
-     let cleanName = currentFile.name.replace(/[^a-zA-Z0-9.-]/g,'_');
-     let filePath = Date.now()+'_'+cleanName;
-     let { error: upErr } = await supabaseClient.storage.from('cvs').upload(filePath, currentFile, {upsert:true, contentType: currentFile.type});
-     if(!upErr){
-       let { data: pub } = supabaseClient.storage.from('cvs').getPublicUrl(filePath);
-       if(pub?.publicUrl){ cvUrl = pub.publicUrl; cvPath = filePath; cvName = currentFile.name; uploadedCvUrl = cvUrl; uploadedCvPath = filePath; }
-       console.log('CV uploaded to cvs bucket:', cvUrl);
-     } else {
-       console.log('CV upload error', upErr);
-       alert('CV upload failed: '+upErr.message+' — but profile will still save. Check bucket cvs is PUBLIC.');
-     }
-   }catch(e){ console.log('storage error', e); }
- }
- // Local cache
- let p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
- p.fullName=fullName; p.email=email; p.whatsapp=whatsapp; p.skills=skills; p.location=locationVal;
- if(cvUrl){ p.cv_url=cvUrl; p.cvUrl=cvUrl; p.cv_path=cvPath; }
- if(cvName){ p.cvName=cvName; p.cv_filename=cvName; }
- if(currentFile) p.cvSize=(currentFile.size/1024).toFixed(0)+'KB';
- localStorage.setItem('jobway_profile',JSON.stringify(p));
- localStorage.setItem('jobway_user_email', email);
- localStorage.setItem('jobway_cv_url', cvUrl||'');
- let user = getUser() || {};
- user.full_name=fullName; user.email=email; user.phone=whatsapp; if(cvUrl) user.cv_url=cvUrl;
- localStorage.setItem('jobway_user', JSON.stringify(user));
+function saveProfile(){
+  var btn = document.getElementById('saveBtn');
+  btn.innerHTML = 'Saving...'; btn.disabled = true;
+  var fullName = document.getElementById('fullName').value.replace(/^\s+|\s+$/g, '');
+  var email = document.getElementById('email').value.replace(/^\s+|\s+$/g, '');
+  var whatsapp = document.getElementById('whatsapp').value.replace(/^\s+|\s+$/g, '');
+  var skills = document.getElementById('skills').value.split(',');
+  var skillsClean = [];
+  for(var i=0;i<skills.length;i++){ var s = skills[i].replace(/^\s+|\s+$/g, ''); if(s) skillsClean.push(s); }
+  var locationVal = document.getElementById('location').value;
+  if(!fullName || !email){ alert('Fill name & email'); btn.innerHTML = '💾 Save Profile + CV'; btn.disabled = false; return; }
 
- // === FIX: Save to ALL 3 places so Profile / Jobs / Track all see same CV ===
- if(user && user.id && user.id.length>20){
-   // 1. profiles — ONLY use columns that exist (no cv_name, it breaks upsert)
-   let { error: profErr } = await supabaseClient.from('profiles').upsert({
-     id: user.id,
-     full_name: fullName,
-     email: email,
-     phone: whatsapp,
-     whatsapp_number: whatsapp,
-     cv_url: cvUrl || null,
-     updated_at: new Date().toISOString()
-   }, { onConflict: 'id' });
-   if(profErr) console.log('profiles upsert error', profErr);
+  var cvUrl = uploadedCvUrl;
+  var cvName = '';
+  try{ var p0 = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); cvName = p0.cvName || ''; }catch(e){}
 
-   // 2. candidate_cvs — this is what jobs.html / track uses
-   if(cvUrl){
-     let { error: cvErr } = await supabaseClient.from('candidate_cvs').upsert({
-       user_id: user.id,
-       full_name: fullName,
-       email: email,
-       phone: whatsapp,
-       location: locationVal,
-       skills: skills,
-       cv_url: cvUrl
-     }, { onConflict: 'user_id' });
-     if(cvErr) console.log('candidate_cvs upsert error', cvErr);
+  // Local cache FIRST - works even if cloud fails (important for old phones)
+  var p = {};
+  try{ p = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); }catch(e){}
+  p.fullName = fullName; p.email = email; p.whatsapp = whatsapp; p.skills = skillsClean; p.location = locationVal;
+  if(currentFile) p.cvName = currentFile.name;
+  if(cvUrl) p.cv_url = cvUrl;
+  try{
+    localStorage.setItem('jobway_profile', JSON.stringify(p));
+    localStorage.setItem('jobway_user_email', email);
+  }catch(e){}
 
-     // 3. Update all old applications so Track page no longer shows PaymentNotification
-     let { error: appErr } = await supabaseClient.from('applications').update({ cv_url: cvUrl }).eq('applicant_id', user.id);
-     if(appErr) console.log('applications update error', appErr);
-   }
- }
- document.getElementById('savedMsg').style.display='block';
- btn.innerText='✅ Saved!';
- if(cvUrl) document.getElementById('cvLink').innerHTML = `<a href="${cvUrl}" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV — ${cvName||cvUrl.split('/').pop()}</a>`;
- setTimeout(()=>{
-   let pending=JSON.parse(localStorage.getItem('jobway_pending_job')||'null');
-   if(pending){
-     localStorage.removeItem('jobway_pending_job');
-     alert('✅ Profile + CV saved! Now 1-Click Apply to '+pending.title+'\nGo to Jobs and press Apply Now');
-     location.href='jobs.html'; return;
-   }
-   alert('✅ Profile + CV saved to cloud (cvs bucket)!\nNow go to Jobs and Apply - your CV will auto-attach\nYou will get updates from 079 060 8952');
-   location.href='jobs.html';
- },500);
+  var user = getUser() || {};
+  user.full_name = fullName; user.email = email; user.phone = whatsapp;
+  try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
+
+  // Try upload CV via Supabase Storage REST - works on old phones
+  if(currentFile){
+    var cleanName = currentFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    var filePath = Date.now() + '_' + cleanName;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', SUPABASE_URL + '/storage/v1/object/cvs/' + filePath, true);
+        xhr.setRequestHeader('apikey', SUPABASE_KEY);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+        xhr.setRequestHeader('Content-Type', currentFile.type || 'application/pdf');
+        xhr.onreadystatechange = function(){
+          if(xhr.readyState === 4){
+            if(xhr.status === 200 || xhr.status === 201){
+              cvUrl = SUPABASE_URL + '/storage/v1/object/public/cvs/' + filePath;
+              try{
+                var pp = JSON.parse(localStorage.getItem('jobway_profile') || '{}');
+                pp.cv_url = cvUrl; pp.cvName = currentFile.name;
+                localStorage.setItem('jobway_profile', JSON.stringify(pp));
+                localStorage.setItem('jobway_cv_url', cvUrl);
+              }catch(e){}
+              document.getElementById('cvLink').innerHTML = '<a href="' + cvUrl + '" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Uploaded CV</a>';
+            }
+            finishSave(fullName, email, whatsapp, skillsClean, locationVal, cvUrl);
+          }
+        };
+        xhr.onerror = function(){ finishSave(fullName, email, whatsapp, skillsClean, locationVal, cvUrl); };
+        xhr.send(currentFile);
+      }catch(e){ finishSave(fullName, email, whatsapp, skillsClean, locationVal, cvUrl); }
+    };
+    reader.readAsArrayBuffer(currentFile);
+  } else {
+    finishSave(fullName, email, whatsapp, skillsClean, locationVal, cvUrl);
+  }
+}
+
+function finishSave(fullName, email, whatsapp, skills, locationVal, cvUrl){
+  var user = getUser() || {};
+  var btn = document.getElementById('saveBtn');
+  // Save to Supabase tables - don't block user if fails
+  if(user && user.id && user.id.length > 20){
+    xhrPost('profiles', { id: user.id, full_name: fullName, email: email, phone: whatsapp, whatsapp_number: whatsapp, cv_url: cvUrl || null }, function(){});
+    if(cvUrl) xhrPost('candidate_cvs', { user_id: user.id, full_name: fullName, email: email, phone: whatsapp, location: locationVal, skills: skills, cv_url: cvUrl }, function(){});
+  } else {
+    // WhatsApp-only users have no UUID - save by phone
+    var clean = whatsapp.replace(/\D/g, '');
+    if(clean.charAt(0) === '0') clean = '27' + clean.slice(1);
+    xhrPost('whatsapp_subscribers', { phone: clean, whatsapp_number: clean, full_name: fullName, cv_url: cvUrl || null }, function(){});
+  }
+  document.getElementById('savedMsg').style.display = 'block';
+  btn.innerHTML = '✅ Saved!';
+  setTimeout(function(){
+    alert('✅ Profile + CV saved!\nNow go to Jobs and Apply - your CV will auto-attach');
+    window.location.href = 'jobs.html';
+  }, 500);
 }
 loadProfile();
 </script>
