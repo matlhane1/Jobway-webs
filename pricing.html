@@ -13,18 +13,26 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 .wrap{max-width:1200px;margin:0 auto;padding:24px 20px}
 .h1{font-size:32px;font-weight:800;margin:8px 0}
 .sub{color:#A8C8D0;font-size:14px;max-width:650px}
+.trust{margin:14px 0;display:flex;gap:8px;flex-wrap:wrap}
+.trust span{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);padding:6px 12px;border-radius:999px;font-size:11px;color:#A8C8D0}
+/* PAYMENT LOGOS - CLEAR ORDER */
+.pay-logos{margin:12px 0 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px}
+.pay-logos .label{font-size:10px;letter-spacing:0.12em;color:#6EA3AF;font-weight:800;margin-right:4px}
+.pay-logos .logo-card{background:#fff;color:#0A1F2E;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:900;letter-spacing:0.02em}
+.pay-logos .logo-eft{background:#11283A;border:1px solid rgba(255,255,255,0.18);color:#C8DDE3;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700}
 .grid{display:grid;gap:14px;margin:18px 0}
 .g4{grid-template-columns:repeat(4,1fr)}
 .card{background:#132f42;border:1px solid rgba(255,255,255,0.10);border-radius:18px;padding:20px;position:relative}
-.card.popular{border:1px solid #01F9C6}
+.card.popular{border:1px solid #01F9C6;box-shadow:0 0 0 1px rgba(1,249,198,0.15)}
 .badge{position:absolute;top:-10px;left:20px;background:#01F9C6;color:#0A1F2E;padding:4px 12px;border-radius:999px;font-size:10px;font-weight:900}
 .price{font-size:26px;font-weight:800;margin:6px 0}
 .price small{font-size:13px;opacity:0.6}
 .ul{list-style:none;margin:12px 0}
 .ul li{font-size:12px;color:#C8DDE3;margin:6px 0;padding-left:16px;position:relative}
 .ul li::before{content:"✓";position:absolute;left:0;color:#01F9C6;font-weight:900}
-.btn-card{width:100%;margin-top:14px;padding:12px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:12px}
-.btn-white{background:#fff;color:#0A1F2E}.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#fff}
+.btn-card{width:100%;margin-top:14px;padding:13px;border-radius:999px;border:0;font-weight:800;cursor:pointer;font-size:13px}
+.btn-white{background:#ffffff;color:#0A1F2E}
+.btn-green-pop{background:#01F9C6;color:#0A1F2E}
 .section-title{font-size:22px;font-weight:800;margin:30px 0 4px}
 .section-sub{font-size:13px;color:#A8C8D0;margin-bottom:14px}
 .single-featured{background:#132f42;border:1px solid rgba(1,249,198,0.25);border-radius:18px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:20px}
@@ -32,7 +40,7 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 @media(max-width:600px){.g4{grid-template-columns:1fr}}
 .modal{position:fixed;inset:0;background:rgba(8,24,36,0.92);display:none;place-items:center;z-index:99;padding:20px}
 .modal.show{display:grid}
-.modal-box{max-width:420px;width:100%;background:#11283A;border:1px solid rgba(1,249,198,0.2);border-radius:18px;padding:22px}
+.modal-box{max-width:400px;width:100%;background:#11283A;border:1px solid rgba(1,249,198,0.2);border-radius:18px;padding:22px}
 .email-input{width:100%;background:#0F2230;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;outline:none;margin:10px 0}
 </style>
 </head>
@@ -48,20 +56,32 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <div class="wrap">
 <div class="h1">Simple pricing. Choose what fits.</div>
 <div class="sub">Subscriptions = job posts only. CV Database is separate. Branded company page on all plans.</div>
+<div class="trust"><span>PayFast Secure</span><span>POPIA Compliant</span><span>Instant Invoice</span></div>
 
-<div style="margin:26px 0 10px">
+<!-- PAYMENT LOGOS IN ORDER - CLEARLY VISIBLE -->
+<div class="pay-logos">
+<span class="label">WE ACCEPT:</span>
+<span class="logo-card">VISA</span>
+<span class="logo-card">Mastercard</span>
+<span class="logo-eft">Instant EFT</span>
+<span class="logo-eft">Capitec Pay</span>
+<span class="logo-eft">Apple Pay</span>
+<span class="logo-eft">Google Pay</span>
+</div>
+
+<div style="margin:10px 0 10px">
 <div class="single-featured">
 <div style="flex:1">
 <div style="font-size:11px;color:#01F9C6;font-weight:800">PAY PER POST</div>
 <div class="price">R299 <small>/ 30 days</small></div>
 <ul class="ul"><li>1 job post 30 days</li><li>Branded company page</li><li>Invoice instantly</li></ul>
 </div>
-<div style="min-width:200px"><button class="btn-card btn-green" style="background:#01F9C6" data-item="JobWay Single Job Post">Post a job — R299</button></div>
+<div style="min-width:200px"><button class="btn-card btn-green-pop" data-item="JobWay Single Job Post">Post a job — R299</button></div>
 </div>
 </div>
 
 <div class="section-title">Subscription Plans — Job Posts Only</div>
-<div class="section-sub">All plans include branded company page. No CV unlocks included.</div>
+<div class="section-sub">Branded page included on all plans.</div>
 <div class="grid g4">
 <div class="card">
 <div style="font-size:11px;color:#01F9C6;font-weight:800">STARTER</div>
@@ -74,66 +94,38 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <div style="font-size:11px;color:#01F9C6;font-weight:800;margin-top:8px">GROWTH</div>
 <div class="price">R2,500 <small>/ month</small></div>
 <ul class="ul"><li>20 active job posts</li><li>Branded company page</li><li>Featured listings + priority support</li></ul>
-<button class="btn-card btn-green" style="background:#01F9C6" data-item="JobWay Growth Monthly">Get Growth — R2,500</button>
+<button class="btn-card btn-green-pop" data-item="JobWay Growth Monthly">Get Growth — R2,500</button>
 </div>
 <div class="card">
 <div style="font-size:11px;color:#A8C8D0;font-weight:800">PRO</div>
 <div class="price">R3,500 <small>/ month</small></div>
 <ul class="ul"><li>50 active job posts</li><li>Branded company page</li><li>Team access (5 users)</li></ul>
-<button class="btn-card btn-outline" data-item="JobWay Pro Monthly">Get Pro — R3,500</button>
+<button class="btn-card btn-white" data-item="JobWay Pro Monthly">Get Pro — R3,500</button>
 </div>
 <div class="card">
 <div style="font-size:11px;color:#A8C8D0;font-weight:800">BUSINESS</div>
 <div class="price">R5,999 <small>/ month</small></div>
 <ul class="ul"><li>Unlimited job posts</li><li>Branded company page</li><li>API + dedicated manager</li></ul>
-<button class="btn-card btn-outline" data-item="JobWay Business Monthly">Get Business — R5,999</button>
+<button class="btn-card btn-white" data-item="JobWay Business Monthly">Get Business — R5,999</button>
 </div>
 </div>
 
-<div class="section-title">Job Credits — Pay as you go</div>
-<div class="section-sub">Credits valid 12 months. All include branded page.</div>
+<div class="section-title">Job Credits</div>
 <div class="grid g4">
-<div class="card"><div class="price">R7,500 <small>for 50 jobs</small></div><div style="font-size:12px;color:#A8C8D0">R150 / job</div><button class="btn-card btn-white" data-item="JobWay 50 Job Credits">Buy 50 — R7,500</button></div>
-<div class="card"><div class="price">R14,000 <small>for 100 jobs</small></div><div style="font-size:12px;color:#01F9C6;font-weight:700">R140 / job</div><button class="btn-card btn-white" data-item="JobWay 100 Job Credits">Buy 100 — R14,000</button></div>
-<div class="card popular"><div class="badge">BEST VALUE</div><div class="price" style="margin-top:8px">R31,250 <small>for 250 jobs</small></div><div style="font-size:12px;color:#01F9C6;font-weight:700">R125 / job</div><button class="btn-card btn-green" style="background:#01F9C6" data-item="JobWay 250 Job Credits">Buy 250 — R31,250</button></div>
-<div class="card"><div class="price">R55,000 <small>for 500 jobs</small></div><div style="font-size:12px;color:#A8C8D0">R110 / job</div><button class="btn-card btn-outline" data-item="JobWay 500 Job Credits">Buy 500 — R55,000</button></div>
+<div class="card"><div class="price">R7,500 <small>for 50 jobs</small></div><button class="btn-card btn-white" data-item="JobWay 50 Job Credits">Buy 50 — R7,500</button></div>
+<div class="card"><div class="price">R14,000 <small>for 100 jobs</small></div><button class="btn-card btn-white" data-item="JobWay 100 Job Credits">Buy 100 — R14,000</button></div>
+<div class="card popular"><div class="badge">BEST VALUE</div><div class="price" style="margin-top:8px">R31,250 <small>for 250 jobs</small></div><button class="btn-card btn-green-pop" data-item="JobWay 250 Job Credits">Buy 250 — R31,250</button></div>
+<div class="card"><div class="price">R55,000 <small>for 500 jobs</small></div><button class="btn-card btn-white" data-item="JobWay 500 Job Credits">Buy 500 — R55,000</button></div>
 </div>
 
-<div class="section-title">CV Database Access — Separate Package</div>
-<div class="section-sub">Search and contact candidates directly. Choose only CVs, no job posts needed.</div>
+<div class="section-title">CV Database — Separate</div>
+<div class="section-sub">20 / 100 / 250 / Unlimited CV unlocks</div>
 <div class="grid g4">
-<div class="card">
-<div style="font-size:11px;color:#01F9C6;font-weight:800">20 CVs</div>
-<div class="price">R999 <small>one-time</small></div>
-<div style="font-size:12px;color:#A8C8D0">R49 per CV</div>
-<ul class="ul"><li>20 CV unlocks</li><li>Contact directly</li><li>Valid 12 months</li></ul>
-<button class="btn-card btn-white" data-item="JobWay 20 CV Unlocks">Unlock 20 — R999</button>
+<div class="card"><div style="font-size:11px;color:#01F9C6;font-weight:800">20 CVs</div><div class="price">R999 <small>one-time</small></div><button class="btn-card btn-white" data-item="JobWay 20 CV Unlocks">Unlock 20 — R999</button></div>
+<div class="card popular"><div class="badge">POPULAR</div><div style="font-size:11px;color:#01F9C6;font-weight:800;margin-top:8px">100 CVs</div><div class="price">R2,499 <small>one-time</small></div><button class="btn-card btn-green-pop" data-item="JobWay 100 CV Unlocks">Unlock 100 — R2,499</button></div>
+<div class="card"><div style="font-size:11px;color:#A8C8D0;font-weight:800">250 CVs</div><div class="price">R5,999 <small>one-time</small></div><button class="btn-card btn-white" data-item="JobWay 250 CV Unlocks">Unlock 250 — R5,999</button></div>
+<div class="card"><div style="font-size:11px;color:#A8C8D0;font-weight:800">UNLIMITED</div><div class="price">R9,999 <small>/ month</small></div><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks">Unlimited — R9,999</button></div>
 </div>
-<div class="card popular">
-<div class="badge">POPULAR</div>
-<div style="font-size:11px;color:#01F9C6;font-weight:800;margin-top:8px">100 CVs</div>
-<div class="price">R2,499 <small>one-time</small></div>
-<div style="font-size:12px;color:#01F9C6;font-weight:700">R24 per CV — save 50%</div>
-<ul class="ul"><li>100 CV unlocks</li><li>Verified candidates</li><li>PDF exports</li></ul>
-<button class="btn-card btn-green" style="background:#01F9C6" data-item="JobWay 100 CV Unlocks">Unlock 100 — R2,499</button>
-</div>
-<div class="card">
-<div style="font-size:11px;color:#A8C8D0;font-weight:800">250 CVs</div>
-<div class="price">R5,999 <small>one-time</small></div>
-<div style="font-size:12px;color:#01F9C6;font-weight:700">R23 per CV</div>
-<ul class="ul"><li>250 CV unlocks</li><li>Bulk search + filters</li><li>Team share</li></ul>
-<button class="btn-card btn-white" data-item="JobWay 250 CV Unlocks">Unlock 250 — R5,999</button>
-</div>
-<div class="card">
-<div style="font-size:11px;color:#A8C8D0;font-weight:800">UNLIMITED</div>
-<div class="price">R9,999 <small>/ month</small></div>
-<div style="font-size:12px;color:#A8C8D0">Best for agencies</div>
-<ul class="ul"><li>Unlimited CV unlocks</li><li>Unlimited searches</li><li>Cancel anytime</li></ul>
-<button class="btn-card btn-outline" data-item="JobWay Unlimited CV Unlocks">Unlimited — R9,999</button>
-</div>
-</div>
-
-<p style="text-align:center;color:#6EA3AF;font-size:11px;margin-top:28px">© 2026 JobWay.co.za • PayFast Secure</p>
 </div>
 
 <div class="modal" id="payModal">
@@ -142,8 +134,17 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <div style="background:#0F2230;border-radius:10px;padding:12px;display:flex;justify-content:space-between;margin:12px 0">
 <span id="mItem2" style="font-size:13px">Item</span><b id="mAmount" style="color:#01F9C6">R0</b>
 </div>
+<!-- LOGOS IN MODAL TOO -->
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
+<span class="logo-card" style="font-size:10px;padding:4px 8px">VISA</span>
+<span class="logo-card" style="font-size:10px;padding:4px 8px">Mastercard</span>
+<span class="logo-eft" style="font-size:10px;padding:4px 8px">Instant EFT</span>
+<span class="logo-eft" style="font-size:10px;padding:4px 8px">Capitec Pay</span>
+<span class="logo-eft" style="font-size:10px;padding:4px 8px">Apple Pay</span>
+<span class="logo-eft" style="font-size:10px;padding:4px 8px">Google Pay</span>
+</div>
 <input id="emailField" class="email-input" type="email" placeholder="hr@company.co.za" />
-<button class="btn-card btn-green" id="payBtn" style="background:#01F9C6" onclick="doPay()">Pay →</button>
+<button class="btn-card btn-green-pop" id="payBtn" onclick="doPay()">Pay with Card or Bank App →</button>
 <p id="payErr" style="font-size:11px;color:#ff6b6b;margin-top:8px;display:none"></p>
 </div>
 </div>
@@ -181,7 +182,7 @@ async function doPay(){
     document.body.appendChild(form); form.submit();
   }catch(e){
     document.getElementById('payErr').textContent=e.message; document.getElementById('payErr').style.display='block';
-    btn.textContent='Pay →'; btn.disabled=false;
+    btn.textContent='Pay with Card or Bank App →'; btn.disabled=false;
   }
 }
 </script>
