@@ -15,7 +15,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:white;m
 .btn-dark{background:#1A3E52;color:#A8C8D0}
 .btn-green{background:#01F9C6;color:#0A1F2E}
 .btn-whats{background:#25D366;color:#fff}
-.btn-cv{background:#01F9C6;color:#0A1F2E;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:999px;font-weight:800;font-size:12px}
+.btn-cv{background:#01F9C6;color:#0A1F2E;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:999px;font-weight:800;font-size:12px;cursor:pointer;border:0}
 .container{max-width:720px;margin:0 auto;padding:16px}
 .card{background:#11283A;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;margin-bottom:14px}
 .meta{color:#8DB0BF;font-size:12px;margin:6px 0;line-height:1.6}
@@ -84,13 +84,52 @@ function logout(){ localStorage.removeItem('jobway_logged_in'); localStorage.rem
 function fmt(d){ try{ if(!d) return ''; return new Date(d).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}) }catch(e){ return d||'' } }
 function formatPhone(p){ if(!p) return ''; let c=p.toString().replace(/[^0-9]/g,''); if(c.startsWith('0')) c='27'+c.slice(1); return c; }
 function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; } }
-function getCVUrl(a){
-  let raw = a.cv_url || '';
+
+// SECURE: Private bucket — no getPublicUrl ever
+function getCvPath(a){
+  let raw = a.cv_path || a.cv_url || a.profiles?.cv_path || a.profiles?.cv_url || '';
   if(!raw) return null;
-  if(raw.startsWith('http') || raw.startsWith('data:')) return raw;
-  const { data } = supabaseClient.storage.from('cvs').getPublicUrl(raw);
-  return data.publicUrl;
+  if(raw.indexOf('http') !== -1){
+    // Old record — extract file name only
+    let m = raw.split('/cvs/'); 
+    if(m[1]) return decodeURIComponent(m[1].split('?')[0]);
+    return raw.split('/').pop().split('?')[0];
+  }
+  return raw.replace(/^cvs\//,'').trim();
 }
+
+async function openSecureCV(cvPath, appId, btn){
+  if(!cvPath){ alert('No CV for this candidate'); return; }
+  let orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Creating 60min secure link...';
+  btn.disabled = true;
+  try{
+    const res = await fetch(SUPABASE_URL + '/functions/v1/get-cv-link', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ cv_path: cvPath, application_id: appId, mode: 'employer' })
+    });
+    const data = await res.json();
+    if(data.signedUrl){
+      // Log access for POPIA audit trail
+      try{ await supabaseClient.from('cv_access_log').insert([{ application_id: appId, cv_path: cvPath, accessed_by: getCurrentUser()?.id }]); }catch(e){}
+      window.open(data.signedUrl, '_blank');
+      btn.innerHTML = '✅ Opened — expires in 60min';
+    } else {
+      btn.innerHTML = '❌ Failed — ' + (data.error || 'deploy function');
+      alert('Failed to create secure link. Did you deploy get-cv-link Edge Function? Error: ' + (data.error || 'unknown'));
+    }
+  }catch(e){
+    btn.innerHTML = '❌ Network error';
+    alert('Error: ' + e.message + ' — Deploy Edge Function get-cv-link first.');
+  }
+  setTimeout(()=>{ btn.innerHTML = orig; btn.disabled=false; }, 4000);
+}
+
 function progressHTML(status){
   let steps=['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
   let idx=steps.indexOf(status); if(idx==-1) idx=0;
@@ -101,7 +140,6 @@ function progressHTML(status){
     return `<span class="p-badge ${cls}">${icon} ${s}</span>`;
   }).join('')}</div>`;
 }
-// FIXED: Uses real columns only: profiles full_name/phone, jobs title/company
 async function sendWhatsApp(app, newStatus){
   let phone=formatPhone(app.profiles?.phone || app.phone || '');
   if(!phone){ alert(`Status saved as ${newStatus} but no WhatsApp number for candidate.`); return; }
@@ -115,35 +153,28 @@ async function sendWhatsApp(app, newStatus){
   else if(newStatus==='Under Review'){ msg=`Hi ${name}, update: Your application for ${jobTitle} at ${comp} is now Under Review. We'll update you soon. - JobWay`; }
   else if(newStatus==='Not Selected'){ msg=`Hi ${name}, thank you for applying for ${jobTitle} at ${comp}. Unfortunately you were not selected this time. Keep applying on JobWay.`; }
   else { msg=`Hi ${name}, JobWay update: Your application for ${jobTitle} at ${comp} is now: ${newStatus}. Track: https://jobway.co.za/track-applications.html`; }
-  // FIXED: Save notification to Supabase, not localStorage (was leaking across users)
-  try{
-    await supabaseClient.from('notifications').insert([{ user_id: app.applicant_id, title: `Status: ${newStatus} - ${jobTitle}`, message: msg }]);
-  }catch(e){ console.log('notif insert failed', e); }
+  try{ await supabaseClient.from('notifications').insert([{ user_id: app.applicant_id, title: `Status: ${newStatus} - ${jobTitle}`, message: msg }]); }catch(e){}
   window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`, '_blank');
 }
 async function load(){
   let user = getCurrentUser();
   if(!user || !user.id){ document.getElementById('list').innerHTML=`<div class="card">Please login as employer</div>`; return; }
-  // FIXED 1: Only MY jobs — employer_id = my id, no OR !employer_id leak
   let { data: jobs, error: jErr } = await supabaseClient.from('jobs').select('*').eq('employer_id', user.id).order('created_at', {ascending:false});
-  // If your jobs table has no employer_id column yet, fallback to email check
   if(jErr || !jobs || jobs.length===0){
     let { data: jobsByEmail } = await supabaseClient.from('jobs').select('*').eq('employer_email', user.email).order('created_at', {ascending:false});
     if(jobsByEmail && jobsByEmail.length) jobs = jobsByEmail;
   }
   currentJobs = jobs || [];
-  // FIXED 2: Only applications for MY jobs — no SELECT * leak
   let myJobIds = currentJobs.map(j=>j.id);
   let apps = [];
   if(myJobIds.length>0){
     let { data, error } = await supabaseClient.from('applications')
-      .select('*, jobs(title, company, location, salary), profiles:applicant_id(full_name, email, phone, cv_url)')
+      .select('*, jobs(title, company, location, salary), profiles:applicant_id(full_name, email, phone, cv_url, cv_path)')
       .in('job_id', myJobIds)
       .order('created_at', {ascending:false});
     if(error){ console.log('apps error', error); apps = []; }
     else apps = data || [];
   }
-  // FIXED 3: NO localStorage fallback — if error, show error, don't show other employer's data
   currentApps = apps;
   document.getElementById('appCount').innerText=currentApps.length;
   document.getElementById('jobCount').innerText=currentJobs.length;
@@ -157,13 +188,9 @@ async function load(){
       let phone = a.profiles?.phone || '';
       let title = a.jobs?.title || 'Job';
       let comp = a.jobs?.company || '';
-      let cvUrl = getCVUrl(a) || a.profiles?.cv_url || null;
-      if(cvUrl && !cvUrl.startsWith('http') && !cvUrl.startsWith('data:')){
-        const { data } = supabaseClient.storage.from('cvs').getPublicUrl(cvUrl);
-        cvUrl = data.publicUrl;
-      }
-      let cvName = cvUrl ? decodeURIComponent(cvUrl.split('/').pop()) : 'CV';
-      let cvHTML = cvUrl ? `<a href="${cvUrl}" target="_blank" class="btn-cv">📄 Download CV - ${cvName}</a>` : `<span style="color:#FF8A9D;font-size:12px">No CV — Ask via WhatsApp</span>`;
+      let cvPath = getCvPath(a);
+      let cvName = cvPath ? decodeURIComponent(cvPath.split('/').pop().slice(0,25)) : 'CV';
+      let cvHTML = cvPath ? `<button class="btn-cv" onclick="openSecureCV('${cvPath.replace(/'/g,"\\'")}','${a.id}', this)">🔒 View CV — ${cvName} (60min link)</button>` : `<span style="color:#FF8A9D;font-size:12px">No CV — Ask via WhatsApp</span>`;
       let interviewBox=a.interview_date?`<div class="interview-box">📅 <b>Interview:</b> ${a.interview_date} at ${a.interview_time} • ${a.interview_location}<br><span style="font-size:11px;color:#8DB0BF">${a.interview_note||''}</span></div>`:'';
       let badgeClass = a.status=='Shortlisted'?'b-green':a.status=='Hired'?'b-orange':a.status=='Not Selected'?'b-red':a.status=='Interview Scheduled'?'b-green':'b-grey';
       return `<div class="card">
@@ -178,6 +205,7 @@ async function load(){
           <button class="btn btn-dark" style="background:#3a1a1a;color:#ff9a9a" onclick="updateStatus('${a.id}','Not Selected',true)">Reject</button>
         </div>
         <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${cvHTML}<button class="btn btn-whats" style="padding:10px 14px;font-size:12px" onclick="manualWhatsApp('${a.id}')">💬 WhatsApp Candidate</button></div>
+        <div style="margin-top:8px;font-size:10px;color:#5a7a8a">🔒 POPIA: Link expires in 60min & is logged</div>
         <label style="font-size:11px;color:#8DB0BF;margin-top:12px;display:block">CHANGE STATUS</label>
         <select class="select" onchange="changeStatusOnly('${a.id}',this.value)">${STATUSES.map(s=>`<option ${a.status==s?'selected':''}>${s}</option>`).join('')}</select>
       </div>`;
@@ -224,7 +252,6 @@ async function confirmInterview(){
   load();
 }
 load();
-// FIXED: Realtime only for MY jobs, not all applications
 let _u = getCurrentUser();
 if(_u?.id){
   supabaseClient.channel('emp-apps-'+_u.id).on('postgres_changes', {event:'*', schema:'public', table:'applications'}, ()=>load()).subscribe();
