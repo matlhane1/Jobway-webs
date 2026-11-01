@@ -15,7 +15,6 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 .sub{color:#A8C8D0;font-size:14px;max-width:650px}
 .trust{margin:14px 0;display:flex;gap:8px;flex-wrap:wrap}
 .trust span{background:rgba(1,249,198,0.08);border:1px solid rgba(1,249,198,0.15);padding:6px 12px;border-radius:999px;font-size:11px;color:#A8C8D0}
-/* PAYMENT LOGOS - CLEAR ORDER */
 .pay-logos{margin:12px 0 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px}
 .pay-logos .label{font-size:10px;letter-spacing:0.12em;color:#6EA3AF;font-weight:800;margin-right:4px}
 .pay-logos .logo-card{background:#fff;color:#0A1F2E;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:900;letter-spacing:0.02em}
@@ -52,13 +51,10 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <button class="btn btn-green" onclick="location.href='employer-dashboard.html'">Dashboard</button>
 </div>
 </div>
-
 <div class="wrap">
 <div class="h1">Simple pricing. Choose what fits.</div>
 <div class="sub">Subscriptions = job posts only. CV Database is separate. Branded company page on all plans.</div>
 <div class="trust"><span>PayFast Secure</span><span>POPIA Compliant</span><span>Instant Invoice</span></div>
-
-<!-- PAYMENT LOGOS IN ORDER - CLEARLY VISIBLE -->
 <div class="pay-logos">
 <span class="label">WE ACCEPT:</span>
 <span class="logo-card">VISA</span>
@@ -68,7 +64,6 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <span class="logo-eft">Apple Pay</span>
 <span class="logo-eft">Google Pay</span>
 </div>
-
 <div style="margin:10px 0 10px">
 <div class="single-featured">
 <div style="flex:1">
@@ -79,7 +74,6 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <div style="min-width:200px"><button class="btn-card btn-green-pop" data-item="JobWay Single Job Post">Post a job — R299</button></div>
 </div>
 </div>
-
 <div class="section-title">Subscription Plans — Job Posts Only</div>
 <div class="section-sub">Branded page included on all plans.</div>
 <div class="grid g4">
@@ -109,7 +103,6 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <button class="btn-card btn-white" data-item="JobWay Business Monthly">Get Business — R5,999</button>
 </div>
 </div>
-
 <div class="section-title">Job Credits</div>
 <div class="grid g4">
 <div class="card"><div class="price">R7,500 <small>for 50 jobs</small></div><button class="btn-card btn-white" data-item="JobWay 50 Job Credits">Buy 50 — R7,500</button></div>
@@ -117,7 +110,6 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <div class="card popular"><div class="badge">BEST VALUE</div><div class="price" style="margin-top:8px">R31,250 <small>for 250 jobs</small></div><button class="btn-card btn-green-pop" data-item="JobWay 250 Job Credits">Buy 250 — R31,250</button></div>
 <div class="card"><div class="price">R55,000 <small>for 500 jobs</small></div><button class="btn-card btn-white" data-item="JobWay 500 Job Credits">Buy 500 — R55,000</button></div>
 </div>
-
 <div class="section-title">CV Database — Separate</div>
 <div class="section-sub">20 / 100 / 250 / Unlimited CV unlocks</div>
 <div class="grid g4">
@@ -127,14 +119,12 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <div class="card"><div style="font-size:11px;color:#A8C8D0;font-weight:800">UNLIMITED</div><div class="price">R9,999 <small>/ month</small></div><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks">Unlimited — R9,999</button></div>
 </div>
 </div>
-
 <div class="modal" id="payModal">
 <div class="modal-box">
 <div style="display:flex;justify-content:space-between"><b id="mItem">JobWay</b><button onclick="closePay()" style="background:rgba(255,255,255,0.08);border:0;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">×</button></div>
 <div style="background:#0F2230;border-radius:10px;padding:12px;display:flex;justify-content:space-between;margin:12px 0">
 <span id="mItem2" style="font-size:13px">Item</span><b id="mAmount" style="color:#01F9C6">R0</b>
 </div>
-<!-- LOGOS IN MODAL TOO -->
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
 <span class="logo-card" style="font-size:10px;padding:4px 8px">VISA</span>
 <span class="logo-card" style="font-size:10px;padding:4px 8px">Mastercard</span>
@@ -148,10 +138,9 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 <p id="payErr" style="font-size:11px;color:#ff6b6b;margin-top:8px;display:none"></p>
 </div>
 </div>
-
 <script>
-const SUPABASE_URL="https://bzbsqouohsylnhrsjhhy.supabase.co";
-const SUPABASE_ANON_KEY="sb_publishable_4Pu9nggIN-RbVxfHhRpIUg_fR4hfba2";
+const SUPABASE_URL="https://dmxumcjeetphwzvgzzuk.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 let curItem='';
 function openPay(item){
   curItem=item;
@@ -170,13 +159,13 @@ async function doPay(){
   localStorage.setItem('jobway_user_email',email);
   const btn=document.getElementById('payBtn'); btn.textContent='Redirecting...'; btn.disabled=true;
   try{
-    const res = await fetch(SUPABASE_URL+'/functions/v1/create-payfast-payment',{
+    const res = await fetch(SUPABASE_URL+'/functions/v1/payfast_create_payment',{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
       body: JSON.stringify({item:curItem,email})
     });
     const data = await res.json();
-    if(!res.ok || !data.form_action){throw new Error(data.error||'Payment init failed');}
+    if(!res.ok || !data.form_action){throw new Error(data.error||'Payment init failed: '+JSON.stringify(data));}
     let form=document.createElement('form'); form.method='post'; form.action=data.form_action;
     Object.entries(data.form_data).forEach(([k,v])=>{let i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;form.appendChild(i);});
     document.body.appendChild(form); form.submit();
