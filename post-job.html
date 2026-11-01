@@ -15,18 +15,21 @@
 </script>
 <style>
 body{margin:0;background:#11283a;color:white;font-family:'Plus Jakarta Sans',sans-serif;padding:16px;display:flex;justify-content:center;min-height:100vh}
-.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:420px;margin-top:50px;border:1px solid rgba(45,212,191,0.15)}
+.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:460px;margin-top:50px;border:1px solid rgba(45,212,191,0.15)}
 label{color:#9cc2d0;font-size:12px;font-weight:700;margin:12px 0 6px;display:block;letter-spacing:0.3px;text-transform:uppercase}
 input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none}
 input:focus,textarea:focus,select:focus{border-color:#2dd4bf}
 .btn{width:100%;margin-top:16px;background:#01F9C6;color:#11283a;border:none;padding:14px;border-radius:999px;font-weight:900;font-size:15px;cursor:pointer}
 .btn:disabled{opacity:0.6}
-.top{display:flex;justify-content:space-between;align-items:center;max-width:420px;width:100%;position:absolute;top:12px}
+.btn-outline{width:100%;margin-top:10px;background:transparent;color:#01F9C6;border:1px solid #01F9C6;padding:12px;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:460px;width:100%;position:absolute;top:12px}
 a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 .logo-box{width:100%;background:#0f2332;border:1px dashed rgba(1,249,198,0.4);border-radius:14px;padding:14px;text-align:center;cursor:pointer;margin-top:6px}
 .logo-box:hover{border-color:#01F9C6;background:rgba(1,249,198,0.05)}
 .logo-preview img{max-width:110px;max-height:80px;border-radius:10px;background:white;padding:6px;object-fit:contain}
 .hint{font-size:11px;color:#7fb0be;margin-top:6px}
+.invoice-box{background:#0f2332;border:1px solid rgba(1,249,198,0.25);border-radius:14px;padding:14px;margin-top:16px}
+.invoice-title{font-size:12px;font-weight:800;color:#01F9C6;letter-spacing:0.05em;margin-bottom:8px}
 </style></head><body>
 <div class="top"><a href="employer-dashboard.html">← Dashboard</a><h3 style="margin:0;font-family:'Space Grotesk',sans-serif;color:#01F9C6">JobWay</h3></div>
 <div class="card">
@@ -48,15 +51,29 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
   </div>
 </div>
 
-<label>Job Title</label><input id="title" placeholder="e.g. Cashier">
-<label>Company</label><input id="company" placeholder="e.g. Shoprite">
+<label>Job Title *</label><input id="title" placeholder="e.g. Cashier">
+<label>Company Name *</label><input id="company" placeholder="e.g. Shoprite">
+
+<!-- INVOICE SECTION - NEW -->
+<div class="invoice-box">
+<div class="invoice-title">📧 INVOICE DETAILS - Sent from employers@jobway.co.za</div>
+<label style="margin-top:6px">Company Email for Invoices *</label>
+<input id="invoiceEmail" type="email" placeholder="accounts@company.co.za">
+<div class="hint">Invoice will be sent here instantly after payment</div>
+
+<label>VAT Number (optional - for invoice)</label>
+<input id="vatNumber" placeholder="4xxxxxxxxx">
+</div>
+
 <label>Location</label><input id="location" placeholder="e.g. Thohoyandou">
 <label>Salary</label><input id="salary" placeholder="e.g. R4500">
-<label>WhatsApp Number for Applicants</label><input id="whatsapp" placeholder="e.g. 0790608952">
+<label>WhatsApp Number for Applicants *</label><input id="whatsapp" placeholder="e.g. 0790608952">
 <label>Type</label><select id="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
 <label>Closing Date</label><input id="closing" type="date">
 <label>Description</label><textarea id="desc" rows="4" placeholder="Job requirements..."></textarea>
-<button class="btn" id="post">Post Job →</button>
+
+<button class="btn" id="post">Continue to Payment — R299 →</button>
+<button class="btn-outline" id="saveDraft">Save Draft (Free - Post Later)</button>
 <div id="msg" style="margin-top:12px;text-align:center;font-size:12px;color:#7fb0be"></div>
 </div>
 <script>
@@ -103,29 +120,36 @@ document.getElementById('logoFile').addEventListener('change', function(){
   });
 });
 
-document.getElementById('post').onclick=async()=>{
+// Auto-fill from storage
+window.onload = ()=>{
+  document.getElementById('invoiceEmail').value = localStorage.getItem('invoice_email') || localStorage.getItem('jobway_user_email') || '';
+  document.getElementById('company').value = localStorage.getItem('company_name') || '';
+  document.getElementById('whatsapp').value = localStorage.getItem('whatsapp_number') || '';
+  document.getElementById('vatNumber').value = localStorage.getItem('vat_number') || '';
+};
+
+async function handlePost(isDraft=false){
 const titleVal=document.getElementById('title').value.trim();
 const companyVal=document.getElementById('company').value.trim();
+const invoiceEmailVal=document.getElementById('invoiceEmail').value.trim().toLowerCase();
 if(!titleVal||!companyVal){alert('Fill title & company');return;}
-const b=document.getElementById('post');
-b.textContent='Posting...';b.disabled=true;
-document.getElementById('msg').innerText='Uploading logo & job...';
+if(!invoiceEmailVal || !invoiceEmailVal.includes('@')){alert('Please enter company email for invoices - we send from employers@jobway.co.za'); document.getElementById('invoiceEmail').focus(); return;}
 
-let logoUrl = logoData; // fallback to base64 if upload fails
+const b=document.getElementById('post');
+b.textContent=isDraft?'Saving...':'Preparing payment...';b.disabled=true;
+document.getElementById('msg').innerText='Uploading logo & saving invoice details...';
+
+let logoUrl = logoData;
 if(logoFileObj){
   try{
     const fileName = Date.now() + '_' + logoFileObj.name.replace(/[^a-zA-Z0-9.-]/g,'_');
-    // Upload COMPRESSED blob to correct bucket: company-logos (plural)
     const uploadFile = compressedBlob || logoFileObj;
     const { error: upErr } = await supabaseClient.storage.from('company-logos').upload(fileName, uploadFile, { upsert: true, contentType: 'image/png' });
     if(!upErr){
       const { data: pub } = supabaseClient.storage.from('company-logos').getPublicUrl(fileName);
       if(pub?.publicUrl) logoUrl = pub.publicUrl;
-      console.log('Logo uploaded:', logoUrl);
-    } else {
-      console.log('Logo upload error, using base64 fallback', upErr);
     }
-  }catch(e){ console.log('Logo upload failed', e); }
+  }catch(e){}
 }
 
 let user=null;
@@ -133,6 +157,31 @@ try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem
 
 let wa = document.getElementById('whatsapp').value.trim();
 if(!wa && user) wa = user.phone || user.whatsapp_number || '';
+
+const vatVal = document.getElementById('vatNumber').value.trim();
+
+// SAVE INVOICE DETAILS FOR pricing.html
+localStorage.setItem('invoice_email', invoiceEmailVal);
+localStorage.setItem('jobway_user_email', invoiceEmailVal);
+localStorage.setItem('company_name', companyVal);
+localStorage.setItem('whatsapp_number', wa);
+localStorage.setItem('vat_number', vatVal);
+localStorage.setItem('pending_job_title', titleVal);
+
+// Save to companies table if user exists
+if(user && user.id){
+  try{
+    await supabaseClient.from('companies').upsert({
+      user_id: user.id,
+      company_name: companyVal,
+      contact_email: invoiceEmailVal,
+      invoice_email: invoiceEmailVal,
+      whatsapp_number: wa,
+      vat_number: vatVal,
+      logo_url: logoUrl
+    }, {onConflict: 'user_id'});
+  }catch(e){ console.log('company upsert', e); }
+}
 
 const job={
   title:titleVal,
@@ -145,28 +194,23 @@ const job={
   closing_date: document.getElementById('closing').value||null,
   logo_url: logoUrl,
   employer_id: (user && user.id) ? user.id : null,
-  employer_email: user ? user.email : null,
+  employer_email: invoiceEmailVal,
+  invoice_email: invoiceEmailVal,
+  status: isDraft ? 'draft' : 'pending_payment'
 };
 
-const {data, error}=await supabaseClient.from('jobs').insert([job]).select().single();
-if(error){
-  console.log('Supabase job insert error', error);
-  if(error.message.includes('column') || error.message.includes('type') || error.message.includes('logo') || error.message.includes('employer_email')){
-    const minimal={title:titleVal, company:companyVal, location:job.location, salary:job.salary, description:job.description, whatsapp_number:wa, logo_url: logoUrl, employer_id: job.employer_id};
-    const {data: d2, error: err2}=await supabaseClient.from('jobs').insert([minimal]).select().single();
-    if(err2){
-      alert('Supabase error: '+err2.message+'\n\nRun this SQL in Supabase:\nALTER TABLE jobs ADD COLUMN IF NOT EXISTS type TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS logo_url TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employer_email TEXT; ALTER TABLE jobs ADD COLUMN IF NOT EXISTS closing_date DATE;');
-      b.textContent='Post Job →'; b.disabled=false; return;
-    }
-  } else {
-    alert('Error: '+error.message);
-    b.textContent='Post Job →'; b.disabled=false; return;
-  }
+if(isDraft){
+  const {error}=await supabaseClient.from('jobs').insert([job]);
+  if(error){ alert('Error: '+error.message); b.textContent='Continue to Payment — R299 →'; b.disabled=false; return; }
+  alert('✅ Draft saved! Go to Dashboard to pay R299 when ready.'); location.href='employer-dashboard.html'; return;
 }
-let localJobs = JSON.parse(localStorage.getItem('jobway_employer_jobs')||'[]');
-localJobs.unshift({...job, city: job.location, salaryText: job.salary, desc: job.description, postedAt: Date.now(), closingDate: job.closing_date||'30 Nov 2026'});
-localStorage.setItem('jobway_employer_jobs', JSON.stringify(localJobs));
-document.getElementById('msg').innerHTML='✅ Job posted with logo!';
-alert('✅ Job posted! It will show in jobs.html now.');location.href='employer-dashboard.html';
-};
+
+// For paid flow, store job in localStorage and go to pricing with email
+localStorage.setItem('pending_job', JSON.stringify(job));
+document.getElementById('msg').innerHTML='✅ Job ready — redirecting to payment...';
+location.href=`pricing.html?email=${encodeURIComponent(invoiceEmailVal)}&company=${encodeURIComponent(companyVal)}&job=${encodeURIComponent(titleVal)}`;
+}
+
+document.getElementById('post').onclick=()=>handlePost(false);
+document.getElementById('saveDraft').onclick=()=>handlePost(true);
 </script></body></html>
