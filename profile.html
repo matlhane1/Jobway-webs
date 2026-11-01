@@ -33,7 +33,7 @@ body{font-family:Arial,sans-serif;background:#0F2230;color:#fff}
 </div>
 
 <div class="container">
-<div class="banner">📱 WhatsApp: 079 060 8952 — CV attached to all applications</div>
+<div class="banner">🔒 CV is PRIVATE — only employers you applied to can download</div>
 
 <div class="card">
 <h3>👤 My Profile</h3>
@@ -54,9 +54,9 @@ body{font-family:Arial,sans-serif;background:#0F2230;color:#fff}
 
 <label class="label">📄 Upload CV (PDF, DOC - max 5MB) *</label>
 <div class="upload-box" onclick="document.getElementById('cvFile').click()">
-<div style="font-size:28px">📄</div>
+<div style="font-size:28px">🔒</div>
 <div style="font-weight:800;margin-top:4px;font-size:13px">Click to upload CV</div>
-<div style="color:#8DB0BF;font-size:11px;margin-top:3px">Stored privately — only employers you apply to see it</div>
+<div style="color:#8DB0BF;font-size:11px;margin-top:3px">Stored privately — not public, not Google searchable</div>
 <div class="file-name" id="fileName"></div>
 <input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx" onchange="handleFile(this.files[0])">
 </div>
@@ -67,13 +67,13 @@ body{font-family:Arial,sans-serif;background:#0F2230;color:#fff}
 
 <hr style="margin:16px 0;border:0;border-top:1px solid #25475A">
 <button class="btn btn-red" onclick="deleteEverything()">🗑️ Delete My Profile + CV (POPIA)</button>
-<p style="font-size:10px;color:#8DB0BF;text-align:center;margin-top:6px">Deletes from phone and requests deletion from server</p>
+<p style="font-size:10px;color:#8DB0BF;text-align:center;margin-top:6px">Deletes from phone, database AND storage bucket</p>
 </div>
 </div>
 
 <script>
 var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
-var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-'; // publishable key - ok to be here, but make bucket PRIVATE in Supabase dashboard
+var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 var currentFile = null;
 
 (function(){
@@ -91,8 +91,8 @@ function loadProfile(){
   document.getElementById('whatsapp').value = p.whatsapp || (u&&u.phone) || '';
   document.getElementById('skills').value = (p.skills||[]).join(', ');
   document.getElementById('location').value = p.location || 'Gauteng';
-  if(p.cvName) document.getElementById('fileName').innerHTML = '✅ ' + p.cvName;
-  if(p.cv_url) document.getElementById('cvLink').innerHTML = '<a href="'+p.cv_url+'" target="_blank" style="color:#01F9C6;font-size:12px;font-weight:800">📄 View Current CV</a>';
+  if(p.cvName) document.getElementById('fileName').innerHTML = '✅ ' + p.cvName + ' (Private)';
+  if(p.cv_path) document.getElementById('cvLink').innerHTML = '<div style="color:#8DB0BF;font-size:11px">🔒 Stored privately — employers you apply to get access</div>';
   renderSkills();
 }
 function renderSkills(){
@@ -105,6 +105,7 @@ document.getElementById('skills').addEventListener('input', renderSkills);
 function handleFile(file){
   if(!file) return;
   if(file.size > 5*1024*1024){ alert('File too big! Max 5MB'); return; }
+  if(!['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type) && !file.name.match(/\.(pdf|doc|docx)$/i)){ alert('Only PDF/DOC/DOCX'); return; }
   currentFile=file;
   document.getElementById('fileName').innerHTML='✅ '+file.name+' ('+Math.round(file.size/1024)+'KB) - Ready on Save';
 }
@@ -121,14 +122,14 @@ function saveProfile(){
   var skills=document.getElementById('skills').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
   var locationVal=document.getElementById('location').value;
 
-  function finish(cvUrl){
-    var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, cv_url:cvUrl||'', cvName: currentFile ? currentFile.name : (JSON.parse(localStorage.getItem('jobway_profile')||'{}').cvName||'') };
-    try{ localStorage.setItem('jobway_profile', JSON.stringify(profile)); localStorage.setItem('jobway_cv_url', cvUrl||''); }catch(e){}
+  function finish(cvPath, cvName){
+    var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, cv_path:cvPath||'', cvName: cvName || '' };
+    try{ localStorage.setItem('jobway_profile', JSON.stringify(profile)); }catch(e){}
     var user=getUser()||{}; user.full_name=fullName; user.phone=whatsapp; try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
-    // Save to Supabase (non-blocking)
+    // Save PRIVATE path only, not public URL
     var xhr=new XMLHttpRequest(); xhr.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers', true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.setRequestHeader('Content-Type','application/json'); xhr.setRequestHeader('Prefer','resolution=merge-duplicates');
-    xhr.send(JSON.stringify({phone:clean, whatsapp_number:clean, full_name:fullName, location:locationVal, cv_url:cvUrl||null, skills:skills}));
+    xhr.send(JSON.stringify({phone:clean, whatsapp_number:clean, full_name:fullName, location:locationVal, cv_path:cvPath||null, cv_url:null, skills:skills}));
 
     document.getElementById('savedMsg').style.display='block'; btn.innerHTML='✅ Saved!';
     setTimeout(function(){ window.location.href='jobs.html'; }, 800);
@@ -136,43 +137,50 @@ function saveProfile(){
 
   if(currentFile){
     var ext=currentFile.name.split('.').pop().toLowerCase();
-    var path = uuid() + '_' + uuid() + '.' + ext; // NOT guessable
-    var reader=new FileReader();
-    reader.onload=function(){
-      var xhr=new XMLHttpRequest();
-      xhr.open('POST', SUPABASE_URL+'/storage/v1/object/cvs/'+path, true);
-      xhr.setRequestHeader('apikey', SUPABASE_KEY);
-      xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-      xhr.setRequestHeader('Content-Type', currentFile.type || 'application/pdf');
-      xhr.onreadystatechange=function(){
-        if(xhr.readyState===4){
-          if(xhr.status===200 || xhr.status===201){
-            var cvUrl = SUPABASE_URL+'/storage/v1/object/public/cvs/'+path;
-            finish(cvUrl);
-          } else { alert('Upload failed, but profile saved locally. Try again.'); finish(''); }
-        }
-      };
-      xhr.onerror=function(){ finish(''); };
-      xhr.send(currentFile);
+    var path = uuid() + '_' + uuid() + '.' + ext; // 72 chars, not guessable
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST', SUPABASE_URL+'/storage/v1/object/cvs/'+path, true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type', currentFile.type || 'application/pdf');
+    xhr.setRequestHeader('x-upsert','false');
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState===4){
+        if(xhr.status===200 || xhr.status===201){
+          finish(path, currentFile.name);
+        } else { alert('Upload failed: '+xhr.responseText+' — profile saved without new CV'); finish('', ''); }
+      }
     };
-    reader.readAsArrayBuffer(currentFile);
+    xhr.onerror=function(){ alert('Network error uploading CV'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
+    xhr.send(currentFile);
   } else {
-    var existing=''; try{ existing=JSON.parse(localStorage.getItem('jobway_profile')||'{}').cv_url||''; }catch(e){}
-    if(!existing){ alert('Please upload CV - employers need it'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return; }
-    finish(existing);
+    var existingPath='', existingName=''; try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); existingPath=p.cv_path||''; existingName=p.cvName||''; }catch(e){}
+    if(!existingPath){ alert('Please upload CV - employers need it'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return; }
+    finish(existingPath, existingName);
   }
 }
 
 function deleteEverything(){
-  if(!confirm('Delete your profile + CV? This cannot be undone.')) return;
+  if(!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
   var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  try{ localStorage.removeItem('jobway_profile'); localStorage.removeItem('jobway_cv_url'); localStorage.removeItem('jobway_user'); localStorage.removeItem('jobway_logged_in'); }catch(e){}
-  // Ask server to delete too
+  
+  // 1. Delete from storage bucket if exists
+  if(p.cv_path){
+    var xhrDel=new XMLHttpRequest(); 
+    xhrDel.open('DELETE', SUPABASE_URL+'/storage/v1/object/cvs/'+p.cv_path, true);
+    xhrDel.setRequestHeader('apikey', SUPABASE_KEY); 
+    xhrDel.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); 
+    xhrDel.send();
+  }
+  // 2. Delete from DB
   if(p.phoneClean){
     var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?phone=eq.'+p.phoneClean, true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.send();
   }
-  alert('✅ Deleted from this phone. If CV was uploaded, tell admin to make cvs bucket PRIVATE.');
+  // 3. Delete local
+  try{ localStorage.removeItem('jobway_profile'); localStorage.removeItem('jobway_cv_url'); localStorage.removeItem('jobway_user'); localStorage.removeItem('jobway_logged_in'); }catch(e){}
+  
+  alert('✅ Deleted everywhere: phone + DB + storage. CV no longer accessible.');
   window.location.href='index.html';
 }
 loadProfile();
