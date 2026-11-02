@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobWay.co.za — Your Job, Your Way | Real Jobs in SA</title>
-<meta name="description" content="Find Cashier, Retail, General Worker, Call Centre jobs in Pretoria, Johannesburg, Durban, Cape Town. Free for jobseekers.">
+<meta name="description" content="Looking for jobs in Retail, General Work, Call Centres, Driving, Administration, Sales, Cleaning, Security, Hospitality, Construction, Engineering and more? Upload your CV once and apply in 60 seconds. WhatsApp job alerts across South Africa.">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#11283A;color:#fff;overflow-x:hidden}
 .top{position:sticky;top:0;z-index:50;background:#0A1F2E;border-bottom:1px solid #1e3a4a}
@@ -20,7 +20,7 @@
 .kicker{font-size:11px;font-weight:800;letter-spacing:.1em;color:#01F9C6;margin-bottom:10px}
 .h1{font-size:48px;line-height:.95;font-weight:900;letter-spacing:-1px}
 .h1 .m{color:#30BA8F}.h1 .b{color:#01F9C6}
-.sub{color:#A8C8D0;font-size:14px;line-height:1.6;margin:14px 0;max-width:520px}
+.sub{color:#A8C8D0;font-size:14px;line-height:1.65;margin:14px 0;max-width:600px}
 .search-box{background:#12344A;border:1px solid #1e5a4a;border-radius:16px;padding:12px;display:flex;gap:8px;flex-wrap:wrap}
 .search-box input{flex:1;min-width:140px;background:#0A1F2E;border:1px solid #2a4a5c;border-radius:20px;padding:0 14px;height:44px;color:#fff;font-size:14px}
 .btn-search{background:#01F9C6;color:#0A1F2E;font-weight:900;height:44px;padding:0 22px;border-radius:20px;border:0;cursor:pointer}
@@ -70,7 +70,7 @@
 <div>
 <div class="kicker">REAL JOBS IN SOUTH AFRICA — UPDATED TODAY</div>
 <div class="h1"><div>Find work</div><div class="m">that pays.</div><div class="b">Fast.</div></div>
-<div class="sub">Cashier, Retail, General Worker, Call Centre and Driver jobs in Gauteng, Limpopo and SA. Apply with your CV in 60 seconds. No scams, no fees for jobseekers.</div>
+<div class="sub">Looking for jobs in Retail, General Work, Call Centres, Driving, Administration, Sales, Cleaning, Security, Hospitality, Construction, Engineering and many more industries? JobWay connects job seekers with opportunities across South Africa. Upload your CV once and apply for jobs in as little as 60 seconds with one-click applications. Receive the latest job opportunities directly through WhatsApp job alerts. Track your applications, check application statuses and stay updated on interview invitations — all in one convenient platform.</div>
 <div class="search-box"><input id="qTitle" placeholder="Job title: Cashier, General Worker"><input id="qLoc" placeholder="Where: Pretoria, Thohoyandou"><button class="btn-search" onclick="doSearch()">Search</button></div>
 <div class="trust"><span>✓ POPIA compliant</span><span>✓ PayFast secured</span><span>✓ WhatsApp support</span><span>Pretoria, SA</span></div>
 </div>
@@ -81,21 +81,19 @@
 <div style="margin-top:8px;font-size:11px;color:#A8C8D0">Live jobs — new posts added hourly.</div>
 </div>
 </div>
-
+<!-- rest same -->
 <div class="stats">
 <div class="s-card s-navy"><b>580+</b><span style="color:#01F9C6">SA EMPLOYERS</span></div>
 <div class="s-card s-teal"><b>Daily</b><span>NEW JOBS ADDED</span></div>
 <div class="s-card s-dark"><b>Free</b><span style="color:#01F9C6">FOR JOBSEEKERS</span></div>
 <div class="s-card s-bright"><b>R299</b><span>PER JOB POST</span></div>
 </div>
-
 <div class="section">
 <div class="section-title">Latest Jobs For You</div>
 <div id="filter-info" class="filter-bar">Loading jobs matched to you...</div>
 <div id="jobsGrid" class="job-grid"><p style="color:#A8C8D0">Loading jobs...</p></div>
 <div style="text-align:center;margin-top:14px"><button class="btn btn-signup" onclick="location.href='jobs.html'">View All Jobs →</button></div>
 </div>
-
 <div class="section">
 <div class="section-title">How it works</div>
 <div class="grid3">
@@ -123,11 +121,9 @@
 </div>
 <div class="copy"><span>© 2026 JobWay.co.za • Made for Mzansi • POPIA Compliant</span><span>hello@jobway.co.za</span></div>
 </footer>
-
 <script>
 var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-
 function doSearch(){
   var t = document.getElementById('qTitle').value.replace(/^\s+|\s+$/g, '');
   var l = document.getElementById('qLoc').value.replace(/^\s+|\s+$/g, '');
@@ -138,7 +134,6 @@ function doSearch(){
   if(p.length) url += '?' + p.join('&');
   location.href = url;
 }
-
 function xhrGet(url, cb){
   try{
     var xhr = new XMLHttpRequest();
@@ -152,7 +147,6 @@ function xhrGet(url, cb){
     xhr.send();
   }catch(e){ cb([]); }
 }
-
 function displayJobs(jobs){
   var grid = document.getElementById('jobsGrid');
   if(!jobs || jobs.length === 0){ grid.innerHTML = '<p style="color:#A8C8D0">No jobs found. Browse all jobs.</p>'; return; }
@@ -167,7 +161,6 @@ function displayJobs(jobs){
   }
   grid.innerHTML = html;
 }
-
 function loadJobs(){
   var infoEl = document.getElementById('filter-info');
   xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&order=created_at.desc&limit=9', function(jobs){
