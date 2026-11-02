@@ -26,6 +26,8 @@ body{background:#0F2835;color:#fff;font-family:Arial,sans-serif}
 .status.ok{background:#0a3a2a;color:#01F9C6}
 .check{display:flex;gap:8px;font-size:12px;color:#C9E6EC;margin-top:14px;line-height:1.4}
 .badge{text-align:center;background:#0a3a2a;border:1px solid #01F9C6;color:#01F9C6;font-size:12px;padding:8px;border-radius:20px;margin:12px 0;font-weight:700}
+.ref-badge{display:none;text-align:center;background:#01F9C6;color:#0A1F2E;font-size:13px;padding:10px;border-radius:10px;margin:12px 0;font-weight:900}
+.ref-badge.show{display:block}
 </style>
 </head>
 <body>
@@ -33,6 +35,7 @@ body{background:#0F2835;color:#fff;font-family:Arial,sans-serif}
 <div class="wrap">
 <h1 style="text-align:center;font-size:25px;margin:14px 0 6px">Get Jobs on WhatsApp</h1>
 <p style="text-align:center;color:#A8C8D0;font-size:13px;line-height:1.5">No email, no password, no CV needed.<br>Join in 15 seconds.</p>
+<div id="refBadge" class="ref-badge"></div>
 <div class="badge">⚡ 4,550 jobseekers visited this week • Join free</div>
 <div class="card">
 <label class="label">I AM A...</label>
@@ -41,6 +44,7 @@ body{background:#0F2835;color:#fff;font-family:Arial,sans-serif}
 <div id="opt-employer" class="role-opt" onclick="setRole('employer')">Employer<small>Hire staff</small></div>
 </div>
 <input type="hidden" id="role" value="seeker">
+<input type="hidden" id="referred_by" value="">
 <form id="form">
 <label class="label">FULL NAME *</label>
 <input class="input" id="fn" placeholder="e.g. Thandi Nkosi" autocomplete="name">
@@ -51,7 +55,22 @@ body{background:#0F2835;color:#fff;font-family:Arial,sans-serif}
 <select id="province"><option value="">Select Province</option><option selected>Gauteng</option><option>Limpopo</option><option>KwaZulu-Natal</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
 <div id="seeker-fields">
 <label class="label">WHAT JOBS DO YOU WANT? <span style="color:#6EA3AF;font-weight:400">(Optional)</span></label>
-<select id="jobType"><option value="All Jobs">All Jobs - Send me everything</option><option>General Worker</option><option>General Cleaning Jobs</option><option>General Retail Jobs</option><option>General Restaurant Jobs</option><option>General Hotel Jobs</option><option>General Driving Jobs</option><option>Office and Administration Jobs</option><option>Warehouse and Logistics Jobs</option></select>
+<select id="jobType" onchange="checkOther()">
+<option value="All Jobs">All Jobs - Send me everything</option>
+<option>General Worker</option>
+<option>General Cleaning Jobs</option>
+<option>General Retail Jobs</option>
+<option>General Restaurant Jobs</option>
+<option>General Hotel Jobs</option>
+<option>General Driving Jobs</option>
+<option>Office and Administration Jobs</option>
+<option>Warehouse and Logistics Jobs</option>
+<option value="Other Jobs">Other Jobs</option>
+</select>
+<div id="otherBox" style="display:none;margin-top:10px">
+<input class="input" id="otherJob" placeholder="e.g. Security, Cashier, Nanny">
+<p style="font-size:11px;color:#6EA3AF;margin-top:5px">Tell us what job you want</p>
+</div>
 </div>
 <div id="employer-fields" style="display:none;background:#0a3a2a;border:1px solid #01F9C6;padding:12px;border-radius:10px;margin-top:14px;font-size:13px;line-height:1.5">
 <b style="color:#01F9C6">Employer mode ✓</b><br>Post a job from R299. Your WhatsApp is your login — no email needed.
@@ -73,6 +92,10 @@ function setRole(r){
   document.getElementById('employer-fields').style.display = r==='employer' ? 'block' : 'none';
   document.getElementById('submitBtn').textContent = r==='employer' ? 'Continue as Employer →' : 'Get Jobs on WhatsApp →';
 }
+function checkOther(){
+  var v=document.getElementById('jobType').value;
+  document.getElementById('otherBox').style.display = v==='Other Jobs' ? 'block' : 'none';
+}
 function showStatus(m, t){ var s=document.getElementById('status'); s.textContent=m; s.className='status show '+t; }
 function saveToTable(table, payload, cb){
   try{
@@ -89,6 +112,18 @@ function saveToTable(table, payload, cb){
     xhr.send(JSON.stringify(payload));
   }catch(e){ cb(); }
 }
+// REFERRAL LOGIC - NEW
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var ref=params.get('ref');
+  if(ref){
+    ref=decodeURIComponent(ref);
+    document.getElementById('referred_by').value=ref;
+    var badge=document.getElementById('refBadge');
+    badge.textContent='🎉 Ref: '+ref+' invited you - Join free';
+    badge.className='ref-badge show';
+  }
+})();
 document.getElementById('form').addEventListener('submit', function(e){
   e.preventDefault();
   var name=document.getElementById('fn').value.trim();
@@ -96,6 +131,9 @@ document.getElementById('form').addEventListener('submit', function(e){
   var role=document.getElementById('role').value;
   var prov=document.getElementById('province').value || 'Gauteng';
   var jobType=document.getElementById('jobType').value || 'All Jobs';
+  var otherJob=document.getElementById('otherJob').value.trim();
+  var referred=document.getElementById('referred_by').value || null;
+  if(jobType==='Other Jobs' && otherJob){ jobType='Other Jobs - '+otherJob; }
   if(!name || name.length<2){ showStatus('Enter your full name', 'error'); return; }
   if(wa.length<9){ showStatus('Enter a valid WhatsApp number e.g. 0812633193', 'error'); return; }
   if(!document.getElementById('popia').checked){ showStatus('Please accept POPIA to continue', 'error'); return; }
@@ -104,7 +142,7 @@ document.getElementById('form').addEventListener('submit', function(e){
   if(clean.indexOf('27')!==0) clean='27'+clean;
   var btn=document.getElementById('submitBtn');
   btn.disabled=true; btn.textContent='Joining...';
-  var payload={ phone:clean, whatsapp_number:clean, full_name:name, role:role, province:prov, location:prov, experience:'Entry-Level', job_type:jobType, is_active:true, subscribed:true };
+  var payload={ phone:clean, whatsapp_number:clean, full_name:name, role:role, province:prov, location:prov, experience:'Entry-Level', job_type:jobType, is_active:true, subscribed:true, referred_by:referred };
   try{
     localStorage.setItem('userPhone', clean);
     localStorage.setItem('jobway_joined_phone', '+'+clean);
