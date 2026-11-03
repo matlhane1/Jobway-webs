@@ -15,7 +15,7 @@
 </script>
 <style>
 body{margin:0;background:#11283a;color:white;font-family:'Plus Jakarta Sans',sans-serif;padding:16px;display:flex;justify-content:center;min-height:100vh}
-.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:460px;margin-top:50px;border:1px solid rgba(45,212,191,0.15)}
+.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:460px;margin-top:70px;border:1px solid rgba(45,212,191,0.15)}
 label{color:#9cc2d0;font-size:12px;font-weight:700;margin:12px 0 6px;display:block;letter-spacing:0.3px;text-transform:uppercase}
 input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none}
 input:focus,textarea:focus,select:focus{border-color:#2dd4bf}
@@ -30,9 +30,12 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 .hint{font-size:11px;color:#7fb0be;margin-top:6px}
 .invoice-box{background:#0f2332;border:1px solid rgba(1,249,198,0.25);border-radius:14px;padding:14px;margin-top:16px}
 .invoice-title{font-size:12px;font-weight:800;color:#01F9C6;letter-spacing:0.05em;margin-bottom:8px}
+.credit-banner{background:linear-gradient(135deg,#01F9C6,#2dd4bf);color:#11283a;padding:10px 14px;border-radius:12px;font-weight:900;font-size:13px;text-align:center;margin-bottom:12px;display:none}
 </style></head><body>
 <div class="top"><a href="employer-dashboard.html">← Dashboard</a><h3 style="margin:0;font-family:'Space Grotesk',sans-serif;color:#01F9C6">JobWay</h3></div>
 <div class="card">
+<div id="creditBanner" class="credit-banner"></div>
+
 <h2 style="margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-weight:800">Post a New Job</h2>
 <p style="margin:0 0 14px;color:#8db0bf;font-size:12px">Company logo upload is <b style="color:#01F9C6">FREE</b> — jobs with logos get 3x more applications</p>
 
@@ -54,13 +57,11 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 <label>Job Title *</label><input id="title" placeholder="e.g. Cashier">
 <label>Company Name *</label><input id="company" placeholder="e.g. Shoprite">
 
-<!-- INVOICE SECTION - NEW -->
 <div class="invoice-box">
 <div class="invoice-title">📧 INVOICE DETAILS - Sent from employers@jobway.co.za</div>
 <label style="margin-top:6px">Company Email for Invoices *</label>
 <input id="invoiceEmail" type="email" placeholder="accounts@company.co.za">
 <div class="hint">Invoice will be sent here instantly after payment</div>
-
 <label>VAT Number (optional - for invoice)</label>
 <input id="vatNumber" placeholder="4xxxxxxxxx">
 </div>
@@ -72,7 +73,7 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 <label>Closing Date</label><input id="closing" type="date">
 <label>Description</label><textarea id="desc" rows="4" placeholder="Job requirements..."></textarea>
 
-<button class="btn" id="post">Continue to Payment — R299 →</button>
+<button class="btn" id="post">Post Job</button>
 <button class="btn-outline" id="saveDraft">Save Draft (Free - Post Later)</button>
 <div id="msg" style="margin-top:12px;text-align:center;font-size:12px;color:#7fb0be"></div>
 </div>
@@ -81,6 +82,7 @@ const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.
 let logoData = null;
 let logoFileObj = null;
 let compressedBlob = null;
+let userCredits = { job_credits: 0, cv_credits: 0 };
 
 function compressImage(file, cb){
   const reader = new FileReader();
@@ -120,12 +122,41 @@ document.getElementById('logoFile').addEventListener('change', function(){
   });
 });
 
-// Auto-fill from storage
+// LOAD CREDITS FROM SUPABASE
+async function loadCredits(){
+  try{
+    let user=null;
+    try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
+    if(!user || !user.id) return;
+    
+    const { data } = await supabaseClient.from('employer_limits').select('*').eq('employer_id', user.id).single();
+    if(data){
+      userCredits = data;
+      const banner = document.getElementById('creditBanner');
+      banner.style.display='block';
+      banner.innerHTML = `💼 ${data.job_display || data.job_credits+' jobs'} • 📄 ${data.cv_display || data.cv_credits+' CVs'} • ${data.plan ? 'Plan: '+data.plan : ''}`;
+      
+      // Update button text
+      if(data.job_credits > 0 || data.job_credits >= 999999){
+        document.getElementById('post').innerText = `Post Job — Uses 1 Credit (${data.job_credits>=999999?'Unlimited':data.job_credits+' left'})`;
+      } else {
+        document.getElementById('post').innerText = 'Continue to Payment — R299 →';
+      }
+    } else {
+      document.getElementById('creditBanner').style.display='block';
+      document.getElementById('creditBanner').innerHTML = '💼 0 jobs left • Buy credits to post';
+      document.getElementById('creditBanner').style.background='#ff6b6b';
+      document.getElementById('creditBanner').style.color='white';
+    }
+  }catch(e){ console.log('credit load', e); }
+}
+
 window.onload = ()=>{
   document.getElementById('invoiceEmail').value = localStorage.getItem('invoice_email') || localStorage.getItem('jobway_user_email') || '';
   document.getElementById('company').value = localStorage.getItem('company_name') || '';
   document.getElementById('whatsapp').value = localStorage.getItem('whatsapp_number') || '';
   document.getElementById('vatNumber').value = localStorage.getItem('vat_number') || '';
+  loadCredits();
 };
 
 async function handlePost(isDraft=false){
@@ -133,11 +164,11 @@ const titleVal=document.getElementById('title').value.trim();
 const companyVal=document.getElementById('company').value.trim();
 const invoiceEmailVal=document.getElementById('invoiceEmail').value.trim().toLowerCase();
 if(!titleVal||!companyVal){alert('Fill title & company');return;}
-if(!invoiceEmailVal || !invoiceEmailVal.includes('@')){alert('Please enter company email for invoices - we send from employers@jobway.co.za'); document.getElementById('invoiceEmail').focus(); return;}
+if(!invoiceEmailVal || !invoiceEmailVal.includes('@')){alert('Please enter company email for invoices'); document.getElementById('invoiceEmail').focus(); return;}
 
 const b=document.getElementById('post');
-b.textContent=isDraft?'Saving...':'Preparing payment...';b.disabled=true;
-document.getElementById('msg').innerText='Uploading logo & saving invoice details...';
+b.textContent=isDraft?'Saving...':'Checking credits...';b.disabled=true;
+document.getElementById('msg').innerText='Uploading logo & checking credits...';
 
 let logoUrl = logoData;
 if(logoFileObj){
@@ -160,7 +191,6 @@ if(!wa && user) wa = user.phone || user.whatsapp_number || '';
 
 const vatVal = document.getElementById('vatNumber').value.trim();
 
-// SAVE INVOICE DETAILS FOR pricing.html
 localStorage.setItem('invoice_email', invoiceEmailVal);
 localStorage.setItem('jobway_user_email', invoiceEmailVal);
 localStorage.setItem('company_name', companyVal);
@@ -168,7 +198,6 @@ localStorage.setItem('whatsapp_number', wa);
 localStorage.setItem('vat_number', vatVal);
 localStorage.setItem('pending_job_title', titleVal);
 
-// Save to companies table if user exists
 if(user && user.id){
   try{
     await supabaseClient.from('companies').upsert({
@@ -196,18 +225,37 @@ const job={
   employer_id: (user && user.id) ? user.id : null,
   employer_email: invoiceEmailVal,
   invoice_email: invoiceEmailVal,
-  status: isDraft ? 'draft' : 'pending_payment'
+  status: isDraft ? 'draft' : 'active'
 };
 
 if(isDraft){
   const {error}=await supabaseClient.from('jobs').insert([job]);
-  if(error){ alert('Error: '+error.message); b.textContent='Continue to Payment — R299 →'; b.disabled=false; return; }
-  alert('✅ Draft saved! Go to Dashboard to pay R299 when ready.'); location.href='employer-dashboard.html'; return;
+  if(error){ alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; }
+  alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
 
-// For paid flow, store job in localStorage and go to pricing with email
+// --- CREDIT CHECK LOGIC ---
+if(user && user.id){
+  // Try to deduct 1 job credit
+  const { data: canPost, error: creditError } = await supabaseClient.rpc('use_job_credit', { p_employer_id: user.id });
+  
+  if(canPost === true){
+    // Has credits - post directly
+    const {error}=await supabaseClient.from('jobs').insert([job]);
+    if(error){ 
+      // Refund credit if job insert failed
+      await supabaseClient.rpc('add_job_credits', { employer_id: user.id, amount: 1 });
+      alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; 
+    }
+    alert('✅ Job posted! 1 credit used.'); 
+    location.href='employer-dashboard.html'; 
+    return;
+  }
+}
+
+// No credits - go to payment
 localStorage.setItem('pending_job', JSON.stringify(job));
-document.getElementById('msg').innerHTML='✅ Job ready — redirecting to payment...';
+document.getElementById('msg').innerHTML='No credits — redirecting to payment...';
 location.href=`pricing.html?email=${encodeURIComponent(invoiceEmailVal)}&company=${encodeURIComponent(companyVal)}&job=${encodeURIComponent(titleVal)}`;
 }
 
