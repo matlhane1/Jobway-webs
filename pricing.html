@@ -140,23 +140,44 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#
 </div>
 <script>
 const SUPABASE_URL="https://dmxumcjeetphwzvgzzuk.supabase.co";
-const SUPABASE_ANON_KEY="sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRteHVtY2plZXRwaHd6dmd6enVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTE5NzQsImV4cCI6MjEwMzU4Nzk3NH0.EjvnxyPqgqsug6P-1SU_JIFqPzziMkiE-CDfHyH6yiQ";
+
+const PRICES = {
+  "JobWay Single Job Post": 299,
+  "JobWay Starter Monthly": 999,
+  "JobWay Growth Monthly": 2500,
+  "JobWay Pro Monthly": 3500,
+  "JobWay Business Monthly": 5999,
+  "JobWay 50 Job Credits": 7500,
+  "JobWay 100 Job Credits": 14000,
+  "JobWay 250 Job Credits": 31250,
+  "JobWay 500 Job Credits": 55000,
+  "JobWay 20 CV Unlocks": 999,
+  "JobWay 100 CV Unlocks": 2499,
+  "JobWay 250 CV Unlocks": 5999,
+  "JobWay Unlimited CV Unlocks": 9999
+};
+
 let curItem='';
 function openPay(item){
   curItem=item;
+  const price = PRICES[item] || 0;
   document.getElementById('mItem').textContent=item;
   document.getElementById('mItem2').textContent=item;
-  document.getElementById('mAmount').textContent=item;
+  document.getElementById('mAmount').textContent='R' + price.toLocaleString();
   document.getElementById('emailField').value = localStorage.getItem('jobway_user_email')||'';
   document.getElementById('payErr').style.display='none';
   document.getElementById('payModal').classList.add('show');
 }
 function closePay(){document.getElementById('payModal').classList.remove('show');}
 document.querySelectorAll('[data-item]').forEach(b=>b.addEventListener('click',()=>openPay(b.dataset.item)));
+
 async function doPay(){
   let email = document.getElementById('emailField').value.trim().toLowerCase() || (localStorage.getItem('jobway_user_email')||'').toLowerCase();
   if(!email || !email.includes('@')){document.getElementById('emailField').style.borderColor='#ff5555';return;}
   localStorage.setItem('jobway_user_email',email);
+  const price = PRICES[curItem] || 0;
+  localStorage.setItem('jobway_pending_payment', JSON.stringify({item:curItem, email:email, amount: price }));
   const btn=document.getElementById('payBtn'); btn.textContent='Redirecting...'; btn.disabled=true;
   try{
     const res = await fetch(SUPABASE_URL+'/functions/v1/payfast_create_payment',{
