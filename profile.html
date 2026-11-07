@@ -137,7 +137,9 @@ function saveProfile(){
     xhr.setRequestHeader('apikey', SUPABASE_KEY);
     xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     xhr.setRequestHeader('Content-Type','application/json');
-    xhr.setRequestHeader('Prefer','resolution=merge-duplicates');
+    // FIXED: Only send columns that EXIST in your table: whatsapp_number, full_name, province, cv_path, cv_url
+    // Do NOT send phone, location, skills - they do not exist in DB
+    xhr.setRequestHeader('Prefer','return=representation');
     xhr.onreadystatechange=function(){
       if(xhr.readyState===4){
         if(xhr.status>=200 && xhr.status<300){
@@ -152,7 +154,7 @@ function saveProfile(){
       }
     };
     xhr.onerror=function(){ alert('Network error saving profile'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
-    xhr.send(JSON.stringify({phone:clean, whatsapp_number:clean, full_name:fullName, location:locationVal, cv_path:finalPath||null, cv_url:null, skills:skills}));
+    xhr.send(JSON.stringify({whatsapp_number:clean, full_name:fullName, province:locationVal, cv_path:finalPath||null, cv_url:null}));
   }
 
   if(currentFile){
@@ -225,7 +227,8 @@ function deleteEverything(){
     xhrDel.send();
   } else { checkDone(); }
   if(p.phoneClean){
-    var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?phone=eq.'+p.phoneClean, true);
+    // FIXED: Delete by whatsapp_number, not phone - phone column does not exist
+    var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?whatsapp_number=eq.'+p.phoneClean, true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
     xhr.onerror=function(){ checkDone(); };
