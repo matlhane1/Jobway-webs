@@ -105,20 +105,17 @@ function loadProfile(){
   else if(savedPath) document.getElementById('fileName').innerHTML = '✅ CV on file (Private)';
   if(savedPath) document.getElementById('cvLink').innerHTML = '<div style="color:#8DB0BF;font-size:11px">🔒 Stored privately — employers you apply to get access</div>';
   renderSkills();
-  // FIXED: If phone has CV name but no path, fetch path back from candidate_cvs by phone
   if(!savedPath && document.getElementById('whatsapp').value){
     restoreCvFromDB(document.getElementById('whatsapp').value);
   }
 }
 function restoreCvFromDB(phoneRaw){
-  var phones = [phoneRaw];
   var clean = phoneRaw.replace(/\D/g,''); if(clean.charAt(0)=='0') clean='27'+clean.slice(1);
-  if(phones.indexOf(clean)===-1) phones.push(clean);
-  // Try both formats: 072... and 2781...
+  var phones=[phoneRaw, clean];
   var tried=0;
   function tryOne(){
     if(tried>=phones.length) return;
-    var ph = phones[tried++]
+    var ph=phones[tried++];
     var xhr=new XMLHttpRequest();
     xhr.open('GET', SUPABASE_URL+'/rest/v1/candidate_cvs?select=cv_url,cv_name,full_name&phone=eq.'+encodeURIComponent(ph)+'&limit=1', true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY);
@@ -131,9 +128,8 @@ function restoreCvFromDB(phoneRaw){
             var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
             p.cv_path=arr[0].cv_url; p.cv_url=arr[0].cv_url; if(arr[0].cv_name) p.cvName=arr[0].cv_name;
             try{ localStorage.setItem('jobway_profile', JSON.stringify(p)); localStorage.setItem('jobway_cv_url', arr[0].cv_url); localStorage.setItem('jobway_cv_path', arr[0].cv_url); }catch(e){}
-            document.getElementById('fileName').innerHTML='✅ '+(arr[0].cv_name||'CV')+' (Restored from DB)';
+            document.getElementById('fileName').innerHTML='✅ '+(arr[0].cv_name||'CV on file')+' (Restored from DB)';
             document.getElementById('cvLink').innerHTML='<div style="color:#8DB0BF;font-size:11px">🔒 Stored privately — employers you apply to get access</div>';
-            showDebug('Restored CV path from DB: '+arr[0].cv_url);
           } else { tryOne(); }
         }catch(e){ tryOne(); }
       } else if(xhr.readyState===4){ tryOne(); }
@@ -164,30 +160,21 @@ function saveProfile(){
   if(!fullName || !whatsapp){ alert('Fill Full Name + WhatsApp Number'); return; }
   var clean = whatsapp.replace(/\D/g,''); if(clean.charAt(0)=='0') clean='27'+clean.slice(1);
   if(clean.length<11){ alert('Use correct WhatsApp: 072...'); return; }
-  
   var btn=document.getElementById('saveBtn'); btn.innerHTML='Saving...'; btn.disabled=true;
   var skills=document.getElementById('skills').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
   var locationVal=document.getElementById('location').value;
   var existingPath=getSavedCvPath();
   var existingName='';
   try{ var ep=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); existingName=ep.cvName||''; }catch(e){}
-
-  // FIXED: If no new file AND no saved path, DO NOT try to save null to DB - ask to re-upload
   if(!currentFile && !existingPath){
-    alert('Your CV file link was lost (phone was cleared). Please tap "Click to upload CV" and choose your CV file again — then tap Save. This will fix it once.');
-    btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
-    showDebug('BLOCKED SAVE: No CV path found.\nYou have CV name "'+existingName+'" but no path.\nPlease re-upload the file once.');
-    return;
+    alert('Please tap "Click to upload CV" and choose your CV file again — then tap Save.');
+    btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return;
   }
-
   function finish(cvPath, cvName){
     var finalPath = cvPath || existingPath || '';
-    var finalName = cvName || existingName || '';
-    // FIXED: Never send null cv_url - candidate_cvs requires it
-    if(!finalPath){
-      alert('No CV file found. Please re-upload your CV, then Save.');
-      btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return;
-    }
+    // FIXED: If no file name, use the file name from the path, or "CVjobway.pdf" style - NEVER empty
+    var finalName = cvName || existingName || (finalPath ? finalPath.split('/').pop() : 'CV.pdf');
+    if(!finalPath){ alert('No CV file found. Please re-upload your CV, then Save.'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return; }
     var user=getUser()||{};
     var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, province:locationVal, cv_path:finalPath, cv_url:finalPath, cvName: finalName };
     try{
@@ -199,9 +186,8 @@ function saveProfile(){
     user.full_name=fullName; user.phone=whatsapp; user.whatsapp_number=clean; user.cv_path=finalPath; user.cv_url=finalPath;
     try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
 
-    showDebug('Saving - NO EMAIL\nphone = ' + whatsapp + ' / ' + clean + '\nname = ' + fullName + '\ncv = ' + finalPath);
+    showDebug('Saving - NO EMAIL\nname = '+fullName+'\nphone = '+whatsapp+'\ncv_url = '+finalPath+'\ncv_name = '+finalName);
 
-    // Find existing row by phone - try 072 format first, then 27 format
     function findByPhone(ph, cb){
       var xhr=new XMLHttpRequest();
       xhr.open('GET', SUPABASE_URL+'/rest/v1/candidate_cvs?select=id,user_id,phone&phone=eq.'+encodeURIComponent(ph)+'&limit=1', true);
@@ -215,17 +201,14 @@ function saveProfile(){
       xhr.onerror=function(){ cb(null); };
       xhr.send();
     }
-
     findByPhone(whatsapp, function(found1){
       if(found1){ doSave(found1); return; }
-      findByPhone(clean, function(found2){
-        doSave(found2);
-      });
+      findByPhone(clean, function(found2){ doSave(found2); });
     });
-
     function doSave(found){
       var targetId = (found && found.id) || uuid();
       var targetUserId = (found && found.user_id) || user.id || uuid();
+      // FIXED: NOW includes cv_name = real file name
       var payload = {id:targetId, user_id:targetUserId, full_name:fullName, phone:whatsapp, location:locationVal, category:'General', cv_url:finalPath, cv_name:finalName};
       var xhr=new XMLHttpRequest();
       xhr.open('POST', SUPABASE_URL+'/rest/v1/candidate_cvs?on_conflict=id', true);
@@ -236,31 +219,33 @@ function saveProfile(){
       xhr.onreadystatechange=function(){
         if(xhr.readyState===4){
           if(xhr.status>=200 && xhr.status<300){
-            showDebug('✅ candidate_cvs SAVED! (NO EMAIL)\nID = ' + targetId + '\nResponse: ' + xhr.responseText.slice(0,500));
+            showDebug('✅ candidate_cvs SAVED!\ncv_url = '+finalPath+'\ncv_name = '+finalName+'\nResponse: '+xhr.responseText.slice(0,400));
             document.getElementById('savedMsg').style.display='block';
-            document.getElementById('savedMsg').innerHTML='✅ CV Saved! Now you can apply.';
+            document.getElementById('savedMsg').innerHTML='✅ CV Saved! '+finalName;
             btn.innerHTML='✅ Saved!';
             try{
-              var x1=new XMLHttpRequest(); x1.open('POST', SUPABASE_URL+'/rest/v1/profiles?on_conflict=id', true);
-              x1.setRequestHeader('apikey', SUPABASE_KEY); x1.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); x1.setRequestHeader('Content-Type','application/json'); x1.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
-              x1.send(JSON.stringify({id:targetUserId, full_name:fullName, skills:skills, cv_url:finalPath, cv_name:finalName}));
               var x2=new XMLHttpRequest(); x2.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', true);
               x2.setRequestHeader('apikey', SUPABASE_KEY); x2.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); x2.setRequestHeader('Content-Type','application/json'); x2.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
               x2.send(JSON.stringify({whatsapp_number:clean, full_name:fullName, province:locationVal, cv_path:finalPath, cv_url:finalPath}));
             }catch(e){}
-            setTimeout(function(){ window.location.href='jobs.html'; }, 2000);
+            setTimeout(function(){ window.location.href='jobs.html'; }, 1500);
           } else {
-            showDebug('❌ candidate_cvs STILL FAILED\nError: ' + xhr.responseText);
-            alert('candidate_cvs FAILED: ' + xhr.responseText);
+            // If cache STILL old, tell user to re-run notify
+            if(xhr.responseText.indexOf('cv_name')!==-1){
+              showDebug('❌ STILL CACHE ERROR for cv_name.\nRun in SQL: notify pgrst, \'reload schema\'; then wait 10s and Save again.\nError: '+xhr.responseText);
+              alert('Cache still old. Run in Supabase SQL: notify pgrst, \'reload schema\'; Wait 10 sec, then Save again.');
+            } else {
+              showDebug('❌ FAILED: '+xhr.responseText);
+              alert('Save failed: '+xhr.responseText);
+            }
             btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
           }
         }
       };
-      xhr.onerror=function(){ showDebug('Network error'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
+      xhr.onerror=function(){ alert('Network error'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
       xhr.send(JSON.stringify(payload));
     }
   }
-
   if(currentFile){
     var ext=currentFile.name.split('.').pop().toLowerCase();
     var path = uuid() + '_' + uuid() + '.' + ext;
@@ -301,7 +286,6 @@ function downloadCV(cvPath){
 function deleteEverything(){
   if(!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
   var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  var user=getUser()||{};
   var cvToDelete = p.cv_path || p.cv_url || getSavedCvPath();
   var pending=0;
   function checkDone(){
@@ -330,15 +314,6 @@ function deleteEverything(){
     xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
     xhr.onerror=function(){ checkDone(); };
     xhr.send();
-  } else { checkDone(); }
-  pending++;
-  if(user.id){
-    var xhrP=new XMLHttpRequest();
-    xhrP.open('PATCH', SUPABASE_URL+'/rest/v1/profiles?id=eq.'+user.id, true);
-    xhrP.setRequestHeader('apikey', SUPABASE_KEY); xhrP.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhrP.setRequestHeader('Content-Type','application/json');
-    xhrP.onreadystatechange=function(){ if(xhrP.readyState===4) checkDone(); };
-    xhrP.onerror=function(){ checkDone(); };
-    xhrP.send(JSON.stringify({cv_url:null, cv_name:null, skills:[]}));
   } else { checkDone(); }
   pending++;
   if(p.phoneClean){
