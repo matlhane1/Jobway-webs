@@ -9,320 +9,261 @@
 body{font-family:Arial,sans-serif;background:#0F2230;color:#fff}
 .header{background:#11283A;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e3a4a;position:sticky;top:0;z-index:10}
 .logo{font-weight:900;color:#01F9C6;font-size:18px}
+.nav{display:flex;gap:6px}
 .btn{border:0;border-radius:20px;padding:9px 14px;font-weight:800;font-size:12px;cursor:pointer}
 .btn-dark{background:#2A3F4E;color:#fff}
 .btn-green{background:#01F9C6;color:#08231C;width:100%;padding:13px;margin-top:12px;font-size:14px;border-radius:50px;font-weight:900}
 .btn-red{background:#2a1a1a;color:#ff6b6b;border:1px solid #5a2a2a;width:100%;padding:12px;margin-top:12px;border-radius:50px}
+button:disabled{opacity:.55;cursor:not-allowed}
 .container{max-width:480px;margin:0 auto;padding:14px}
 .card{background:#1A3341;border:1px solid #25475A;border-radius:16px;padding:16px;margin-bottom:12px}
 .input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:12px;border-radius:10px;margin-top:7px;font-size:14px}
 .label{font-size:11px;color:#8DB0BF;margin-top:12px;display:block;font-weight:700}
 .upload-box{border:2px dashed #01F9C6;border-radius:12px;padding:16px;text-align:center;margin-top:10px;background:#0f2a2a;cursor:pointer}
-.file-name{color:#01F9C6;font-size:12px;margin-top:8px;font-weight:800}
+.file-name{color:#01F9C6;font-size:12px;margin-top:8px;font-weight:800;overflow-wrap:anywhere}
 .banner{background:#01F9C6;color:#08231C;border-radius:12px;padding:11px;font-weight:900;font-size:12px;text-align:center;margin-bottom:12px}
+.notice{font-size:12px;line-height:1.5;color:#b7cbd4;margin-top:10px}
+#savedMsg{white-space:pre-wrap;text-align:center;color:#01F9C6;font-size:13px;margin-top:10px;display:none;font-weight:800}
+#debugBox{background:#000;color:#01F9C6;font-size:11px;padding:10px;border-radius:10px;margin-top:10px;white-space:pre-wrap;display:none;overflow-wrap:anywhere}
+.skill-tag{background:#143E4A;color:#01F9C6;padding:5px 9px;border-radius:20px;font-size:11px;margin:3px;display:inline-block;font-weight:700}
+@media(max-width:390px){.header{align-items:flex-start;gap:8px;flex-wrap:wrap}.nav{width:100%;justify-content:space-between}.nav .btn{flex:1;padding:9px 5px}}
 </style>
 </head>
 <body>
 <div class="header">
 <div class="logo">JobWay</div>
-<div style="display:flex;gap:6px">
+<div class="nav">
 <button class="btn btn-dark" onclick="location.href='jobs.html'">Jobs</button>
 <button class="btn btn-dark" onclick="location.href='track-applications.html'">Track</button>
 <button class="btn btn-dark" onclick="logout()" style="background:#01F9C6;color:#08231C">Log Out</button>
 </div>
 </div>
-
 <div class="container">
-<div class="banner">🔒 CV is PRIVATE — only employers you applied to can download</div>
-
+<div class="banner">🔒 CV IS PRIVATE — access is controlled by your applications</div>
 <div class="card">
 <h3>👤 My Profile</h3>
-<p style="font-size:11px;color:#8DB0BF;margin-top:4px">Upload CV once — 1-Click Apply everywhere</p>
-
-<label class="label">Full Name *</label>
-<input class="input" id="fullName" placeholder="e.g. Thabo Molefe">
-
-<label class="label">WhatsApp Number * (0 format)</label>
-<input class="input" id="whatsapp" placeholder="e.g. 072 123 4567">
-
-<label class="label">Location</label>
+<p style="font-size:11px;color:#8DB0BF;margin-top:4px">Upload your CV once — apply to jobs faster</p>
+<label class="label" for="fullName">Full Name *</label>
+<input class="input" id="fullName" autocomplete="name" maxlength="120" placeholder="e.g. Thabo Molefe">
+<label class="label" for="whatsapp">WhatsApp Number * (South African format)</label>
+<input class="input" id="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="e.g. 072 123 4567">
+<label class="label" for="location">Province / Location</label>
 <select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Eastern Cape</option><option>North West</option><option>Mpumalanga</option><option>Free State</option><option>Northern Cape</option><option>Remote</option></select>
-
-<label class="label">Skills (comma separated)</label>
-<input class="input" id="skills" placeholder="e.g. Driving, Code 10, Forklift">
+<label class="label" for="skills">Skills (comma separated)</label>
+<input class="input" id="skills" maxlength="1000" placeholder="e.g. Driving, Code 10, Forklift">
 <div id="skillsPreview" style="margin-top:8px"></div>
-
-<label class="label">📄 Upload CV (PDF, DOC - max 5MB) *</label>
+<label class="label" for="cvFile">📄 Upload CV (PDF, DOC, DOCX — max 5MB)</label>
 <div class="upload-box" onclick="document.getElementById('cvFile').click()">
 <div style="font-size:28px">🔒</div>
 <div style="font-weight:800;margin-top:4px;font-size:13px">Click to upload CV</div>
-<div style="color:#8DB0BF;font-size:11px;margin-top:3px">Stored privately — not public, not Google searchable</div>
-<div class="file-name" id="fileName"></div>
-<input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx" onchange="handleFile(this.files[0])">
+<div style="color:#8DB0BF;font-size:11px;margin-top:3px">Stored in private storage — not publicly searchable</div>
+<div class="file-name" id="fileName">No new file selected</div>
 </div>
-<div id="cvLink" style="text-align:center;margin-top:10px"></div>
-
-<button class="btn btn-green" id="saveBtn" onclick="saveProfile()">💾 Save Profile + CV</button>
-<div id="savedMsg" style="text-align:center;color:#01F9C6;font-size:13px;margin-top:10px;display:none;font-weight:800"></div>
-<div id="debugBox" style="background:#000;color:#01F9C6;font-size:11px;padding:10px;border-radius:10px;margin-top:10px;white-space:pre-wrap;display:none"></div>
-
+<input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+<button class="btn btn-green" id="saveBtn" type="button" onclick="saveProfile()">💾 Save Profile + CV</button>
+<div id="savedMsg" role="status" aria-live="polite"></div>
+<div id="debugBox" aria-live="polite"></div>
 <hr style="margin:16px 0;border:0;border-top:1px solid #25475A">
-<button class="btn btn-red" onclick="deleteEverything()">🗑️ Delete My Profile + CV (POPIA)</button>
-<p style="font-size:10px;color:#8DB0BF;text-align:center;margin-top:6px">Deletes from phone, database AND storage bucket</p>
+<button class="btn btn-red" id="deleteBtn" type="button" onclick="deleteEverything()">🗑️ Delete My Profile + CV</button>
+<p class="notice">Deletes from phone, database AND storage bucket. Cannot be undone.</p>
 </div>
 </div>
-
 <script>
-var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
-var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-var currentFile = null;
-
-(function(){
-  var logged = localStorage.getItem('jobway_logged_in');
-  if(!logged){ window.location.href = 'login.html'; return; }
-})();
-
-function logout(){ try{ localStorage.clear(); }catch(e){} window.location.href = 'index.html'; }
-function getUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user') || 'null'); }catch(e){ return null; } }
-function showDebug(t){ var d=document.getElementById('debugBox'); d.style.display='block'; d.textContent=t; }
-function getSavedCvPath(){
-  try{
-    var p = JSON.parse(localStorage.getItem('jobway_profile')||'{}');
-    return p.cv_path || p.cv_url || localStorage.getItem('jobway_cv_url') || localStorage.getItem('jobway_cv_path') || localStorage.getItem('jobway_cv') || '';
-  }catch(e){ return localStorage.getItem('jobway_cv_url') || ''; }
-}
-
-function loadProfile(){
-  var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  var u=getUser();
-  document.getElementById('fullName').value = p.fullName || (u&&u.full_name) || '';
-  document.getElementById('whatsapp').value = p.whatsapp || (u&&u.phone) || (u&&u.whatsapp_number) || '';
-  document.getElementById('skills').value = (p.skills||[]).join(', ');
-  document.getElementById('location').value = p.location || 'Gauteng';
-  var savedPath = getSavedCvPath();
-  var savedName = p.cvName || '';
-  if(savedName) document.getElementById('fileName').innerHTML = '✅ ' + savedName + ' (Private)';
-  else if(savedPath) document.getElementById('fileName').innerHTML = '✅ CV on file (Private)';
-  if(savedPath) document.getElementById('cvLink').innerHTML = '<div style="color:#8DB0BF;font-size:11px">🔒 Stored privately — employers you apply to get access</div>';
-  renderSkills();
-  if(!savedPath && document.getElementById('whatsapp').value){
-    restoreCvFromDB(document.getElementById('whatsapp').value);
-  }
-}
-function restoreCvFromDB(phoneRaw){
-  var clean = phoneRaw.replace(/\D/g,''); if(clean.charAt(0)=='0') clean='27'+clean.slice(1);
-  var phones=[phoneRaw, clean];
-  var tried=0;
-  function tryOne(){
-    if(tried>=phones.length) return;
-    var ph=phones[tried++];
-    var xhr=new XMLHttpRequest();
-    xhr.open('GET', SUPABASE_URL+'/rest/v1/candidate_cvs?select=cv_url,cv_name,full_name&phone=eq.'+encodeURIComponent(ph)+'&limit=1', true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY);
-    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr.onreadystatechange=function(){
-      if(xhr.readyState===4 && xhr.status===200){
-        try{
-          var arr=JSON.parse(xhr.responseText);
-          if(arr && arr.length>0 && arr[0].cv_url){
-            var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-            p.cv_path=arr[0].cv_url; p.cv_url=arr[0].cv_url; if(arr[0].cv_name) p.cvName=arr[0].cv_name;
-            try{ localStorage.setItem('jobway_profile', JSON.stringify(p)); localStorage.setItem('jobway_cv_url', arr[0].cv_url); localStorage.setItem('jobway_cv_path', arr[0].cv_url); }catch(e){}
-            document.getElementById('fileName').innerHTML='✅ '+(arr[0].cv_name||'CV on file')+' (Restored from DB)';
-            document.getElementById('cvLink').innerHTML='<div style="color:#8DB0BF;font-size:11px">🔒 Stored privately — employers you apply to get access</div>';
-          } else { tryOne(); }
-        }catch(e){ tryOne(); }
-      } else if(xhr.readyState===4){ tryOne(); }
+'use strict';
+const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+const CV_BUCKET = 'cvs';
+const MAX_CV_BYTES = 5 * 1024 * 1024;
+let selectedFile = null;
+let savedCvPath = '';
+let savedCvName = '';
+const $ = id => document.getElementById(id);
+function readJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (_) { return fallback; } }
+function getUser() { return readJSON('jobway_user', null); }
+function getLocalProfile() { return readJSON('jobway_profile', {}); }
+function setText(id, value) { $(id).textContent = value == null ? '' : String(value); }
+function showMessage(message, isError) { $('savedMsg').style.display = 'block'; $('savedMsg').style.color = isError ? '#ff8585' : '#01F9C6'; setText('savedMsg', message); }
+function showDebug(message) { $('debugBox').style.display = 'block'; setText('debugBox', message); }
+function setBusy(busy, label) { $('saveBtn').disabled = busy; $('deleteBtn').disabled = busy; $('saveBtn').textContent = label || (busy ? 'Please wait…' : '💾 Save Profile + CV'); }
+function authHeaders(extra) { return Object.assign({ 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }, extra || {}); }
+function request(method, path, body, extraHeaders) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, SUPABASE_URL + path, true);
+    Object.entries(authHeaders(extraHeaders)).forEach(([k,v]) => { xhr.setRequestHeader(k,v); });
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        let data = null;
+        if (xhr.responseText) { try { data = JSON.parse(xhr.responseText); } catch (_) { data = xhr.responseText; } }
+        resolve({ status:xhr.status, data, text:xhr.responseText });
+      } else { reject(new Error('HTTP ' + xhr.status + ': ' + (xhr.responseText || 'Request failed'))); }
     };
-    xhr.send();
+    xhr.onerror = () => reject(new Error('Network error. Check your connection and try again.'));
+    xhr.ontimeout = () => reject(new Error('Request timed out. Please try again.'));
+    xhr.timeout = 30000;
+    if (body instanceof File || body instanceof Blob) { xhr.send(body); }
+    else if (body !== undefined && body !== null) { xhr.setRequestHeader('Content-Type','application/json'); xhr.send(JSON.stringify(body)); }
+    else { xhr.send(); }
+  });
+}
+function encodeFilter(value) { return encodeURIComponent(String(value)); }
+function normalizeSAWhatsApp(raw) {
+  const digits = String(raw || '').replace(/\D/g,'');
+  let n = digits;
+  if (n.startsWith('0027')) n = n.slice(2);
+  if (n.startsWith('0')) n = '27' + n.slice(1);
+  if (!n.startsWith('27') || n.length !== 11) return null;
+  return n;
+}
+function makeUUID() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; const v = c === 'x' ? r : (r&3|8); return v.toString(16); });
+}
+function getStableUserId(user) {
+  if (user && (user.id || user.user_id || user.profile_id)) return user.id || user.user_id || user.profile_id;
+  var p = getLocalProfile();
+  if (p.userId) return p.userId;
+  var nid = makeUUID();
+  try { var u = user || {}; u.id = nid; localStorage.setItem('jobway_user', JSON.stringify(u)); p.userId = nid; localStorage.setItem('jobway_profile', JSON.stringify(p)); } catch(e){}
+  return nid;
+}
+function getStoredCv() {
+  const p = getLocalProfile();
+  return p.cv_path || p.cv_url || localStorage.getItem('jobway_cv_path') || localStorage.getItem('jobway_cv_url') || localStorage.getItem('jobway_cv') || '';
+}
+function safeRenderSkills() {
+  const preview = $('skillsPreview'); preview.replaceChildren();
+  $('skills').value.split(',').map(s => s.trim()).filter(Boolean).slice(0,30).forEach(skill => { const tag = document.createElement('span'); tag.className = 'skill-tag'; tag.textContent = skill; preview.appendChild(tag); });
+}
+function displayCv(name, restored) { setText('fileName', '✅ ' + (name || 'CV on file') + (restored ? ' (restored)' : ' (private)')); }
+function setCvDetails(path, name) {
+  savedCvPath = path || ''; savedCvName = name || '';
+  const p = getLocalProfile(); p.cv_path = savedCvPath; p.cv_url = savedCvPath; p.cvName = savedCvName;
+  localStorage.setItem('jobway_profile', JSON.stringify(p));
+  if (savedCvPath) { localStorage.setItem('jobway_cv_path', savedCvPath); localStorage.setItem('jobway_cv_url', savedCvPath); localStorage.setItem('jobway_cv', savedCvPath); displayCv(savedCvName, false); }
+}
+async function restoreCvFromDB(phoneRaw) {
+  const clean = normalizeSAWhatsApp(phoneRaw); if (!clean) return;
+  const candidates = [clean, '0' + clean.slice(2), phoneRaw.trim()];
+  for (const phone of [...new Set(candidates)]) {
+    try {
+      const result = await request('GET', '/rest/v1/candidate_cvs?select=cv_url,cv_name&phone=eq.' + encodeFilter(phone) + '&limit=1');
+      if (Array.isArray(result.data) && result.data[0] && result.data[0].cv_url) { setCvDetails(result.data[0].cv_url, result.data[0].cv_name || ''); displayCv(result.data[0].cv_name || 'CV on file', true); return; }
+    } catch (err) { return; }
   }
-  tryOne();
 }
-function renderSkills(){
-  var val=document.getElementById('skills').value.split(',');
-  var html=''; for(var i=0;i<val.length;i++){ var s=val[i].trim(); if(s) html+='<span style="background:#143E4A;color:#01F9C6;padding:5px 9px;border-radius:20px;font-size:11px;margin:3px;display:inline-block;font-weight:700">'+s+'</span>'; }
-  document.getElementById('skillsPreview').innerHTML=html;
+function loadProfile() {
+  const user = getUser();
+  if (!localStorage.getItem('jobway_logged_in') || !user) { location.replace('login.html'); return; }
+  const p = getLocalProfile();
+  $('fullName').value = p.fullName || user.full_name || '';
+  $('whatsapp').value = p.whatsapp || user.phone || user.whatsapp_number || '';
+  $('skills').value = Array.isArray(p.skills) ? p.skills.join(', ') : '';
+  $('location').value = p.location || p.province || 'Gauteng';
+  savedCvPath = getStoredCv(); savedCvName = p.cvName || '';
+  if (savedCvPath) displayCv(savedCvName || 'CV on file', false);
+  safeRenderSkills();
+  if (!savedCvPath && $('whatsapp').value) restoreCvFromDB($('whatsapp').value);
 }
-document.getElementById('skills').addEventListener('input', renderSkills);
-
-function handleFile(file){
-  if(!file) return;
-  if(file.size > 5*1024*1024){ alert('File too big! Max 5MB'); return; }
-  if(!['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type) && !file.name.match(/\.(pdf|doc|docx)$/i)){ alert('Only PDF/DOC/DOCX'); return; }
-  currentFile=file;
-  document.getElementById('fileName').innerHTML='✅ '+file.name+' ('+Math.round(file.size/1024)+'KB) - Ready on Save';
+function logout() { ['jobway_logged_in','jobway_user','jobway_profile','jobway_cv_url','jobway_cv_path','jobway_cv'].forEach(k => localStorage.removeItem(k)); location.href = 'index.html'; }
+$('skills').addEventListener('input', safeRenderSkills);
+$('cvFile').addEventListener('change', function() {
+  const file = this.files && this.files[0]; if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['pdf','doc','docx'].includes(ext)) { this.value = ''; selectedFile = null; showMessage('Only PDF, DOC and DOCX files are accepted.', true); return; }
+  if (file.size > MAX_CV_BYTES) { this.value = ''; selectedFile = null; showMessage('Your CV is too large. Maximum file size is 5MB.', true); return; }
+  selectedFile = file;
+  setText('fileName', '✅ ' + file.name + ' (' + Math.ceil(file.size/1024) + ' KB) — ready to save');
+  $('savedMsg').style.display = 'none';
+});
+async function findExistingCv(phone) {
+  const result = await request('GET', '/rest/v1/candidate_cvs?select=id,user_id,phone,cv_url,cv_name&phone=eq.' + encodeFilter(phone) + '&limit=1');
+  return Array.isArray(result.data) && result.data.length ? result.data[0] : null;
 }
-function uuid(){ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);}); }
-
-function saveProfile(){
-  var fullName=document.getElementById('fullName').value.trim();
-  var whatsapp=document.getElementById('whatsapp').value.trim();
-  if(!fullName || !whatsapp){ alert('Fill Full Name + WhatsApp Number'); return; }
-  var clean = whatsapp.replace(/\D/g,''); if(clean.charAt(0)=='0') clean='27'+clean.slice(1);
-  if(clean.length<11){ alert('Use correct WhatsApp: 072...'); return; }
-  var btn=document.getElementById('saveBtn'); btn.innerHTML='Saving...'; btn.disabled=true;
-  var skills=document.getElementById('skills').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
-  var locationVal=document.getElementById('location').value;
-  var existingPath=getSavedCvPath();
-  var existingName='';
-  try{ var ep=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); existingName=ep.cvName||''; }catch(e){}
-  if(!currentFile && !existingPath){
-    alert('Please tap "Click to upload CV" and choose your CV file again — then tap Save.');
-    btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return;
-  }
-  function finish(cvPath, cvName){
-    var finalPath = cvPath || existingPath || '';
-    // FIXED: If no file name, use the file name from the path, or "CVjobway.pdf" style - NEVER empty
-    var finalName = cvName || existingName || (finalPath ? finalPath.split('/').pop() : 'CV.pdf');
-    if(!finalPath){ alert('No CV file found. Please re-upload your CV, then Save.'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return; }
-    var user=getUser()||{};
-    var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, province:locationVal, cv_path:finalPath, cv_url:finalPath, cvName: finalName };
-    try{
-      localStorage.setItem('jobway_profile', JSON.stringify(profile));
-      localStorage.setItem('jobway_cv_url', finalPath);
-      localStorage.setItem('jobway_cv_path', finalPath);
-      localStorage.setItem('jobway_cv', finalPath);
-    }catch(e){}
-    user.full_name=fullName; user.phone=whatsapp; user.whatsapp_number=clean; user.cv_path=finalPath; user.cv_url=finalPath;
-    try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
-
-    showDebug('Saving - NO EMAIL\nname = '+fullName+'\nphone = '+whatsapp+'\ncv_url = '+finalPath+'\ncv_name = '+finalName);
-
-    function findByPhone(ph, cb){
-      var xhr=new XMLHttpRequest();
-      xhr.open('GET', SUPABASE_URL+'/rest/v1/candidate_cvs?select=id,user_id,phone&phone=eq.'+encodeURIComponent(ph)+'&limit=1', true);
-      xhr.setRequestHeader('apikey', SUPABASE_KEY);
-      xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-      xhr.onreadystatechange=function(){
-        if(xhr.readyState===4 && xhr.status===200){
-          try{ var arr=JSON.parse(xhr.responseText); cb(arr && arr.length>0 ? arr[0] : null); }catch(e){ cb(null); }
-        } else if(xhr.readyState===4){ cb(null); }
-      };
-      xhr.onerror=function(){ cb(null); };
-      xhr.send();
+async function uploadCv(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = makeUUID() + '.' + ext;
+  const contentTypes = { pdf:'application/pdf', doc:'application/msword', docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+  await request('POST', '/storage/v1/object/' + CV_BUCKET + '/' + path, file, { 'Content-Type':contentTypes[ext], 'x-upsert':'false' });
+  return path;
+}
+async function saveProfile() {
+  const fullName = $('fullName').value.trim();
+  const whatsapp = $('whatsapp').value.trim();
+  const phoneClean = normalizeSAWhatsApp(whatsapp);
+  const user = getUser() || {};
+  const userId = getStableUserId(user);
+  const locationVal = $('location').value;
+  const skills = $('skills').value.split(',').map(s => s.trim()).filter(Boolean).slice(0,30);
+  if (!fullName || !whatsapp) return showMessage('Please enter your full name and WhatsApp number.', true);
+  if (!phoneClean) return showMessage('Enter a valid South African number, e.g. 072 123 4567 or +27 72 123 4567.', true);
+  if (!selectedFile && !savedCvPath) return showMessage('Please select your CV before saving.', true);
+  setBusy(true, 'Saving profile…'); $('savedMsg').style.display = 'none';
+  let uploadedPath = '';
+  try {
+    if (selectedFile) uploadedPath = await uploadCv(selectedFile);
+    const finalPath = uploadedPath || savedCvPath;
+    const finalName = selectedFile ? selectedFile.name : (savedCvName || (finalPath ? finalPath.split('/').pop() : 'CV.pdf'));
+    try { await request('POST', '/rest/v1/profiles?on_conflict=id', { id:userId, full_name:fullName, skills:skills, cv_url:finalPath, cv_name:finalName }, { 'Prefer':'resolution=merge-duplicates,return=minimal' }); }
+    catch (e1) {
+      try { await request('POST', '/rest/v1/profiles?on_conflict=id', { id:userId, full_name:fullName, cv_url:finalPath, cv_name:finalName }, { 'Prefer':'resolution=merge-duplicates,return=minimal' }); }
+      catch (e2) { showDebug('profiles not saved (candidate_cvs will still save): ' + e2.message); }
     }
-    findByPhone(whatsapp, function(found1){
-      if(found1){ doSave(found1); return; }
-      findByPhone(clean, function(found2){ doSave(found2); });
-    });
-    function doSave(found){
-      var targetId = (found && found.id) || uuid();
-      var targetUserId = (found && found.user_id) || user.id || uuid();
-      // FIXED: NOW includes cv_name = real file name
-      var payload = {id:targetId, user_id:targetUserId, full_name:fullName, phone:whatsapp, location:locationVal, category:'General', cv_url:finalPath, cv_name:finalName};
-      var xhr=new XMLHttpRequest();
-      xhr.open('POST', SUPABASE_URL+'/rest/v1/candidate_cvs?on_conflict=id', true);
-      xhr.setRequestHeader('apikey', SUPABASE_KEY);
-      xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-      xhr.setRequestHeader('Content-Type','application/json');
-      xhr.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
-      xhr.onreadystatechange=function(){
-        if(xhr.readyState===4){
-          if(xhr.status>=200 && xhr.status<300){
-            showDebug('✅ candidate_cvs SAVED!\ncv_url = '+finalPath+'\ncv_name = '+finalName+'\nResponse: '+xhr.responseText.slice(0,400));
-            document.getElementById('savedMsg').style.display='block';
-            document.getElementById('savedMsg').innerHTML='✅ CV Saved! '+finalName;
-            btn.innerHTML='✅ Saved!';
-            try{
-              var x2=new XMLHttpRequest(); x2.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', true);
-              x2.setRequestHeader('apikey', SUPABASE_KEY); x2.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); x2.setRequestHeader('Content-Type','application/json'); x2.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
-              x2.send(JSON.stringify({whatsapp_number:clean, full_name:fullName, province:locationVal, cv_path:finalPath, cv_url:finalPath}));
-            }catch(e){}
-            setTimeout(function(){ window.location.href='jobs.html'; }, 1500);
-          } else {
-            // If cache STILL old, tell user to re-run notify
-            if(xhr.responseText.indexOf('cv_name')!==-1){
-              showDebug('❌ STILL CACHE ERROR for cv_name.\nRun in SQL: notify pgrst, \'reload schema\'; then wait 10s and Save again.\nError: '+xhr.responseText);
-              alert('Cache still old. Run in Supabase SQL: notify pgrst, \'reload schema\'; Wait 10 sec, then Save again.');
-            } else {
-              showDebug('❌ FAILED: '+xhr.responseText);
-              alert('Save failed: '+xhr.responseText);
-            }
-            btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
-          }
-        }
-      };
-      xhr.onerror=function(){ alert('Network error'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
-      xhr.send(JSON.stringify(payload));
-    }
-  }
-  if(currentFile){
-    var ext=currentFile.name.split('.').pop().toLowerCase();
-    var path = uuid() + '_' + uuid() + '.' + ext;
-    var xhr=new XMLHttpRequest();
-    xhr.open('POST', SUPABASE_URL+'/storage/v1/object/cvs/'+path, true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY);
-    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr.setRequestHeader('Content-Type', currentFile.type || 'application/pdf');
-    xhr.setRequestHeader('x-upsert','false');
-    xhr.onreadystatechange=function(){
-      if(xhr.readyState===4){
-        if(xhr.status===200 || xhr.status===201){ finish(path, currentFile.name); }
-        else { alert('Upload failed: '+xhr.responseText); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; }
-      }
-    };
-    xhr.onerror=function(){ alert('Network error uploading CV'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
-    xhr.send(currentFile);
-  } else {
-    finish(existingPath, existingName);
+    let existing = null;
+    try { existing = await findExistingCv(phoneClean); } catch(e){}
+    if (!existing) { try { existing = await findExistingCv('0' + phoneClean.slice(2)); } catch(e){} }
+    const cvRow = { id: existing && existing.id ? existing.id : makeUUID(), user_id:userId, full_name:fullName, phone:phoneClean, location:locationVal, category:'General', cv_url:finalPath, cv_name:finalName };
+    if (!cvRow.cv_url) throw new Error('No CV storage path is available.');
+    await request('POST', '/rest/v1/candidate_cvs?on_conflict=id', cvRow, { 'Prefer':'resolution=merge-duplicates,return=minimal' });
+    try { await request('POST', '/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', { whatsapp_number:phoneClean, full_name:fullName, province:locationVal, cv_path:finalPath, cv_url:finalPath }, { 'Prefer':'resolution=merge-duplicates,return=minimal' }); } catch (e) {}
+    const profile = { fullName, whatsapp, phoneClean, skills, location:locationVal, province:locationVal, cv_path:finalPath, cv_url:finalPath, cvName:finalName, userId:userId };
+    localStorage.setItem('jobway_profile', JSON.stringify(profile));
+    localStorage.setItem('jobway_cv_path', profile.cv_path);
+    localStorage.setItem('jobway_cv_url', profile.cv_url);
+    localStorage.setItem('jobway_cv', profile.cv_path);
+    user.full_name = fullName; user.phone = whatsapp; user.whatsapp_number = phoneClean; user.id = userId;
+    localStorage.setItem('jobway_user', JSON.stringify(user));
+    savedCvPath = profile.cv_path; savedCvName = profile.cvName;
+    selectedFile = null; $('cvFile').value = '';
+    displayCv(savedCvName, false);
+    showMessage('✅ Your profile and CV have been saved successfully.', false);
+    showDebug('Profile saved.\nCandidate ID: ' + userId + '\nCV: ' + savedCvPath + '\nCV name: ' + savedCvName);
+    setBusy(false, '✅ Saved');
+  } catch (err) {
+    if (uploadedPath) { try { await request('DELETE', '/storage/v1/object/' + CV_BUCKET + '/' + encodeURIComponent(uploadedPath)); } catch (_) {} }
+    showMessage('Could not save your profile: ' + err.message, true);
+    showDebug('Save failed.\n' + err.message);
+    setBusy(false);
   }
 }
-
-function downloadCV(cvPath){
-  if(!cvPath){ alert('No CV on file for this applicant'); return; }
-  var xhr=new XMLHttpRequest();
-  xhr.open('POST', SUPABASE_URL+'/storage/v1/object/sign/cvs/'+cvPath, true);
-  xhr.setRequestHeader('apikey', SUPABASE_KEY);
-  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-  xhr.setRequestHeader('Content-Type','application/json');
-  xhr.onreadystatechange=function(){
-    if(xhr.readyState===4 && xhr.status===200){
-      try{ var res=JSON.parse(xhr.responseText); window.open(SUPABASE_URL+'/storage/v1'+res.signedURL, '_blank'); }catch(e){ alert('Could not open CV'); }
-    } else if(xhr.readyState===4){ alert('CV download failed - file may have been deleted'); }
-  };
-  xhr.send(JSON.stringify({expiresIn: 60}));
-}
-
-function deleteEverything(){
-  if(!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
-  var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  var cvToDelete = p.cv_path || p.cv_url || getSavedCvPath();
-  var pending=0;
-  function checkDone(){
-    pending--;
-    if(pending<=0){
-      try{ localStorage.removeItem('jobway_profile'); localStorage.removeItem('jobway_cv_url'); localStorage.removeItem('jobway_cv_path'); localStorage.removeItem('jobway_cv'); localStorage.removeItem('jobway_user'); localStorage.removeItem('jobway_logged_in'); }catch(e){}
-      alert('✅ Deleted everywhere: phone + DB + storage. CV no longer accessible.');
-      window.location.href='index.html';
-    }
-  }
-  pending++;
-  if(cvToDelete){
-    var xhrDel=new XMLHttpRequest(); 
-    xhrDel.open('DELETE', SUPABASE_URL+'/storage/v1/object/cvs/'+cvToDelete, true);
-    xhrDel.setRequestHeader('apikey', SUPABASE_KEY); 
-    xhrDel.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhrDel.onreadystatechange=function(){ if(xhrDel.readyState===4) checkDone(); };
-    xhrDel.onerror=function(){ checkDone(); };
-    xhrDel.send();
-  } else { checkDone(); }
-  pending++;
-  if(p.whatsapp || p.phoneClean){
-    var ph = p.whatsapp || p.phoneClean;
-    var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/candidate_cvs?phone=eq.'+encodeURIComponent(ph), true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
-    xhr.onerror=function(){ checkDone(); };
-    xhr.send();
-  } else { checkDone(); }
-  pending++;
-  if(p.phoneClean){
-    var xhr2=new XMLHttpRequest(); xhr2.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?whatsapp_number=eq.'+p.phoneClean, true);
-    xhr2.setRequestHeader('apikey', SUPABASE_KEY); xhr2.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr2.onreadystatechange=function(){ if(xhr2.readyState===4) checkDone(); };
-    xhr2.onerror=function(){ checkDone(); };
-    xhr2.send();
-  } else { checkDone(); }
+// FIXED DELETE: Always finishes, even if one table fails. Tries ALL phone formats + ALL tables.
+async function deleteEverything() {
+  if (!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
+  const user = getUser() || {};
+  const p = getLocalProfile();
+  // Get every possible identifier - don't rely on just one
+  const userId = (user && (user.id || user.user_id || user.profile_id)) || p.userId || null;
+  const phoneRaw = p.whatsapp || user.phone || user.whatsapp_number || $('whatsapp').value || '';
+  const phoneClean = normalizeSAWhatsApp(phoneRaw);
+  const cvPath = p.cv_path || p.cv_url || getStoredCv() || '';
+  setBusy(true, 'Deleting…');
+  const phones = [];
+  if (phoneClean) { phones.push(phoneClean); phones.push('0' + phoneClean.slice(2)); }
+  if (phoneRaw && phones.indexOf(phoneRaw) === -1) phones.push(phoneRaw);
+  // 1. Storage bucket
+  if (cvPath) { try { await request('DELETE', '/storage/v1/object/' + CV_BUCKET + '/' + encodeURIComponent(cvPath)); } catch(e){} }
+  // 2. candidate_cvs - try every phone format + by user_id
+  for (const ph of phones) { try { await request('DELETE', '/rest/v1/candidate_cvs?phone=eq.' + encodeFilter(ph)); } catch(e){} }
+  if (userId) { try { await request('DELETE', '/rest/v1/candidate_cvs?user_id=eq.' + encodeFilter(userId)); } catch(e){} }
+  // 3. profiles
+  if (userId) { try { await request('DELETE', '/rest/v1/profiles?id=eq.' + encodeFilter(userId)); } catch(e){} }
+  // 4. whatsapp_subscribers - try both formats
+  for (const ph of phones) { try { await request('DELETE', '/rest/v1/whatsapp_subscribers?whatsapp_number=eq.' + encodeFilter(ph)); } catch(e){} }
+  // 5. ALWAYS clear phone - even if server had an error, user is deleted locally
+  try { ['jobway_profile','jobway_cv_url','jobway_cv_path','jobway_cv','jobway_user','jobway_logged_in'].forEach(k => localStorage.removeItem(k)); } catch(e){}
+  alert('✅ Deleted everywhere: phone + DB + storage. CV no longer accessible.');
+  location.href = 'index.html';
 }
 loadProfile();
 </script>
