@@ -85,67 +85,70 @@ function fmt(d){ try{ if(!d) return ''; return new Date(d).toLocaleDateString('e
 function formatPhone(p){ if(!p) return ''; let c=p.toString().replace(/[^0-9]/g,''); if(c.startsWith('0')) c='27'+c.slice(1); return c; }
 function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; } }
 
-// SECURE: Private bucket — no getPublicUrl ever
-function getCvPath(a){
-  let raw = a.cv_path || a.cv_url || a.profiles?.cv_path || a.profiles?.cv_url || '';
+// FIXED: Clean any CV path to just the storage file name
+function cleanCvPath(raw){
+  if(!raw) return null;
+  raw = String(raw).trim();
   if(!raw) return null;
   if(raw.indexOf('http') !== -1){
-    // Old record — extract file name only
-    let m = raw.split('/cvs/'); 
+    let m = raw.split('/cvs/');
     if(m[1]) return decodeURIComponent(m[1].split('?')[0]);
     return raw.split('/').pop().split('?')[0];
   }
-  return raw.replace(/^cvs\//,'').trim();
+  return raw.replace(/^cvs\//,'').replace(/^\//,'').trim();
+}
+function getCvPath(a){
+  return cleanCvPath(a.cv_path || a.cv_url || a._cv_path || a.profiles?.cv_path || a.profiles?.cv_url || '');
+}
+function getCvName(a){
+  // Prefer real file name from candidate_cvs, not the hash
+  if(a._cv_name) return a._cv_name;
+  if(a.profiles?.cv_name) return a.profiles.cv_name;
+  if(a.cv_name) return a.cv_name;
+  let p = getCvPath(a);
+  if(!p) return 'CV';
+  return decodeURIComponent(p.split('/').pop());
 }
 
+// FIXED: Download via Storage Signed URL directly - NO Edge Function needed
 async function openSecureCV(cvPath, appId, btn){
-  if(!cvPath){ alert('No CV for this candidate'); return; }
-  let orig = btn.innerHTML;
-  btn.innerHTML = '⏳ Creating 60min secure link...';
-  btn.disabled = true;
+  let clean = cleanCvPath(cvPath);
+  if(!clean){ alert('No CV for this candidate'); return; }
+  let orig = btn ? btn.innerHTML : '';
+  if(btn){ btn.innerHTML = '⏳ Creating 60min secure link...'; btn.disabled = true; }
   try{
-    const res = await fetch(SUPABASE_URL + '/functions/v1/get-cv-link', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ cv_path: cvPath, application_id: appId, mode: 'employer' })
-    });
-    const data = await res.json();
-    if(data.signedUrl){
-      // Log access for POPIA audit trail
-      try{ await supabaseClient.from('cv_access_log').insert([{ application_id: appId, cv_path: cvPath, accessed_by: getCurrentUser()?.id }]); }catch(e){}
-      window.open(data.signedUrl, '_blank');
-      btn.innerHTML = '✅ Opened — expires in 60min';
-    } else {
-      btn.innerHTML = '❌ Failed — ' + (data.error || 'deploy function');
-      alert('Failed to create secure link. Did you deploy get-cv-link Edge Function? Error: ' + (data.error || 'unknown'));
-    }
+    const { data, error } = await supabaseClient.storage.from('cvs').createSignedUrl(clean, 3600);
+    if(error) throw error;
+    if(!data || !data.signedUrl) throw new Error('No signed URL returned');
+    // POPIA audit log - best effort, don't block download if table missing
+    try{ await supabaseClient.from('cv_access_log').insert([{ application_id: appId, cv_path: clean, accessed_by: getCurrentUser()?.id || null }]); }catch(e){}
+    window.open(data.signedUrl, '_blank');
+    if(btn) btn.innerHTML = '✅ Opened — expires in 60min';
   }catch(e){
-    btn.innerHTML = '❌ Network error';
-    alert('Error: ' + e.message + ' — Deploy Edge Function get-cv-link first.');
+    console.log('CV signed URL failed', e);
+    // Fallback: try Edge Function if it exists (old setup)
+    try{
+      const res = await fetch(SUPABASE_URL + '/functions/v1/get-cv-link', { method:'POST', headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ cv_path: clean, application_id: appId, mode:'employer' }) });
+      const data2 = await res.json();
+      if(data2.signedUrl){ window.open(data2.signedUrl, '_blank'); if(btn) btn.innerHTML='✅ Opened — expires in 60min'; return; }
+    }catch(e2){}
+    if(btn) btn.innerHTML = '❌ Failed — check Storage policy';
+    alert('Could not create CV link: ' + e.message + '\n\nFix: In Supabase > Storage > cvs bucket > Policies, allow SELECT for anon/authenticated, OR make bucket private but allow createSignedUrl. If you still get "not found", the file was deleted from Storage.');
   }
-  setTimeout(()=>{ btn.innerHTML = orig; btn.disabled=false; }, 4000);
+  if(btn) setTimeout(()=>{ btn.innerHTML = orig; btn.disabled=false; }, 4000);
 }
-
 function progressHTML(status){
   let steps=['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
   let idx=steps.indexOf(status); if(idx==-1) idx=0;
   if(status==='Not Selected') return `<div class="progress"><span class="p-badge" style="background:#3a1a1a;color:#ff9a9a">❌ Not Selected</span></div>`;
-  return `<div class="progress">${steps.map((s,i)=>{
-    let cls = i<idx?'p-done':i==idx?'p-active':'p-pending';
-    let icon = i<idx?'✅':i==idx?'👁️':'';
-    return `<span class="p-badge ${cls}">${icon} ${s}</span>`;
-  }).join('')}</div>`;
+  return `<div class="progress">${steps.map((s,i)=>{ let cls = i<idx?'p-done':i==idx?'p-active':'p-pending'; let icon = i<idx?'✅':i==idx?'👁️':''; return `<span class="p-badge ${cls}">${icon} ${s}</span>`; }).join('')}</div>`;
 }
 async function sendWhatsApp(app, newStatus){
-  let phone=formatPhone(app.profiles?.phone || app.phone || '');
+  let phone=formatPhone(app.profiles?.phone || app.phone || app._phone || '');
   if(!phone){ alert(`Status saved as ${newStatus} but no WhatsApp number for candidate.`); return; }
   let jobTitle = app.jobs?.title || 'Job';
   let comp = app.jobs?.company || 'JobWay';
-  let name = app.profiles?.full_name || 'Applicant';
+  let name = app.profiles?.full_name || app._full_name || 'Applicant';
   let msg='';
   if(newStatus==='Shortlisted'){ msg=`Hi ${name} 👋 Great news! You have been SHORTLISTED for ${jobTitle} at ${comp} on JobWay. We will contact you for next steps. Track: https://jobway.co.za/track-applications.html`; }
   else if(newStatus==='Interview Scheduled'){ msg=`Hi ${name} 📅 Interview Scheduled for ${jobTitle} at ${comp} on JobWay.\n\n📅 Date: ${app.interview_date||''}\n🕐 Time: ${app.interview_time||''}\n📍 Location: ${app.interview_location||''}\n📝 Note: ${app.interview_note||'Bring ID & CV'}\n\nPlease reply YES to confirm.`; }
@@ -156,6 +159,49 @@ async function sendWhatsApp(app, newStatus){
   try{ await supabaseClient.from('notifications').insert([{ user_id: app.applicant_id, title: `Status: ${newStatus} - ${jobTitle}`, message: msg }]); }catch(e){}
   window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`, '_blank');
 }
+
+// FIXED: Enrich each application with CV from candidate_cvs (the real source)
+async function enrichAppsWithCv(apps){
+  for(let a of apps){
+    // Already has CV on application itself?
+    if(a.cv_url || a.cv_path) { a._cv_path = cleanCvPath(a.cv_url || a.cv_path); a._cv_name = a.cv_name || null; continue; }
+    // Try candidate_cvs by applicant_id (user_id)
+    let found = null;
+    if(a.applicant_id){
+      let r = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone').eq('user_id', a.applicant_id).limit(1).maybeSingle();
+      if(r.data) found = r.data;
+    }
+    // Try candidate_cvs by phone - applications may store phone in different formats
+    if(!found){
+      let phones = [];
+      if(a.phone) phones.push(a.phone, formatPhone(a.phone));
+      if(a.profiles?.phone) phones.push(a.profiles.phone, formatPhone(a.profiles.phone));
+      phones = [...new Set(phones.filter(Boolean))];
+      for(let ph of phones){
+        let r = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone').eq('phone', ph).limit(1).maybeSingle();
+        if(r.data){ found = r.data; break; }
+        // Try 0-format if we have 27-format and vice versa
+        if(ph.startsWith('27')){
+          let zero = '0' + ph.slice(2);
+          let r2 = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone').eq('phone', zero).limit(1).maybeSingle();
+          if(r2.data){ found = r2.data; break; }
+        }
+      }
+    }
+    if(found){
+      a._cv_path = cleanCvPath(found.cv_url);
+      a._cv_name = found.cv_name || null;
+      a._full_name = found.full_name || a.profiles?.full_name;
+      a._phone = found.phone || a.profiles?.phone || a.phone;
+    } else {
+      // Fallback to profiles CV
+      a._cv_path = cleanCvPath(a.profiles?.cv_url || a.profiles?.cv_path || '');
+      a._cv_name = a.profiles?.cv_name || null;
+    }
+  }
+  return apps;
+}
+
 async function load(){
   let user = getCurrentUser();
   if(!user || !user.id){ document.getElementById('list').innerHTML=`<div class="card">Please login as employer</div>`; return; }
@@ -168,12 +214,24 @@ async function load(){
   let myJobIds = currentJobs.map(j=>j.id);
   let apps = [];
   if(myJobIds.length>0){
+    // Don't rely on profiles FK join - fetch applications + jobs, then enrich separately
     let { data, error } = await supabaseClient.from('applications')
-      .select('*, jobs(title, company, location, salary), profiles:applicant_id(full_name, email, phone, cv_url, cv_path)')
+      .select('*, jobs(title, company, location, salary)')
       .in('job_id', myJobIds)
       .order('created_at', {ascending:false});
     if(error){ console.log('apps error', error); apps = []; }
     else apps = data || [];
+    // Fetch profiles for names/phones in one go (no FK join needed)
+    if(apps.length){
+      let applicantIds = [...new Set(apps.map(a=>a.applicant_id).filter(Boolean))];
+      if(applicantIds.length){
+        let { data: profs } = await supabaseClient.from('profiles').select('id,full_name,email,phone,cv_url,cv_name').in('id', applicantIds);
+        let map = {};
+        (profs||[]).forEach(p=> map[p.id]=p);
+        apps.forEach(a=>{ a.profiles = map[a.applicant_id] || null; });
+      }
+      apps = await enrichAppsWithCv(apps);
+    }
   }
   currentApps = apps;
   document.getElementById('appCount').innerText=currentApps.length;
@@ -183,13 +241,13 @@ async function load(){
   else{
     document.getElementById('empty').style.display='none';
     document.getElementById('list').innerHTML=currentApps.map((a)=>{
-      let name = a.profiles?.full_name || 'Applicant';
+      let name = a.profiles?.full_name || a._full_name || 'Applicant';
       let email = a.profiles?.email || '';
-      let phone = a.profiles?.phone || '';
+      let phone = a.profiles?.phone || a._phone || a.phone || '';
       let title = a.jobs?.title || 'Job';
       let comp = a.jobs?.company || '';
       let cvPath = getCvPath(a);
-      let cvName = cvPath ? decodeURIComponent(cvPath.split('/').pop().slice(0,25)) : 'CV';
+      let cvName = getCvName(a);
       let cvHTML = cvPath ? `<button class="btn-cv" onclick="openSecureCV('${cvPath.replace(/'/g,"\\'")}','${a.id}', this)">🔒 View CV — ${cvName} (60min link)</button>` : `<span style="color:#FF8A9D;font-size:12px">No CV — Ask via WhatsApp</span>`;
       let interviewBox=a.interview_date?`<div class="interview-box">📅 <b>Interview:</b> ${a.interview_date} at ${a.interview_time} • ${a.interview_location}<br><span style="font-size:11px;color:#8DB0BF">${a.interview_note||''}</span></div>`:'';
       let badgeClass = a.status=='Shortlisted'?'b-green':a.status=='Hired'?'b-orange':a.status=='Not Selected'?'b-red':a.status=='Interview Scheduled'?'b-green':'b-grey';
@@ -230,7 +288,7 @@ function openInterview(id){
   currentInterviewId=id;
   let app=currentApps.find(x=>x.id==id);
   let title = app.jobs?.title || '';
-  document.getElementById('interviewFor').innerText=`For: ${app.profiles?.full_name || 'Applicant'} — ${title}`;
+  document.getElementById('interviewFor').innerText=`For: ${app.profiles?.full_name || app._full_name || 'Applicant'} — ${title}`;
   let tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+1);
   document.getElementById('intDate').value=tomorrow.toISOString().split('T')[0];
   document.getElementById('interviewModal').classList.add('open');
