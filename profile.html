@@ -133,13 +133,12 @@ function saveProfile(){
     var user=getUser()||{}; user.full_name=fullName; user.phone=whatsapp; try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
 
     var xhr=new XMLHttpRequest();
-    xhr.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers', true);
+    // FIXED: UPSERT - if whatsapp_number exists, UPDATE it instead of duplicate error
+    xhr.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY);
     xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     xhr.setRequestHeader('Content-Type','application/json');
-    // FIXED: Only send columns that EXIST in your table: whatsapp_number, full_name, province, cv_path, cv_url
-    // Do NOT send phone, location, skills - they do not exist in DB
-    xhr.setRequestHeader('Prefer','return=representation');
+    xhr.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
     xhr.onreadystatechange=function(){
       if(xhr.readyState===4){
         if(xhr.status>=200 && xhr.status<300){
@@ -154,6 +153,7 @@ function saveProfile(){
       }
     };
     xhr.onerror=function(){ alert('Network error saving profile'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
+    // Only send columns that EXIST: whatsapp_number, full_name, province, cv_path, cv_url
     xhr.send(JSON.stringify({whatsapp_number:clean, full_name:fullName, province:locationVal, cv_path:finalPath||null, cv_url:null}));
   }
 
@@ -184,7 +184,8 @@ function saveProfile(){
   }
 }
 
-// EMPLOYER DOWNLOAD - use this on employer / admin pages
+// EMPLOYER DOWNLOAD - KEPT: employers who received the application can download the CV
+// This creates a private signed link (expires in 60s) - not public, not Google searchable
 function downloadCV(cvPath){
   if(!cvPath){ alert('No CV on file for this applicant'); return; }
   var xhr=new XMLHttpRequest();
@@ -227,7 +228,6 @@ function deleteEverything(){
     xhrDel.send();
   } else { checkDone(); }
   if(p.phoneClean){
-    // FIXED: Delete by whatsapp_number, not phone - phone column does not exist
     var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?whatsapp_number=eq.'+p.phoneClean, true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
