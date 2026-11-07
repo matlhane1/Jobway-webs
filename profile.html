@@ -63,7 +63,7 @@ body{font-family:Arial,sans-serif;background:#0F2230;color:#fff}
 <div id="cvLink" style="text-align:center;margin-top:10px"></div>
 
 <button class="btn btn-green" id="saveBtn" onclick="saveProfile()">💾 Save Profile + CV</button>
-<div id="savedMsg" style="text-align:center;color:#01F9C6;font-size:12px;margin-top:10px;display:none">✅ Saved! Redirecting to Jobs...</div>
+<div id="savedMsg" style="text-align:center;color:#01F9C6;font-size:13px;margin-top:10px;display:none;font-weight:800"></div>
 
 <hr style="margin:16px 0;border:0;border-top:1px solid #25475A">
 <button class="btn btn-red" onclick="deleteEverything()">🗑️ Delete My Profile + CV (POPIA)</button>
@@ -122,22 +122,42 @@ function saveProfile(){
   var skills=document.getElementById('skills').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
   var locationVal=document.getElementById('location').value;
 
+  var existingPath='', existingName='';
+  try{ var ep=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); existingPath=ep.cv_path||''; existingName=ep.cvName||''; }catch(e){}
+
   function finish(cvPath, cvName){
-    var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, cv_path:cvPath||'', cvName: cvName || '' };
+    var finalPath = cvPath || existingPath || '';
+    var finalName = cvName || existingName || '';
+    var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, cv_path:finalPath, cvName: finalName };
     try{ localStorage.setItem('jobway_profile', JSON.stringify(profile)); }catch(e){}
     var user=getUser()||{}; user.full_name=fullName; user.phone=whatsapp; try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
-    // Save PRIVATE path only, not public URL
-    var xhr=new XMLHttpRequest(); xhr.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers', true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.setRequestHeader('Content-Type','application/json'); xhr.setRequestHeader('Prefer','resolution=merge-duplicates');
-    xhr.send(JSON.stringify({phone:clean, whatsapp_number:clean, full_name:fullName, location:locationVal, cv_path:cvPath||null, cv_url:null, skills:skills}));
 
-    document.getElementById('savedMsg').style.display='block'; btn.innerHTML='✅ Saved!';
-    setTimeout(function(){ window.location.href='jobs.html'; }, 800);
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers', true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.setRequestHeader('Prefer','resolution=merge-duplicates');
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState===4){
+        if(xhr.status>=200 && xhr.status<300){
+          document.getElementById('savedMsg').style.display='block';
+          document.getElementById('savedMsg').innerHTML='✅ CV Saved! Now you can apply with 1-click everywhere.';
+          btn.innerHTML='✅ Saved!';
+          setTimeout(function(){ window.location.href='jobs.html'; }, 1200);
+        } else {
+          alert('Saved on phone but DB failed: '+xhr.responseText+' - please try again');
+          btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
+        }
+      }
+    };
+    xhr.onerror=function(){ alert('Network error saving profile'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
+    xhr.send(JSON.stringify({phone:clean, whatsapp_number:clean, full_name:fullName, location:locationVal, cv_path:finalPath||null, cv_url:null, skills:skills}));
   }
 
   if(currentFile){
     var ext=currentFile.name.split('.').pop().toLowerCase();
-    var path = uuid() + '_' + uuid() + '.' + ext; // 72 chars, not guessable
+    var path = uuid() + '_' + uuid() + '.' + ext;
     var xhr=new XMLHttpRequest();
     xhr.open('POST', SUPABASE_URL+'/storage/v1/object/cvs/'+path, true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY);
@@ -148,40 +168,69 @@ function saveProfile(){
       if(xhr.readyState===4){
         if(xhr.status===200 || xhr.status===201){
           finish(path, currentFile.name);
-        } else { alert('Upload failed: '+xhr.responseText+' — profile saved without new CV'); finish('', ''); }
+        } else {
+          alert('Upload failed: '+xhr.responseText+' — Keeping your old CV. Check bucket policies in Supabase.');
+          btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
+        }
       }
     };
     xhr.onerror=function(){ alert('Network error uploading CV'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
     xhr.send(currentFile);
   } else {
-    var existingPath='', existingName=''; try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); existingPath=p.cv_path||''; existingName=p.cvName||''; }catch(e){}
     if(!existingPath){ alert('Please upload CV - employers need it'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; return; }
     finish(existingPath, existingName);
   }
 }
 
+// EMPLOYER DOWNLOAD - use this on employer / admin pages
+function downloadCV(cvPath){
+  if(!cvPath){ alert('No CV on file for this applicant'); return; }
+  var xhr=new XMLHttpRequest();
+  xhr.open('POST', SUPABASE_URL+'/storage/v1/object/sign/cvs/'+cvPath, true);
+  xhr.setRequestHeader('apikey', SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState===4 && xhr.status===200){
+      try{
+        var res=JSON.parse(xhr.responseText);
+        window.open(SUPABASE_URL+'/storage/v1'+res.signedURL, '_blank');
+      }catch(e){ alert('Could not open CV'); }
+    } else if(xhr.readyState===4){
+      alert('CV download failed - file may have been deleted');
+    }
+  };
+  xhr.send(JSON.stringify({expiresIn: 60}));
+}
+
 function deleteEverything(){
   if(!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
   var p={}; try{ p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); }catch(e){}
-  
-  // 1. Delete from storage bucket if exists
+  var doneCount=0;
+  function checkDone(){
+    doneCount++;
+    if(doneCount>=2){
+      try{ localStorage.removeItem('jobway_profile'); localStorage.removeItem('jobway_cv_url'); localStorage.removeItem('jobway_user'); localStorage.removeItem('jobway_logged_in'); }catch(e){}
+      alert('✅ Deleted everywhere: phone + DB + storage. CV no longer accessible.');
+      window.location.href='index.html';
+    }
+  }
   if(p.cv_path){
     var xhrDel=new XMLHttpRequest(); 
     xhrDel.open('DELETE', SUPABASE_URL+'/storage/v1/object/cvs/'+p.cv_path, true);
     xhrDel.setRequestHeader('apikey', SUPABASE_KEY); 
-    xhrDel.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); 
+    xhrDel.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhrDel.onreadystatechange=function(){ if(xhrDel.readyState===4) checkDone(); };
+    xhrDel.onerror=function(){ checkDone(); };
     xhrDel.send();
-  }
-  // 2. Delete from DB
+  } else { checkDone(); }
   if(p.phoneClean){
     var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?phone=eq.'+p.phoneClean, true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.send();
-  }
-  // 3. Delete local
-  try{ localStorage.removeItem('jobway_profile'); localStorage.removeItem('jobway_cv_url'); localStorage.removeItem('jobway_user'); localStorage.removeItem('jobway_logged_in'); }catch(e){}
-  
-  alert('✅ Deleted everywhere: phone + DB + storage. CV no longer accessible.');
-  window.location.href='index.html';
+    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
+    xhr.onerror=function(){ checkDone(); };
+    xhr.send();
+  } else { checkDone(); }
 }
 loadProfile();
 </script>
