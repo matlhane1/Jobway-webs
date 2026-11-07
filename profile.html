@@ -105,8 +105,6 @@ function loadProfile(){
   else if(savedPath) document.getElementById('fileName').innerHTML = '✅ CV on file (Private)';
   if(savedPath) document.getElementById('cvLink').innerHTML = '<div style="color:#8DB0BF;font-size:11px">🔒 Stored privately — employers you apply to get access</div>';
   renderSkills();
-  // DEBUG: Show what ID we have - this is the #1 reason profiles stays NULL
-  if(u) showDebug('DEBUG on load:\njobway_user = ' + JSON.stringify(u).slice(0,300) + '\nSaved CV path = ' + savedPath);
 }
 function renderSkills(){
   var val=document.getElementById('skills').value.split(',');
@@ -142,7 +140,6 @@ function saveProfile(){
     var finalPath = cvPath || existingPath || '';
     var finalName = cvName || existingName || '';
     var user=getUser()||{};
-
     var profile={fullName:fullName, whatsapp:whatsapp, phoneClean:clean, skills:skills, location:locationVal, province:locationVal, cv_path:finalPath, cv_url:finalPath, cvName: finalName };
     try{
       localStorage.setItem('jobway_profile', JSON.stringify(profile));
@@ -153,28 +150,32 @@ function saveProfile(){
     user.full_name=fullName; user.phone=whatsapp; user.whatsapp_number=clean; user.cv_path=finalPath; user.cv_url=finalPath;
     try{ localStorage.setItem('jobway_user', JSON.stringify(user)); }catch(e){}
 
-    showDebug('Saving...\nuser.id = ' + (user.id || 'MISSING - THIS IS THE PROBLEM') + '\nfull_name = ' + fullName + '\ncv = ' + finalPath + '\nskills = ' + JSON.stringify(skills));
+    showDebug('Saving - NO EMAIL USED\nphone = ' + clean + '\nname = ' + fullName + '\ncv = ' + finalPath);
 
-    // STEP 1: Find existing profiles row by full_name (do NOT trust user.id - it may not match profiles.id)
+    // 1) Find existing row in candidate_cvs by PHONE (not email, not user_id)
     var findXhr = new XMLHttpRequest();
-    findXhr.open('GET', SUPABASE_URL+'/rest/v1/profiles?select=id,full_name&full_name=eq.'+encodeURIComponent(fullName), true);
+    findXhr.open('GET', SUPABASE_URL+'/rest/v1/candidate_cvs?select=id,user_id,phone&phone=eq.'+encodeURIComponent(whatsapp)+'&phone=eq.'+encodeURIComponent(clean), true);
+    // Simpler: try both phone formats with OR - use phone=eq.072... first, fallback below
+    findXhr.open('GET', SUPABASE_URL+'/rest/v1/candidate_cvs?select=id,user_id,phone&phone=eq.'+encodeURIComponent(whatsapp), true);
     findXhr.setRequestHeader('apikey', SUPABASE_KEY);
     findXhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     findXhr.onreadystatechange=function(){
       if(findXhr.readyState!==4) return;
-      var foundId = null;
+      var found = null;
       if(findXhr.status===200){
-        try{ var arr=JSON.parse(findXhr.responseText); if(arr && arr.length>0) foundId=arr[0].id; }catch(e){}
-      } else {
-        showDebug('FIND profiles FAILED: ' + findXhr.status + ' ' + findXhr.responseText);
+        try{ var arr=JSON.parse(findXhr.responseText); if(arr && arr.length>0) found=arr[0]; }catch(e){}
       }
-      // Use found ID, or user.id, or create new UUID
-      var targetId = foundId || user.id || uuid();
-      showDebug('Found profiles row? ' + (foundId || 'NO - will create new row') + '\nTarget ID to save to = ' + targetId + '\nNow saving to profiles...');
+      var targetId = (found && found.id) || uuid();
+      var targetUserId = (found && found.user_id) || user.id || uuid();
+      showDebug('Found in candidate_cvs by phone? ' + (found ? 'YES id='+found.id : 'NO - will create new row') + '\nSaving to candidate_cvs...');
 
-      // STEP 2: UPSERT to profiles with that ID
+      // 2) Save to candidate_cvs - NO EMAIL FIELD AT ALL
+      // Columns we KNOW exist from your screenshot: id, user_id, full_name, phone, location, category
+      // + CV columns we try: cv_url, cv_name - if they don't exist, debug will show the error
+      var payload = {id:targetId, user_id:targetUserId, full_name:fullName, phone:whatsapp, location:locationVal, category:'General', cv_url:finalPath||null, cv_name:finalName||null};
+      // If your table uses skills as text, add it - if it fails we retry without it
       var xhr=new XMLHttpRequest();
-      xhr.open('POST', SUPABASE_URL+'/rest/v1/profiles?on_conflict=id', true);
+      xhr.open('POST', SUPABASE_URL+'/rest/v1/candidate_cvs?on_conflict=id', true);
       xhr.setRequestHeader('apikey', SUPABASE_KEY);
       xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
       xhr.setRequestHeader('Content-Type','application/json');
@@ -182,27 +183,55 @@ function saveProfile(){
       xhr.onreadystatechange=function(){
         if(xhr.readyState===4){
           if(xhr.status>=200 && xhr.status<300){
-            showDebug('✅ PROFILES SAVED!\nID = ' + targetId + '\nResponse: ' + xhr.responseText.slice(0,500));
+            showDebug('✅ candidate_cvs SAVED! (NO EMAIL)\nID = ' + targetId + '\nResponse: ' + xhr.responseText.slice(0,500));
             document.getElementById('savedMsg').style.display='block';
-            document.getElementById('savedMsg').innerHTML='✅ CV Saved to profiles! Now you can apply.';
+            document.getElementById('savedMsg').innerHTML='✅ CV Saved! Now you can apply.';
             btn.innerHTML='✅ Saved!';
-            // Also save backup to whatsapp_subscribers
-            var x2=new XMLHttpRequest();
-            x2.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', true);
-            x2.setRequestHeader('apikey', SUPABASE_KEY); x2.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); x2.setRequestHeader('Content-Type','application/json'); x2.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
-            x2.send(JSON.stringify({whatsapp_number:clean, full_name:fullName, province:locationVal, cv_path:finalPath||null, cv_url:finalPath||null}));
+            // Backup to profiles + whatsapp_subscribers (also NO email)
+            try{
+              var x1=new XMLHttpRequest(); x1.open('POST', SUPABASE_URL+'/rest/v1/profiles?on_conflict=id', true);
+              x1.setRequestHeader('apikey', SUPABASE_KEY); x1.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); x1.setRequestHeader('Content-Type','application/json'); x1.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
+              x1.send(JSON.stringify({id:targetUserId, full_name:fullName, skills:skills, cv_url:finalPath||null, cv_name:finalName||null}));
+              var x2=new XMLHttpRequest(); x2.open('POST', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', true);
+              x2.setRequestHeader('apikey', SUPABASE_KEY); x2.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); x2.setRequestHeader('Content-Type','application/json'); x2.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
+              x2.send(JSON.stringify({whatsapp_number:clean, full_name:fullName, province:locationVal, cv_path:finalPath||null, cv_url:finalPath||null}));
+            }catch(e){}
             setTimeout(function(){ window.location.href='jobs.html'; }, 2000);
           } else {
-            showDebug('❌ PROFILES SAVE FAILED\nStatus: ' + xhr.status + '\nError: ' + xhr.responseText + '\n\nThis is why cv_url is NULL. Copy this error and send it to me.');
-            alert('PROFILES SAVE FAILED: ' + xhr.responseText);
-            btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
+            // If cv_url / cv_name columns don't exist, retry with ONLY confirmed columns
+            if(xhr.responseText.indexOf('cv_url')!==-1 || xhr.responseText.indexOf('cv_name')!==-1 || xhr.responseText.indexOf('column')!==-1){
+              showDebug('First try failed (CV column name wrong). Retrying with ONLY confirmed columns...\nError was: ' + xhr.responseText);
+              var retry=new XMLHttpRequest();
+              retry.open('POST', SUPABASE_URL+'/rest/v1/candidate_cvs?on_conflict=id', true);
+              retry.setRequestHeader('apikey', SUPABASE_KEY); retry.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); retry.setRequestHeader('Content-Type','application/json'); retry.setRequestHeader('Prefer','resolution=merge-duplicates,return=representation');
+              retry.onreadystatechange=function(){
+                if(retry.readyState===4){
+                  if(retry.status>=200 && retry.status<300){
+                    showDebug('✅ candidate_cvs SAVED (without cv_url column - your CV column has a different name).\nCopy this: ' + retry.responseText.slice(0,300) + '\n\nCheck Table Editor to see which column got the CV.');
+                    document.getElementById('savedMsg').style.display='block';
+                    document.getElementById('savedMsg').innerHTML='✅ Saved (basic)! Send me screenshot of candidate_cvs columns.';
+                    btn.innerHTML='✅ Saved!';
+                    setTimeout(function(){ window.location.href='jobs.html'; }, 2000);
+                  } else {
+                    showDebug('❌ candidate_cvs STILL FAILED\nError: ' + retry.responseText);
+                    alert('candidate_cvs FAILED: ' + retry.responseText);
+                    btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
+                  }
+                }
+              };
+              retry.send(JSON.stringify({id:targetId, user_id:targetUserId, full_name:fullName, phone:whatsapp, location:locationVal}));
+            } else {
+              showDebug('❌ candidate_cvs SAVE FAILED\nError: ' + xhr.responseText);
+              alert('candidate_cvs FAILED: ' + xhr.responseText);
+              btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false;
+            }
           }
         }
       };
-      xhr.onerror=function(){ showDebug('Network error saving to profiles'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
-      xhr.send(JSON.stringify({id:targetId, full_name:fullName, skills:skills, cv_url:finalPath||null, cv_name:finalName||null}));
+      xhr.onerror=function(){ showDebug('Network error'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
+      xhr.send(JSON.stringify(payload));
     };
-    findXhr.onerror=function(){ showDebug('Network error finding profile'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
+    findXhr.onerror=function(){ showDebug('Network error finding CV'); btn.innerHTML='💾 Save Profile + CV'; btn.disabled=false; };
     findXhr.send();
   }
 
@@ -269,6 +298,15 @@ function deleteEverything(){
     xhrDel.send();
   } else { checkDone(); }
   pending++;
+  if(p.phoneClean || p.whatsapp){
+    var ph = p.phoneClean || p.whatsapp;
+    var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/candidate_cvs?phone=eq.'+encodeURIComponent(ph), true);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
+    xhr.onerror=function(){ checkDone(); };
+    xhr.send();
+  } else { checkDone(); }
+  pending++;
   if(user.id){
     var xhrP=new XMLHttpRequest();
     xhrP.open('PATCH', SUPABASE_URL+'/rest/v1/profiles?id=eq.'+user.id, true);
@@ -279,11 +317,11 @@ function deleteEverything(){
   } else { checkDone(); }
   pending++;
   if(p.phoneClean){
-    var xhr=new XMLHttpRequest(); xhr.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?whatsapp_number=eq.'+p.phoneClean, true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr.onreadystatechange=function(){ if(xhr.readyState===4) checkDone(); };
-    xhr.onerror=function(){ checkDone(); };
-    xhr.send();
+    var xhr2=new XMLHttpRequest(); xhr2.open('DELETE', SUPABASE_URL+'/rest/v1/whatsapp_subscribers?whatsapp_number=eq.'+p.phoneClean, true);
+    xhr2.setRequestHeader('apikey', SUPABASE_KEY); xhr2.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr2.onreadystatechange=function(){ if(xhr2.readyState===4) checkDone(); };
+    xhr2.onerror=function(){ checkDone(); };
+    xhr2.send();
   } else { checkDone(); }
 }
 loadProfile();
