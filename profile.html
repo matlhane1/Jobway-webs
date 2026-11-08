@@ -49,6 +49,34 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <input class="input" id="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="e.g. 072 123 4567">
 <label class="label" for="location">Province / Location</label>
 <select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Eastern Cape</option><option>North West</option><option>Mpumalanga</option><option>Free State</option><option>Northern Cape</option><option>Remote</option></select>
+
+<!-- NEW: Job Category / Qualifications / Experience -->
+<label class="label" for="jobCategory">What job are you looking for? *</label>
+<select class="input" id="jobCategory" required>
+<option value="">Select job category...</option>
+<option>Security</option>
+<option>Cleaning</option>
+<option>Cashier</option>
+<option>Driver</option>
+<option>Warehouse</option>
+<option>Retail</option>
+<option>Hospitality</option>
+<option>Admin</option>
+<option>Other</option>
+</select>
+
+<label class="label" for="qualifications">Qualifications *</label>
+<input class="input" id="qualifications" maxlength="500" placeholder="e.g. Grade 12, PSIRA Grade C, First Aid">
+
+<label class="label" for="experienceYears">Level of Experience *</label>
+<select class="input" id="experienceYears" required>
+<option value="">Select experience...</option>
+<option>No experience</option>
+<option>1-2 years</option>
+<option>3-5 years</option>
+<option>5+ years</option>
+</select>
+
 <label class="label" for="skills">Skills (comma separated)</label>
 <input class="input" id="skills" maxlength="1000" placeholder="e.g. Driving, Code 10, Forklift">
 <div id="skillsPreview" style="margin-top:8px"></div>
@@ -148,8 +176,16 @@ async function restoreCvFromDB(phoneRaw) {
   const candidates = [clean, '0' + clean.slice(2), phoneRaw.trim()];
   for (const phone of [...new Set(candidates)]) {
     try {
-      const result = await request('GET', '/rest/v1/candidate_cvs?select=cv_url,cv_name&phone=eq.' + encodeFilter(phone) + '&limit=1');
-      if (Array.isArray(result.data) && result.data[0] && result.data[0].cv_url) { setCvDetails(result.data[0].cv_url, result.data[0].cv_name || ''); displayCv(result.data[0].cv_name || 'CV on file', true); return; }
+      const result = await request('GET', '/rest/v1/candidate_cvs?select=cv_url,cv_name,job_category,qualifications,experience_years&phone=eq.' + encodeFilter(phone) + '&limit=1');
+      if (Array.isArray(result.data) && result.data[0] && result.data[0].cv_url) {
+        const r = result.data[0];
+        setCvDetails(r.cv_url, r.cv_name || '');
+        if (r.job_category) $('jobCategory').value = r.job_category;
+        if (r.qualifications) $('qualifications').value = r.qualifications;
+        if (r.experience_years) $('experienceYears').value = r.experience_years;
+        displayCv(r.cv_name || 'CV on file', true);
+        return;
+      }
     } catch (err) { return; }
   }
 }
@@ -161,6 +197,9 @@ function loadProfile() {
   $('whatsapp').value = p.whatsapp || user.phone || user.whatsapp_number || '';
   $('skills').value = Array.isArray(p.skills) ? p.skills.join(', ') : '';
   $('location').value = p.location || p.province || 'Gauteng';
+  $('jobCategory').value = p.job_category || p.jobCategory || '';
+  $('qualifications').value = p.qualifications || '';
+  $('experienceYears').value = p.experience_years || p.experienceYears || '';
   savedCvPath = getStoredCv(); savedCvName = p.cvName || '';
   if (savedCvPath) displayCv(savedCvName || 'CV on file', false);
   safeRenderSkills();
@@ -195,9 +234,15 @@ async function saveProfile() {
   const user = getUser() || {};
   const userId = getStableUserId(user);
   const locationVal = $('location').value;
+  const jobCategory = $('jobCategory').value;
+  const qualifications = $('qualifications').value.trim();
+  const experienceYears = $('experienceYears').value;
   const skills = $('skills').value.split(',').map(s => s.trim()).filter(Boolean).slice(0,30);
   if (!fullName || !whatsapp) return showMessage('Please enter your full name and WhatsApp number.', true);
   if (!phoneClean) return showMessage('Enter a valid South African number, e.g. 072 123 4567 or +27 72 123 4567.', true);
+  if (!jobCategory) return showMessage('Please select what job you are looking for.', true);
+  if (!qualifications) return showMessage('Please enter your qualifications, e.g. Grade 12, PSIRA Grade C.', true);
+  if (!experienceYears) return showMessage('Please select your level of experience.', true);
   if (!selectedFile && !savedCvPath) return showMessage('Please select your CV before saving.', true);
   setBusy(true, 'Saving profile…'); $('savedMsg').style.display = 'none';
   let uploadedPath = '';
@@ -213,11 +258,11 @@ async function saveProfile() {
     let existing = null;
     try { existing = await findExistingCv(phoneClean); } catch(e){}
     if (!existing) { try { existing = await findExistingCv('0' + phoneClean.slice(2)); } catch(e){} }
-    const cvRow = { id: existing && existing.id ? existing.id : makeUUID(), user_id:userId, full_name:fullName, phone:phoneClean, location:locationVal, category:'General', cv_url:finalPath, cv_name:finalName };
+    const cvRow = { id: existing && existing.id ? existing.id : makeUUID(), user_id:userId, full_name:fullName, phone:phoneClean, location:locationVal, area:locationVal, job_category:jobCategory, category:jobCategory, qualifications:qualifications, experience_years:experienceYears, cv_url:finalPath, cv_name:finalName };
     if (!cvRow.cv_url) throw new Error('No CV storage path is available.');
     await request('POST', '/rest/v1/candidate_cvs?on_conflict=id', cvRow, { 'Prefer':'resolution=merge-duplicates,return=minimal' });
     try { await request('POST', '/rest/v1/whatsapp_subscribers?on_conflict=whatsapp_number', { whatsapp_number:phoneClean, full_name:fullName, province:locationVal, cv_path:finalPath, cv_url:finalPath }, { 'Prefer':'resolution=merge-duplicates,return=minimal' }); } catch (e) {}
-    const profile = { fullName, whatsapp, phoneClean, skills, location:locationVal, province:locationVal, cv_path:finalPath, cv_url:finalPath, cvName:finalName, userId:userId };
+    const profile = { fullName, whatsapp, phoneClean, skills, location:locationVal, province:locationVal, job_category:jobCategory, jobCategory:jobCategory, qualifications:qualifications, experience_years:experienceYears, experienceYears:experienceYears, cv_path:finalPath, cv_url:finalPath, cvName:finalName, userId:userId };
     localStorage.setItem('jobway_profile', JSON.stringify(profile));
     localStorage.setItem('jobway_cv_path', profile.cv_path);
     localStorage.setItem('jobway_cv_url', profile.cv_url);
@@ -228,7 +273,7 @@ async function saveProfile() {
     selectedFile = null; $('cvFile').value = '';
     displayCv(savedCvName, false);
     showMessage('✅ Your profile and CV have been saved successfully.', false);
-    showDebug('Profile saved.\nCandidate ID: ' + userId + '\nCV: ' + savedCvPath + '\nCV name: ' + savedCvName);
+    showDebug('Profile saved.\nCandidate ID: ' + userId + '\nJob: ' + jobCategory + '\nQualifications: ' + qualifications + '\nExperience: ' + experienceYears + '\nCV: ' + savedCvPath);
     setBusy(false, '✅ Saved');
   } catch (err) {
     if (uploadedPath) { try { await request('DELETE', '/storage/v1/object/' + CV_BUCKET + '/' + encodeURIComponent(uploadedPath)); } catch (_) {} }
@@ -237,12 +282,10 @@ async function saveProfile() {
     setBusy(false);
   }
 }
-// FIXED DELETE: Always finishes, even if one table fails. Tries ALL phone formats + ALL tables.
 async function deleteEverything() {
   if (!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
   const user = getUser() || {};
   const p = getLocalProfile();
-  // Get every possible identifier - don't rely on just one
   const userId = (user && (user.id || user.user_id || user.profile_id)) || p.userId || null;
   const phoneRaw = p.whatsapp || user.phone || user.whatsapp_number || $('whatsapp').value || '';
   const phoneClean = normalizeSAWhatsApp(phoneRaw);
@@ -251,16 +294,11 @@ async function deleteEverything() {
   const phones = [];
   if (phoneClean) { phones.push(phoneClean); phones.push('0' + phoneClean.slice(2)); }
   if (phoneRaw && phones.indexOf(phoneRaw) === -1) phones.push(phoneRaw);
-  // 1. Storage bucket
   if (cvPath) { try { await request('DELETE', '/storage/v1/object/' + CV_BUCKET + '/' + encodeURIComponent(cvPath)); } catch(e){} }
-  // 2. candidate_cvs - try every phone format + by user_id
   for (const ph of phones) { try { await request('DELETE', '/rest/v1/candidate_cvs?phone=eq.' + encodeFilter(ph)); } catch(e){} }
   if (userId) { try { await request('DELETE', '/rest/v1/candidate_cvs?user_id=eq.' + encodeFilter(userId)); } catch(e){} }
-  // 3. profiles
   if (userId) { try { await request('DELETE', '/rest/v1/profiles?id=eq.' + encodeFilter(userId)); } catch(e){} }
-  // 4. whatsapp_subscribers - try both formats
   for (const ph of phones) { try { await request('DELETE', '/rest/v1/whatsapp_subscribers?whatsapp_number=eq.' + encodeFilter(ph)); } catch(e){} }
-  // 5. ALWAYS clear phone - even if server had an error, user is deleted locally
   try { ['jobway_profile','jobway_cv_url','jobway_cv_path','jobway_cv','jobway_user','jobway_logged_in'].forEach(k => localStorage.removeItem(k)); } catch(e){}
   alert('✅ Deleted everywhere: phone + DB + storage. CV no longer accessible.');
   location.href = 'index.html';
