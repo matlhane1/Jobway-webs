@@ -50,17 +50,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <label class="label" for="location">Province / Location</label>
 <select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Eastern Cape</option><option>North West</option><option>Mpumalanga</option><option>Free State</option><option>Northern Cape</option><option>Remote</option></select>
 
-<!-- NEW: Job Category / Qualifications / Experience -->
+<!-- Job Category / Qualifications / Experience - EXPANDED -->
 <label class="label" for="jobCategory">What job are you looking for? *</label>
 <select class="input" id="jobCategory" required>
 <option value="">Select job category...</option>
 <option>Security</option>
 <option>Cleaning</option>
+<option>General Worker</option>
+<option>Call Centre</option>
+<option>Sales</option>
+<option>Construction</option>
+<option>Engineering</option>
+<option>IT and Technology</option>
+<option>Finance and Accounting</option>
+<option>Mining</option>
+<option>Banking</option>
+<option>Insurance</option>
+<option>Hospitality and Tourism</option>
+<option>Automotive Industry</option>
+<option>Telecommunications</option>
+<option>Manufacturing</option>
 <option>Cashier</option>
 <option>Driver</option>
 <option>Warehouse</option>
 <option>Retail</option>
-<option>Hospitality</option>
 <option>Admin</option>
 <option>Other</option>
 </select>
@@ -106,6 +119,21 @@ let selectedFile = null;
 let savedCvPath = '';
 let savedCvName = '';
 const $ = id => document.getElementById(id);
+// Normalize old category names to new names so old CVs still match filters
+function normalizeCategory(v){
+  if(!v) return '';
+  if(v === 'Hospitality') return 'Hospitality and Tourism';
+  if(v === 'Finance') return 'Finance and Accounting';
+  if(v === 'IT') return 'IT and Technology';
+  if(v === 'Automotive') return 'Automotive Industry';
+  return v;
+}
+function setCategorySelect(value){
+  const norm = normalizeCategory(value);
+  const sel = $('jobCategory');
+  const exists = Array.from(sel.options).some(o => o.value === norm);
+  sel.value = exists ? norm : (norm ? 'Other' : '');
+}
 function readJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (_) { return fallback; } }
 function getUser() { return readJSON('jobway_user', null); }
 function getLocalProfile() { return readJSON('jobway_profile', {}); }
@@ -180,7 +208,7 @@ async function restoreCvFromDB(phoneRaw) {
       if (Array.isArray(result.data) && result.data[0] && result.data[0].cv_url) {
         const r = result.data[0];
         setCvDetails(r.cv_url, r.cv_name || '');
-        if (r.job_category) $('jobCategory').value = r.job_category;
+        if (r.job_category) setCategorySelect(r.job_category);
         if (r.qualifications) $('qualifications').value = r.qualifications;
         if (r.experience_years) $('experienceYears').value = r.experience_years;
         displayCv(r.cv_name || 'CV on file', true);
@@ -197,7 +225,7 @@ function loadProfile() {
   $('whatsapp').value = p.whatsapp || user.phone || user.whatsapp_number || '';
   $('skills').value = Array.isArray(p.skills) ? p.skills.join(', ') : '';
   $('location').value = p.location || p.province || 'Gauteng';
-  $('jobCategory').value = p.job_category || p.jobCategory || '';
+  setCategorySelect(p.job_category || p.jobCategory || '');
   $('qualifications').value = p.qualifications || '';
   $('experienceYears').value = p.experience_years || p.experienceYears || '';
   savedCvPath = getStoredCv(); savedCvName = p.cvName || '';
@@ -234,7 +262,7 @@ async function saveProfile() {
   const user = getUser() || {};
   const userId = getStableUserId(user);
   const locationVal = $('location').value;
-  const jobCategory = $('jobCategory').value;
+  const jobCategory = normalizeCategory($('jobCategory').value);
   const qualifications = $('qualifications').value.trim();
   const experienceYears = $('experienceYears').value;
   const skills = $('skills').value.split(',').map(s => s.trim()).filter(Boolean).slice(0,30);
