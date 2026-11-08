@@ -108,9 +108,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="search-wrap"><input class="search" id="searchInput" type="search" placeholder="Search applicant, job, qualification... e.g. PSIRA"></div>
   <div class="filter-wrap"><select class="filter" id="statusFilter"><option value="">All statuses</option><option>Application Received</option><option>Under Review</option><option>Shortlisted</option><option>Interview Scheduled</option><option>Hired</option><option>Not Selected</option></select></div>
  </div>
- <!-- NEW: Matches profile.html fields -->
+ <!-- EXPANDED: Same 23 categories as profile.html - Other last -->
  <div class="controls">
-  <div class="filter-wrap"><select class="filter" id="categoryFilter"><option value="">All job categories</option><option>Security</option><option>Cleaning</option><option>Cashier</option><option>Driver</option><option>Warehouse</option><option>Retail</option><option>Hospitality</option><option>Admin</option><option>Other</option><option>General</option></select></div>
+  <div class="filter-wrap"><select class="filter" id="categoryFilter"><option value="">All job categories</option><option>Security</option><option>Cleaning</option><option>General Worker</option><option>Call Centre</option><option>Sales</option><option>Construction</option><option>Engineering</option><option>IT and Technology</option><option>Finance and Accounting</option><option>Mining</option><option>Banking</option><option>Insurance</option><option>Hospitality and Tourism</option><option>Automotive Industry</option><option>Telecommunications</option><option>Manufacturing</option><option>Cashier</option><option>Driver</option><option>Warehouse</option><option>Retail</option><option>Admin</option><option>General</option><option>Other</option></select></div>
   <div class="filter-wrap"><select class="filter" id="expFilter"><option value="">All experience</option><option>No experience</option><option>1-2 years</option><option>3-5 years</option><option>5+ years</option></select></div>
   <div class="filter-wrap"><select class="filter" id="areaFilter"><option value="">All areas</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Eastern Cape</option><option>North West</option><option>Mpumalanga</option><option>Free State</option><option>Northern Cape</option><option>Remote</option><option>Soweto</option><option>Johannesburg CBD</option><option>Sandton</option><option>Roodepoort</option><option>Pretoria</option><option>Other Gauteng</option></select></div>
  </div>
@@ -145,6 +145,14 @@ let currentInterviewId = null;
 let loadingDashboard = false;
 let realtimeChannel = null;
 let currentWallet = null;
+function normalizeCategory(v){
+  if(!v) return '';
+  if(v === 'Hospitality') return 'Hospitality and Tourism';
+  if(v === 'Finance') return 'Finance and Accounting';
+  if(v === 'IT') return 'IT and Technology';
+  if(v === 'Automotive') return 'Automotive Industry';
+  return v;
+}
 function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null'); }catch(e){ return null; } }
 function fmt(date){ if(!date) return 'Not available'; const d = new Date(date); if(isNaN(d.getTime())) return 'Not available'; return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }
@@ -174,7 +182,6 @@ async function enrichApplications(applications){
   if(error){ console.warn('Profile lookup:',error.message); }
   (data || []).forEach(profile => { profileMap[profile.id] = profile; });
  }
- // NEW: Fetch tags from candidate_cvs - matches new profile.html
  let cvMap = {};
  if(ids.length){
   const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('user_id',ids).order('created_at',{ascending:false});
@@ -186,7 +193,7 @@ async function enrichApplications(applications){
   app.profiles = profileMap[app.applicant_id] || null;
   const cvRow = cvMap[app.applicant_id] || null;
   if(cvRow){
-    app._job_category = cvRow.job_category || cvRow.category || '';
+    app._job_category = normalizeCategory(cvRow.job_category || cvRow.category || '');
     app._qualifications = cvRow.qualifications || '';
     app._experience_years = cvRow.experience_years || '';
     app._area = cvRow.area || cvRow.location || '';
@@ -199,7 +206,7 @@ async function enrichApplications(applications){
   try{
    const {data,error} = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone,job_category,category,qualifications,experience_years,area,location').eq('user_id',app.applicant_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
    if(error){ console.warn('Candidate CV lookup:',error.message); continue; }
-   if(data){ app._cv_path = cleanCvPath(data.cv_url); app._cv_name = data.cv_name || null; app._full_name = data.full_name || app.profiles?.full_name; app._phone = data.phone || app.profiles?.phone; app._job_category = data.job_category || data.category || app._job_category; app._qualifications = data.qualifications || app._qualifications; app._experience_years = data.experience_years || app._experience_years; app._area = data.area || data.location || app._area; }
+   if(data){ app._cv_path = cleanCvPath(data.cv_url); app._cv_name = data.cv_name || null; app._full_name = data.full_name || app.profiles?.full_name; app._phone = data.phone || app.profiles?.phone; app._job_category = normalizeCategory(data.job_category || data.category || app._job_category); app._qualifications = data.qualifications || app._qualifications; app._experience_years = data.experience_years || app._experience_years; app._area = data.area || data.location || app._area; }
   }catch(e){ console.warn('CV lookup error:',e); }
  }
  return applications;
@@ -375,12 +382,12 @@ async function loadDashboard(){
  try{
   currentUser = getCurrentUser();
   if(!currentUser || !currentUser.id){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="employer-login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
-  const {data:sessionData,error:sessionError} = await supabaseClient.auth.getSession(); if(sessionError) console.warn('Session check:',sessionError.message); const session = sessionData?.session; if(session && session.user.id !== currentUser.id){ throw new Error('Your login session does not match this account. Please log in again.'); }
+  const {data:sessionData,[STRIPPED] = await supabaseClient.auth.getSession(); if(sessionError) console.warn('Session check:',sessionError.message); const session = sessionData?.session; if(session && session.user.id !== currentUser.id){ throw new Error('Your login session does not match this account. Please log in again.'); }
   await loadCredits();
-  const {data:jobs,error:jobsError} = await supabaseClient.from('jobs').select('*').eq('employer_id',currentUser.id).order('created_at',{ascending:false}); if(jobsError) throw jobsError;
+  const {data:jobs,[STRIPPED] = await supabaseClient.from('jobs').select('*').eq('employer_id',currentUser.id).order('created_at',{ascending:false}); if(jobsError) throw jobsError;
   currentJobs = jobs || [];
   currentApps = []; const jobIds = currentJobs.map(j=>j.id);
-  if(jobIds.length){ const {data:apps,error:appsError} = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
+  if(jobIds.length){ const {data:apps,[STRIPPED] = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
   document.getElementById('jobCount').innerText = currentJobs.length; document.getElementById('appCount').innerText = currentApps.length;
   if(currentApps.length){ list.innerHTML = currentApps.map(renderApplicant).join(''); document.getElementById('empty').style.display = 'none'; filterApplicants(); }else{ list.innerHTML = ''; document.getElementById('empty').style.display = 'block'; document.getElementById('filterCount').innerText = ''; }
   renderJobs(); showMessage('');
