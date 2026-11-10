@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Jobs - LIVE Check | JobWay Employer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0F2835;color:#fff;min-height:100vh}
+.header{background:#0A1F2E;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:900;color:#01F9C6;font-size:19px}
+.btn{border:0;border-radius:999px;padding:10px 15px;font-size:12px;font-weight:800;cursor:pointer}
+.btn-green{background:#01F9C6;color:#0A1F2E}
+.btn-white{background:#fff;color:#0A1F2E}
+.wrap{max-width:800px;margin:auto;padding:16px}
+.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px}
+.badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;display:inline-block}
+.live{background:#01F9C6;color:#0A1F2E}
+.paused{background:#263E4D;color:#C2D6DD}
+.meta{color:#8DB0BF;font-size:12px;margin-top:8px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">JobWay • Employer</div>
+  <button class="btn btn-white" onclick="location.href='employer-dashboard.html'">← Dashboard</button>
+</div>
+<div class="wrap">
+  <h2 style="margin:12px 0 4px">My Jobs - Check if LIVE</h2>
+  <p style="color:#8DB0BF;font-size:12px;margin-bottom:16px">This is YOUR jobs only. Jobseekers see these on jobs.html.</p>
+  <div id="list"><p style="text-align:center;color:#8DB0BF;padding:30px">Loading your jobs...</p></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+var SUPABASE_URL='https://dmxumcjeetphwzvgzzuk.supabase.co';
+var SUPABASE_KEY='sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
+async function load(){
+  var emp = null;
+  try{ emp = JSON.parse(localStorage.getItem('jobway_employer')||'null'); }catch(e){}
+  if(!emp) try{ emp = JSON.parse(localStorage.getItem('jobway_user')||'null'); }catch(e){}
+  if(!emp || !emp.id){ document.getElementById('list').innerHTML='<div class="card">Please login as employer.<br><br><a href="login.html" style="color:#01F9C6">Login →</a></div>'; return; }
+  var phone = String(emp.phone||emp.whatsapp_number||emp.id).replace(/\D/g,'');
+  var phones = [phone];
+  if(phone.startsWith('27')) phones.push('0'+phone.slice(2));
+  if(phone.startsWith('0')) phones.push('27'+phone.slice(1));
+  phones.push('+'+phone);
+  // 1. Try to get real uuid from profiles
+  var uuid = null;
+  try{
+    var pr = await sb.from('profiles').select('id').or('phone.eq.'+phone+',whatsapp_number.eq.'+phone).limit(1).maybeSingle();
+    if(pr.data && isUuid(pr.data.id)) uuid = pr.data.id;
+  }catch(e){}
+  var jobs = [];
+  // 2. Query jobs by uuid (safe - never send phone to uuid column)
+  if(uuid){
+    var r1 = await sb.from('jobs').select('*').eq('employer_id', uuid).order('created_at',{ascending:false});
+    jobs = r1.data || [];
+  }
+  // 3. Fallback: query by phone columns if your jobs table has them
+  if(!jobs.length){
+    try{ var r2 = await sb.from('jobs').select('*').in('employer_phone', phones).order('created_at',{ascending:false}); if(r2.data && r2.data.length) jobs = r2.data; }catch(e){}
+  }
+  if(!jobs.length){
+    try{ var r3 = await sb.from('jobs').select('*').in('whatsapp_number', phones).order('created_at',{ascending:false}); if(r3.data && r3.data.length) jobs = r3.data; }catch(e){}
+  }
+  if(!jobs.length){
+    document.getElementById('list').innerHTML='<div class="card">You have not posted any jobs yet.<br><br><button class="btn btn-green" onclick="location.href=\'employer-dashboard.html\'">Go to Dashboard →</button></div>';
+    return;
+  }
+  document.getElementById('list').innerHTML = jobs.map(function(j){
+    var live = j.is_active !== false && j.status !== 'closed';
+    return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>'+(j.title||'Untitled')+' • '+(j.company||'')+'</b><span class="badge '+(live?'live':'paused')+'">'+(live?'● LIVE - Jobseekers can see it':'Paused - Not LIVE')+'</span></div><div class="meta">'+(j.location||'')+'<br>'+(j.salary||'')+'<br>Posted: '+new Date(j.created_at).toLocaleDateString('en-ZA')+'</div><button class="btn btn-green" style="margin-top:10px" onclick="location.href=\'employer-dashboard.html\'">View Applicants →</button></div>';
+  }).join('');
+}
+load();
+</script>
+</body>
+</html>
