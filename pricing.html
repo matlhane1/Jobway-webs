@@ -52,14 +52,16 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .footer{border-top:1px solid var(--border);padding:25px 20px;text-align:center;color:#7FA5B0;font-size:11px}
 .modal{position:fixed;inset:0;background:rgba(4,17,27,.94);display:none;place-items:center;z-index:999;padding:15px;overflow-y:auto}
 .modal.show{display:grid}
-.modal-box{width:100%;max-width:450px;background:var(--panel2);border:1px solid rgba(1,249,198,.22);border-radius:18px;padding:23px}
+.modal-box{width:100%;max-width:450px;background:var(--panel2);border:1px solid rgba(1,249,198,.22);border-radius:18px;padding:23px;max-height:92vh;overflow-y:auto}
 .modal-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .close-btn{background:rgba(255,255,255,.08);color:white;border:0;width:32px;height:32px;border-radius:50%;font-size:20px}
 .order-box{background:#0F2230;border-radius:11px;padding:13px;margin:17px 0;display:flex;justify-content:space-between;gap:10px;font-size:13px}
 .order-price{color:var(--green);font-weight:900;white-space:nowrap}
 .field-label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin:12px 0 5px}
-.email-input,.select-input{width:100%;padding:13px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0F2230;color:white;outline:none;font-size:13px}
+.email-input,.select-input{width:100%;padding:13px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0F2230;color:white;outline:none;font-size:13px;display:block!important;visibility:visible!important}
 .email-input:focus,.select-input:focus{border-color:var(--green)}
+#whatsappField{border:2px solid #01F9C6!important;background:#0F2A2A!important}
+#emailField{border:1px solid rgba(255,255,255,.15)!important}
 .payment-btn{width:100%;padding:14px;border:0;border-radius:999px;background:var(--green);color:#0A1F2E;font-weight:900;font-size:13px;margin-top:14px}
 .payment-btn:disabled{opacity:.55;cursor:not-allowed}
 .pay-error{color:#ff9999;background:rgba(255,80,80,.09);border:1px solid rgba(255,80,80,.2);border-radius:8px;padding:10px;font-size:12px;margin-top:10px;display:none}
@@ -149,13 +151,18 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   <div class="modal-header"><b id="modalTitle">Complete your purchase</b><button class="close-btn" onclick="closePay()" aria-label="Close payment window">×</button></div>
   <div class="order-box"><span id="mItem">JobWay</span><b class="order-price" id="mAmount">R0</b></div>
   <div id="mCategoryBox" class="category-box" style="display:none">CV Category: <b id="mCategory" style="color:#01F9C6"></b><br><span id="mStock" style="color:#A8C8D0"></span></div>
-  <label class="field-label" for="whatsappField">WhatsApp Number *</label>
-  <input id="whatsappField" class="email-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="079 000 0000" maxlength="20" required>
-  <p style="font-size:11px;color:#7FA5B0;margin-top:4px">Enter your South African WhatsApp number. JobWay uses this number to identify your purchase. You do not need to create an account to pay.</p>
-  <label class="field-label" for="emailField">Company Email to Receive Invoice (optional)</label>
+
+  <!-- FIX: 1 = WhatsApp FIRST, green border, CANNOT be confused with Email -->
+  <label class="field-label" for="whatsappField" style="color:#01F9C6">1. WhatsApp Number * — to identify your purchase</label>
+  <input id="whatsappField" class="email-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="0790608952" maxlength="20" required>
+  <p style="font-size:11px;color:#7FA5B0;margin-top:4px">Numbers only, e.g. 0790608952 or 0639811680. NOT an email. JobWay uses this to link your credits to you. No account needed to pay.</p>
+
+  <!-- FIX: 2 = Email SECOND, normal border -->
+  <label class="field-label" for="emailField">2. Company Email to Receive Invoice (optional)</label>
   <input id="emailField" class="email-input" type="email" autocomplete="email" placeholder="hr@company.co.za">
-  <p style="font-size:11px;color:#7FA5B0;margin-top:4px">Optional. If you enter it, your invoice will be sent from invoices@jobway.co.za. This email is for invoicing only, NOT for login. Payment will NOT be blocked if you leave it empty.</p>
-  <label class="field-label" for="companyField">Company Name (for invoice)</label>
+  <p style="font-size:11px;color:#7FA5B0;margin-top:4px">Optional. If you enter it, invoice will be sent from invoices@jobway.co.za. This email is for invoicing only, NOT for login. Payment will NOT be blocked if you leave it empty.</p>
+
+  <label class="field-label" for="companyField">3. Company Name (for invoice)</label>
   <input id="companyField" class="email-input" type="text" autocomplete="organization" placeholder="Your Company (Pty) Ltd" maxlength="150">
   <button class="payment-btn" id="payBtn" onclick="doPay()">Pay with Card or Bank App →</button>
   <p class="pay-error" id="payErr" role="alert"></p>
@@ -168,7 +175,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 <script>
 "use strict";
 const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
-// FIX: Correct key - ends with IM3- , NOT IM-3
 const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const WHATSAPP_NUMBER = "27790608952";
 const PRODUCTS = {
@@ -186,18 +192,23 @@ const PRODUCTS = {
  "JobWay 250 CV Unlocks": {amount:5999,code:"cv_250",cvCount:250},
  "JobWay Unlimited CV Unlocks": {amount:9999,code:"cv_unlimited",cvUnlimited:true}
 };
-const ALL_CATEGORIES = ["Security","Cleaning","General Worker","Call Centre","Sales","Construction","Engineering","IT and Technology","Finance and Accounting","Mining","Banking","Insurance","Hospitality and Tourism","Automotive Industry","Telecommunications","Manufacturing","Cashier","Driver","Warehouse","Retail","Admin","General","Other"];
 let curItem = "";
 let curCategory = "";
 const $ = id => document.getElementById(id);
 function isCvItem(item){ const product = PRODUCTS[item]; return !!(product && (product.cvCount || product.cvUnlimited)); }
 function formatRand(amount){ return "R" + Number(amount).toLocaleString("en-ZA"); }
 function normalizeWhatsapp(value){
- let digits = String(value || "").replace(/\D/g,"");
- if(digits.startsWith("27") && digits.length === 11) return digits;
- if(digits.startsWith("0") && digits.length === 10) return "27" + digits.slice(1);
- if(digits.length === 9) return "27" + digits;
- return "";
+  let digits = String(value || "").replace(/\D/g,"");
+  if(!digits) return "";
+  if(digits.startsWith("0027") && digits.length === 13) return digits.slice(2);
+  if(digits.startsWith("27") && digits.length === 11) return digits;
+  if(digits.startsWith("0") && digits.length === 10) return "27" + digits.slice(1);
+  if(digits.length === 9) return "27" + digits;
+  return "";
+}
+function isValidWhatsapp(value){
+  const n = normalizeWhatsapp(value);
+  return n.length === 11 && n.startsWith("27");
 }
 function isValidEmail(value){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim()); }
 function getPendingJob(){ try{ return JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(error){ return {}; } }
@@ -219,9 +230,15 @@ function getAuthenticatedSession(){
 function fillModalFields(){
  const params = new URLSearchParams(location.search);
  const pending = getPendingJob();
- $("emailField").value = params.get("email") || pending.invoice_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
- $("companyField").value = getStoredCompany();
- $("whatsappField").value = pending.whatsapp_number || localStorage.getItem("jobway_whatsapp") || "";
+ // FIX: Do NOT mix fields. Email goes to emailField ONLY, WhatsApp goes to whatsappField ONLY.
+ // Old live site was putting email into WhatsApp field via ?email=... or pending_job.
+ if($("emailField")) $("emailField").value = params.get("email") || pending.invoice_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
+ if($("companyField")) $("companyField").value = params.get("company") || getStoredCompany();
+ if($("whatsappField")){
+   const wa = params.get("whatsapp") || pending.whatsapp_number || localStorage.getItem("jobway_whatsapp") || localStorage.getItem("whatsapp_number") || "";
+   // If stored WhatsApp looks like an email, do NOT put it in WhatsApp box - that's the screenshot bug
+   $("whatsappField").value = (wa && wa.includes("@")) ? "" : wa;
+ }
 }
 function updateCvButtons(){
  const category = $("cvCategory").value;
@@ -286,45 +303,40 @@ function switchToSingleJobPost(){
 }
 async function doPay(){
  const button = $("payBtn");
- // FIX B: Email is OPTIONAL - only for invoice. Never block payment for email.
- let email = $("emailField").value.trim().toLowerCase();
- const companyName = $("companyField").value.trim();
- const whatsapp = normalizeWhatsapp($("whatsappField").value);
+ const waEl = $("whatsappField");
+ if(!waEl){ showError("Page error: WhatsApp field is missing. Hard-refresh the page and try again."); return; }
+ const waRaw = waEl.value.trim();
+ // FIX FOR SCREENSHOT: If user typed hr@company.co.za into WhatsApp box, tell them clearly, don't show generic error
+ if(waRaw.includes("@")){
+   waEl.focus();
+   showError("That looks like an email (" + waRaw + "), not a WhatsApp number. Please enter your WhatsApp number in Box 1 (e.g. 0790608952), and your email in Box 2 if you want an invoice.");
+   return;
+ }
+ let email = $("emailField") ? $("emailField").value.trim().toLowerCase() : "";
+ const companyName = $("companyField") ? $("companyField").value.trim() : "";
+ const whatsapp = normalizeWhatsapp(waRaw);
  const product = PRODUCTS[curItem];
  $("payErr").style.display = "none";
  $("payWarn").style.display = "none";
  $("fallbackBox").style.display = "none";
  $("stockFallback").style.display = "none";
  if(!product){ showError("Please select a valid JobWay product."); return; }
- // Only WhatsApp blocks - it identifies the purchase
- if(!whatsapp){ $("whatsappField").focus(); showError("Please enter a valid South African WhatsApp number, for example 0790000000."); return; }
- // Email NEVER blocks. If invalid, warn and continue without invoice email.
- if(email && !isValidEmail(email)){
-  showWarn("That email looks invalid, so no invoice will be sent. Payment will still go ahead. You can fix the email after payment.");
-  email = "";
+ if(!isValidWhatsapp(waRaw)){
+   waEl.focus();
+   showError("Please enter your WhatsApp number in Box 1 (e.g. 0790608952 or 0639811680). This is your login - your credits will be linked to it.");
+   return;
  }
- if(email === ""){
-  showWarn("No invoice email entered — payment will still go ahead. Invoice will not be sent.");
- }
+ if(email && !isValidEmail(email)){ showWarn("That email looks invalid, so no invoice will be sent. Payment will still go ahead."); email = ""; }
+ if(email === ""){ showWarn("No invoice email entered — payment will still go ahead. Invoice will not be sent."); }
  if(isCvItem(curItem) && !curCategory){ showError("Please select a CV category before continuing."); return; }
  const session = getAuthenticatedSession();
  const headers = { "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":"Bearer " + (session ? session.accessToken : SUPABASE_KEY) };
- const requestBody = {
-  product_code:product.code,
-  item:curItem,
-  item_name:curItem,
-  product_name:curItem,
-  // FIX B: invoice_email can be "" - server must NOT reject for missing email
-  invoice_email:email || "",
-  company_name:companyName,
-  whatsapp_number:whatsapp,
-  cv_category:curCategory || "",
-  cv_count:product.cvCount || 0
- };
+ const requestBody = { product_code:product.code, item:curItem, item_name:curItem, product_name:curItem, invoice_email:email || "", company_name:companyName, whatsapp_number:whatsapp, cv_category:curCategory || "", cv_count:product.cvCount || 0 };
  if(session && session.userId){ requestBody.employer_id = session.userId; requestBody.user_id = session.userId; }
  try{
   if(email){ localStorage.setItem("invoice_email",email); localStorage.setItem("jobway_user_email",email); }
   localStorage.setItem("jobway_whatsapp",whatsapp);
+  localStorage.setItem("whatsapp_number",whatsapp);
   if(companyName) localStorage.setItem("company_name",companyName);
   localStorage.setItem("jobway_pending_payment",JSON.stringify({ item:curItem, product_code:product.code, invoice_email:email || "", whatsapp_number:whatsapp, company_name:companyName, cv_category:curCategory || null, amount:product.amount, created_at:new Date().toISOString() }));
  }catch(storageError){ console.warn("Browser storage is unavailable."); }
@@ -355,12 +367,11 @@ async function doPay(){
  }
 }
 function sendWhatsAppProof(){
- // FIX B: EFT also must not be blocked by missing email
- const whatsapp = normalizeWhatsapp($("whatsappField").value);
- const email = $("emailField").value.trim();
- const company = $("companyField").value.trim();
+ const whatsapp = $("whatsappField") ? normalizeWhatsapp($("whatsappField").value) : "";
+ const email = $("emailField") ? $("emailField").value.trim() : "";
+ const company = $("companyField") ? $("companyField").value.trim() : "";
  if(!curItem || !PRODUCTS[curItem]){ alert("Please select a product first."); return; }
- if(!whatsapp){ alert("Please enter your WhatsApp number first."); $("whatsappField").focus(); return; }
+ if(!isValidWhatsapp($("whatsappField").value)){ alert("Please enter your WhatsApp number in Box 1 first."); if($("whatsappField")) $("whatsappField").focus(); return; }
  const product = PRODUCTS[curItem];
  const message = "Hello JobWay,\n\n" + "I would like to enquire about paying by EFT.\n\n" + "Product: " + curItem + (curCategory ? " (" + curCategory + ")" : "") + "\n" + "Amount: " + formatRand(product.amount) + "\n" + "WhatsApp: " + whatsapp + "\n" + "Invoice email: " + (email || "- (not provided)") + "\n" + "Company: " + (company || "-") + "\n\n" + "Please send me your official banking details and payment instructions.\n\n" + "Thank you.";
  const url = "https://api.whatsapp.com/send?phone=" + WHATSAPP_NUMBER + "&text=" + encodeURIComponent(message);
