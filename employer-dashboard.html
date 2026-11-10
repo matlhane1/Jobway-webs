@@ -142,6 +142,22 @@ const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const STATUSES = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired','Not Selected'];
+// FIX: Product -> credits map for claiming guest payments by WhatsApp. Must match payfast_notify PRODUCTS.
+const PRODUCT_CREDITS = {
+  payg_job: { job: 1, cv: 0, plan: 'Pay As You Go Job Posting' },
+  starter_monthly: { job: 5, cv: 0, plan: 'Starter Monthly' },
+  growth_monthly: { job: 20, cv: 0, plan: 'Growth Monthly' },
+  pro_monthly: { job: 50, cv: 0, plan: 'Pro Monthly' },
+  business_monthly: { job: 999999, cv: 0, plan: 'Business Monthly' },
+  job_50: { job: 50, cv: 0, plan: '50 Job Credits' },
+  job_100: { job: 100, cv: 0, plan: '100 Job Credits' },
+  job_250: { job: 250, cv: 0, plan: '250 Job Credits' },
+  job_500: { job: 500, cv: 0, plan: '500 Job Credits' },
+  cv_20: { job: 0, cv: 20, plan: '20 CV Unlocks' },
+  cv_100: { job: 0, cv: 100, plan: '100 CV Unlocks' },
+  cv_250: { job: 0, cv: 250, plan: '250 CV Unlocks' },
+  cv_unlimited: { job: 0, cv: 0, plan: 'unlimited', unlimited: true },
+};
 let currentUser = null;
 let currentJobs = [];
 let currentApps = [];
@@ -151,6 +167,7 @@ let realtimeChannel = null;
 let currentWallet = null;
 let HAS_PAID = false;
 let EMPLOYER_UUID = null;
+let claimDone = false;
 function normalizeCategory(v){
   if(!v) return '';
   if(v === 'Hospitality') return 'Hospitality and Tourism';
@@ -161,6 +178,15 @@ function normalizeCategory(v){
 }
 function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
+// FIX: WhatsApp is identity. Normalise to 27... so 079... / +2779... / 2779... all match.
+function normalizeWhatsapp(v){
+  let d = String(v||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.startsWith('27') && d.length===11) return d;
+  if(d.startsWith('0') && d.length===10) return '27'+d.slice(1);
+  if(d.length===9) return '27'+d;
+  return d;
+}
 function getCurrentUser(){
   try{
     var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
@@ -170,40 +196,48 @@ function getCurrentUser(){
   }catch(e){ return null; }
   return null;
 }
-// FIX UUID: Phone is NEVER a uuid. Only use uuid for uuid columns.
 function idVariants(){
   if(EMPLOYER_UUID && isUuid(EMPLOYER_UUID)) return [EMPLOYER_UUID];
   var base = String(currentUser?.id || '');
   if(isUuid(base)) return [base];
   return [];
 }
+// FIX: Phone variants are all normalised WhatsApp forms. Email is NEVER here - email is invoice ONLY.
 function phoneVariants(){
-  var base = String(currentUser?.phone || currentUser?.whatsapp_number || currentUser?.id || '');
-  var digits = base.replace(/\D/g,'');
+  var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || currentUser?.id || '';
+  var norm = normalizeWhatsapp(raw);
   var v = new Set();
-  if(digits){
-    v.add(digits);
-    if(digits.startsWith('27')) v.add('0'+digits.slice(2));
-    if(digits.startsWith('0')) v.add('27'+digits.slice(1));
-    v.add('+'+digits);
+  if(norm){
+    v.add(norm);
+    if(norm.startsWith('27')) v.add('0'+norm.slice(2));
+    v.add('+'+norm);
+    v.add(norm.slice(2));
   }
-  if(base) v.add(base);
+  if(raw) v.add(String(raw));
   return Array.from(v).filter(Boolean);
 }
 async function resolveEmployerUuid(){
   if(EMPLOYER_UUID) return EMPLOYER_UUID;
   if(currentUser && isUuid(currentUser.id)){ EMPLOYER_UUID = currentUser.id; return EMPLOYER_UUID; }
   var phones = phoneVariants();
-  for(var p of phones){
+  var norm = normalizeWhatsapp(phones[0] || '');
+  if(norm){
     try{
-      var r = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(p)+',whatsapp_number.eq.'+encodeURIComponent(p)).limit(1).maybeSingle();
+      var r = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(norm)+',whatsapp_number.eq.'+encodeURIComponent(norm)).limit(1).maybeSingle();
       if(r.data && isUuid(r.data.id)){ EMPLOYER_UUID = r.data.id; return EMPLOYER_UUID; }
     }catch(e){}
+    // Try other variants too
+    for(var p of phones){
+      try{
+        var r2 = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(p)+',whatsapp_number.eq.'+encodeURIComponent(p)).limit(1).maybeSingle();
+        if(r2.data && isUuid(r2.data.id)){ EMPLOYER_UUID = r2.data.id; return EMPLOYER_UUID; }
+      }catch(e){}
+    }
   }
   return null;
 }
 function fmt(date){ if(!date) return 'Not available'; const d = new Date(date); if(isNaN(d.getTime())) return 'Not available'; return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }
-function formatPhone(phone){ if(!phone) return ''; let number = String(phone).replace(/\D/g,''); if(number.startsWith('0')) number = '27' + number.slice(1); if(number.startsWith('27')) return number; return number; }
+function formatPhone(phone){ const n = normalizeWhatsapp(phone); return n || ''; }
 function showMessage(message,type=''){ const el = document.getElementById('dashboardMessage'); el.innerHTML = message ? `<div class="message ${type}">${esc(message)}</div>` : ''; }
 function setLoading(button,text){ if(button){ button.disabled = true; button.dataset.originalText = button.innerText; button.innerText = text; } }
 function resetButton(button){ if(button){ button.disabled = false; button.innerText = button.dataset.originalText || 'Submit'; } }
@@ -213,16 +247,96 @@ function updatePostJobButton(){
   else { btn.classList.add('locked'); btn.textContent = '🔒 Pay to Post Job'; }
 }
 function handlePostJob(){
+  // FIX: No login required to PAY. Pricing is guest checkout. Dashboard only gates POSTING, not PAYING.
   if(!HAS_PAID){
-    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post, then come back here - Post Job will unlock automatically.');
+    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
     location.href = 'pricing.html';
     return;
   }
   location.href = 'post-job.html';
 }
+// FIX: Claim guest payments by WHATSAPP_NUMBER. Email is invoice ONLY, never used to claim.
+// Guest paid with WhatsApp 2779... -> employer_id = null, status = COMPLETE, whatsapp_number = 2779...
+// Employer now logs in with same WhatsApp -> we find those payments, link them to this employer_id, add credits.
+async function claimGuestPayments(){
+  if(claimDone) return 0;
+  claimDone = true;
+  await resolveEmployerUuid();
+  var ids = idVariants();
+  if(!ids.length) return 0;
+  var employerId = ids[0];
+  var phones = phoneVariants();
+  if(!phones.length) return 0;
+  var claimed = [];
+  try{
+    // FIX: Query whatsapp_number, NOT phone (phone column does not exist in payments).
+    var q = await supabaseClient.from('payments').select('*').in('whatsapp_number', phones).eq('status','COMPLETE').is('employer_id', null);
+    if(q.error){ console.log('claim query:', q.error.message); return 0; }
+    claimed = q.data || [];
+    // Also try normalised-only if variants returned nothing (in case DB stored only 27... form)
+    if(!claimed.length){
+      var norm = normalizeWhatsapp(phones[0]);
+      if(norm){
+        var q2 = await supabaseClient.from('payments').select('*').eq('whatsapp_number', norm).eq('status','COMPLETE').is('employer_id', null);
+        if(!q2.error) claimed = q2.data || [];
+      }
+    }
+  }catch(e){ console.log('claimGuestPayments error', e); return 0; }
+  if(!claimed.length) return 0;
+  var claimedCount = 0;
+  for(var pay of claimed){
+    try{
+      var code = String(pay.product_code || '').trim();
+      // Fallback: derive from amount if product_code missing
+      if(!PRODUCT_CREDITS[code]){
+        var amt = Number(pay.amount || pay.amount_gross || 0);
+        if(amt===299) code='payg_job'; else if(amt===999) code='starter_monthly'; else if(amt===2500) code='growth_monthly'; else if(amt===3500) code='pro_monthly'; else if(amt===5999) code='business_monthly'; else if(amt===7500) code='job_50'; else if(amt===14000) code='job_100'; else if(amt===31250) code='job_250'; else if(amt===55000) code='job_500'; else if(amt===2499) code='cv_100'; else if(amt===9999) code='cv_unlimited';
+      }
+      var prod = PRODUCT_CREDITS[code];
+      if(!prod){ console.log('claim: unknown product', pay.m_payment_id, code); continue; }
+      // 1. Link payment to this employer so it can't be claimed twice
+      var upd = await supabaseClient.from('payments').update({ employer_id: employerId, note: (pay.note||'') + ' | Claimed by whatsapp_number: ' + normalizeWhatsapp(pay.whatsapp_number||'') + ' -> employer_id ' + employerId }).eq('m_payment_id', pay.m_payment_id).is('employer_id', null);
+      if(upd.error){ console.log('claim update failed', upd.error.message); continue; }
+      // 2. Add credits to employer_credits + employer_limits
+      var nowIso = new Date().toISOString();
+      var expires30 = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+      if(prod.unlimited){
+        var ex = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
+        if(ex.data) await supabaseClient.from('employer_credits').update({ plan: 'unlimited', status: 'active', cv_category: pay.cv_category || ex.data.cv_category || null, expires_at: expires30, updated_at: nowIso }).eq('employer_id', employerId);
+        else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: 0, credits: 0, plan: 'unlimited', status: 'active', cv_category: pay.cv_category || null, expires_at: expires30 });
+        var limU = await supabaseClient.from('employer_limits').select('*').eq('employer_id', employerId).maybeSingle();
+        if(limU.data) await supabaseClient.from('employer_limits').update({ plan: 'unlimited', status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
+        else await supabaseClient.from('employer_limits').insert({ employer_id: employerId, job_credits: 0, cv_credits: 0, plan: 'unlimited', status: 'active' });
+      } else if(prod.cv){
+        var exC = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
+        if(exC.data){ var newCv = (exC.data.cv_credits||0)+prod.cv; await supabaseClient.from('employer_credits').update({ cv_credits: newCv, credits: newCv, cv_category: pay.cv_category || exC.data.cv_category || null, plan: 'cv', status: 'active', updated_at: nowIso }).eq('employer_id', employerId); }
+        else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, credits: prod.cv, cv_category: pay.cv_category || null, plan: 'cv', status: 'active' });
+        var limC = await supabaseClient.from('employer_limits').select('*').eq('employer_id', employerId).maybeSingle();
+        if(limC.data) await supabaseClient.from('employer_limits').update({ cv_credits: (limC.data.cv_credits||0)+prod.cv, plan: 'cv', status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
+        else await supabaseClient.from('employer_limits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, plan: 'cv', status: 'active' });
+      } else if(prod.job){
+        var exJ = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
+        if(exJ.data) await supabaseClient.from('employer_credits').update({ job_credits: (exJ.data.job_credits||0)+prod.job, plan: 'job', status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
+        else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: prod.job, cv_credits: 0, credits: 0, plan: 'job', status: 'active' });
+        var limJ = await supabaseClient.from('employer_limits').select('*').eq('employer_id', employerId).maybeSingle();
+        if(limJ.data) await supabaseClient.from('employer_limits').update({ job_credits: (limJ.data.job_credits||0)+prod.job, plan: prod.plan, status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
+        else await supabaseClient.from('employer_limits').insert({ employer_id: employerId, job_credits: prod.job, cv_credits: 0, plan: prod.plan, status: 'active' });
+        try{ await supabaseClient.from('employer_subscriptions').upsert({ employer_id: employerId, plan: prod.plan, status: 'active', updated_at: nowIso }, { onConflict: 'employer_id' }); }catch(e){}
+        try{ await supabaseClient.from('subscriptions').upsert({ employer_id: employerId, plan: prod.plan, status: 'active', updated_at: nowIso }, { onConflict: 'employer_id' }); }catch(e){}
+      }
+      claimedCount++;
+    }catch(e){ console.log('claim one failed', e); }
+  }
+  if(claimedCount>0){
+    showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za.','success');
+  }
+  return claimedCount;
+}
 async function checkPayment(){
   HAS_PAID = false;
   await resolveEmployerUuid();
+  // FIX: First claim guest payments by WhatsApp, then check paid status.
+  await claimGuestPayments();
   var ids = idVariants();
   var phones = phoneVariants();
   try{
@@ -230,9 +344,9 @@ async function checkPayment(){
       var q = await supabaseClient.from('payments').select('status').in('employer_id', ids).eq('status','COMPLETE').order('created_at',{ascending:false}).limit(1);
       if(q.data && q.data.length) HAS_PAID = true;
     }
-    if(!HAS_PAID){
-      // Only if payments table has a phone column - error is ignored
-      var q2 = await supabaseClient.from('payments').select('status').in('phone', phones).eq('status','COMPLETE').limit(1);
+    if(!HAS_PAID && phones.length){
+      // FIX: whatsapp_number column, not phone
+      var q2 = await supabaseClient.from('payments').select('status').in('whatsapp_number', phones).eq('status','COMPLETE').limit(1);
       if(q2.data && q2.data.length) HAS_PAID = true;
     }
   }catch(e){}
@@ -254,10 +368,10 @@ async function checkPayment(){
 }
 document.getElementById('homeBtn').onclick = () => { location.href = 'index.html'; };
 document.getElementById('postJobBtn').onclick = handlePostJob;
-// FIX: View Jobs NEVER goes to jobs.html (jobseeker page). Goes to employer-jobs.html
 document.getElementById('viewJobsBtn').onclick = () => { location.href = 'employer-jobs.html'; };
 document.getElementById('refreshBtn').onclick = async () => {
   loadingDashboard = false;
+  claimDone = false;
   document.getElementById('refreshBtn').textContent = '↻ Refreshing...';
   await checkPayment();
   await loadDashboard();
@@ -278,6 +392,7 @@ document.getElementById('logoutBtn').onclick = async () => {
     localStorage.removeItem('userPhone');
     localStorage.removeItem('phone');
     localStorage.removeItem('whatsapp_number');
+    localStorage.removeItem('jobway_whatsapp');
     sessionStorage.clear();
   }catch(e){}
   location.href = 'login.html';
@@ -293,7 +408,6 @@ function getCvPath(app){ return cleanCvPath(app._cv_path || app.cv_path || app.c
 function getCvName(app){ if(app._cv_name) return app._cv_name; if(app.cv_name) return app.cv_name; if(app.profiles?.cv_name) return app.profiles.cv_name; const path = getCvPath(app); if(!path) return 'Candidate CV'; try{ return decodeURIComponent(path.split('/').pop()); }catch(e){ return 'Candidate CV'; } }
 async function enrichApplications(applications){
  const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(Boolean))];
- // FIX UUID: Only send real uuids to profiles.id (uuid column). Phones would crash it.
  const ids = rawIds.filter(isUuid);
  let profileMap = {};
  if(ids.length){
@@ -513,7 +627,6 @@ async function loadDashboard(){
   await resolveEmployerUuid();
   await checkPayment();
   await loadCredits();
-  // FIX UUID: Jobs query - uuid only, plus phone-column fallbacks
   var jobs = [];
   var jobsError = null;
   var uuids = idVariants();
