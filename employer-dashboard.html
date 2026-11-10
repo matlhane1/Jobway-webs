@@ -23,7 +23,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .btn-whats{background:#25D366;color:white}
 .btn-orange{background:#FFB020;color:#111}
 .btn-red{background:#3a1a1a;color:#ff9a9a}
-/* FIX: Header buttons must be visible, not grey */
 #postJobBtn{background:#01F9C6!important;color:#0A1F2E!important;opacity:1!important}
 #postJobBtn.locked{background:#FFB020!important;color:#111!important}
 #viewJobsBtn{background:#fff!important;color:#0A1F2E!important;opacity:1!important}
@@ -151,6 +150,7 @@ let loadingDashboard = false;
 let realtimeChannel = null;
 let currentWallet = null;
 let HAS_PAID = false;
+let EMPLOYER_UUID = null;
 function normalizeCategory(v){
   if(!v) return '';
   if(v === 'Hospitality') return 'Hospitality and Tourism';
@@ -160,7 +160,7 @@ function normalizeCategory(v){
   return v;
 }
 function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-// FIX: Read employer from jobway_employer FIRST, not only jobway_user
+function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
 function getCurrentUser(){
   try{
     var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
@@ -170,25 +170,43 @@ function getCurrentUser(){
   }catch(e){ return null; }
   return null;
 }
-// FIX: Same person can be 081..., 27..., +27... in different tables - check all variants
+// FIX UUID: Phone is NEVER a uuid. Only use uuid for uuid columns.
 function idVariants(){
-  var base = String(currentUser?.id || currentUser?.phone || currentUser?.whatsapp_number || '');
-  if(!base) return [];
+  if(EMPLOYER_UUID && isUuid(EMPLOYER_UUID)) return [EMPLOYER_UUID];
+  var base = String(currentUser?.id || '');
+  if(isUuid(base)) return [base];
+  return [];
+}
+function phoneVariants(){
+  var base = String(currentUser?.phone || currentUser?.whatsapp_number || currentUser?.id || '');
   var digits = base.replace(/\D/g,'');
   var v = new Set();
-  v.add(base); v.add(digits);
-  if(digits.startsWith('27')) v.add('0'+digits.slice(2));
-  if(digits.startsWith('0')) v.add('27'+digits.slice(1));
-  v.add('+'+digits);
-  if(digits.startsWith('27')) v.add('+'+digits);
+  if(digits){
+    v.add(digits);
+    if(digits.startsWith('27')) v.add('0'+digits.slice(2));
+    if(digits.startsWith('0')) v.add('27'+digits.slice(1));
+    v.add('+'+digits);
+  }
+  if(base) v.add(base);
   return Array.from(v).filter(Boolean);
+}
+async function resolveEmployerUuid(){
+  if(EMPLOYER_UUID) return EMPLOYER_UUID;
+  if(currentUser && isUuid(currentUser.id)){ EMPLOYER_UUID = currentUser.id; return EMPLOYER_UUID; }
+  var phones = phoneVariants();
+  for(var p of phones){
+    try{
+      var r = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(p)+',whatsapp_number.eq.'+encodeURIComponent(p)).limit(1).maybeSingle();
+      if(r.data && isUuid(r.data.id)){ EMPLOYER_UUID = r.data.id; return EMPLOYER_UUID; }
+    }catch(e){}
+  }
+  return null;
 }
 function fmt(date){ if(!date) return 'Not available'; const d = new Date(date); if(isNaN(d.getTime())) return 'Not available'; return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }
 function formatPhone(phone){ if(!phone) return ''; let number = String(phone).replace(/\D/g,''); if(number.startsWith('0')) number = '27' + number.slice(1); if(number.startsWith('27')) return number; return number; }
 function showMessage(message,type=''){ const el = document.getElementById('dashboardMessage'); el.innerHTML = message ? `<div class="message ${type}">${esc(message)}</div>` : ''; }
 function setLoading(button,text){ if(button){ button.disabled = true; button.dataset.originalText = button.innerText; button.innerText = text; } }
 function resetButton(button){ if(button){ button.disabled = false; button.innerText = button.dataset.originalText || 'Submit'; } }
-// FIX: Payment gate - Post Job ONLY after payment
 function updatePostJobButton(){
   var btn = document.getElementById('postJobBtn'); if(!btn) return;
   if(HAS_PAID){ btn.classList.remove('locked'); btn.textContent = '+ Post Job'; }
@@ -203,22 +221,29 @@ function handlePostJob(){
   location.href = 'post-job.html';
 }
 async function checkPayment(){
-  // Check: payments COMPLETE OR employer_credits > 0 OR plan != free OR subscriptions active
   HAS_PAID = false;
+  await resolveEmployerUuid();
   var ids = idVariants();
-  if(!ids.length) { updatePostJobButton(); return false; }
+  var phones = phoneVariants();
   try{
-    var q = await supabaseClient.from('payments').select('status,product_code').in('employer_id', ids).eq('status','COMPLETE').order('created_at',{ascending:false}).limit(1);
-    if(q.data && q.data.length) HAS_PAID = true;
+    if(ids.length){
+      var q = await supabaseClient.from('payments').select('status').in('employer_id', ids).eq('status','COMPLETE').order('created_at',{ascending:false}).limit(1);
+      if(q.data && q.data.length) HAS_PAID = true;
+    }
+    if(!HAS_PAID){
+      // Only if payments table has a phone column - error is ignored
+      var q2 = await supabaseClient.from('payments').select('status').in('phone', phones).eq('status','COMPLETE').limit(1);
+      if(q2.data && q2.data.length) HAS_PAID = true;
+    }
   }catch(e){}
-  if(!HAS_PAID){
+  if(!HAS_PAID && ids.length){
     try{
       var c = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
       if(c.data && ((c.data.credits||0) > 0 || (c.data.job_credits||0) > 0 || (c.data.cv_credits||0) > 0 || (c.data.plan && c.data.plan !== 'free'))) HAS_PAID = true;
       if(c.data) currentWallet = c.data;
     }catch(e){}
   }
-  if(!HAS_PAID){
+  if(!HAS_PAID && ids.length){
     try{
       var s = await supabaseClient.from('subscriptions').select('status').in('employer_id', ids).eq('status','active').limit(1);
       if(s.data && s.data.length) HAS_PAID = true;
@@ -229,20 +254,15 @@ async function checkPayment(){
 }
 document.getElementById('homeBtn').onclick = () => { location.href = 'index.html'; };
 document.getElementById('postJobBtn').onclick = handlePostJob;
-// FIX: View Jobs ALWAYS works - employer checks if job is LIVE, even before paying
-document.getElementById('viewJobsBtn').onclick = () => { location.href = 'jobs.html'; };
-// FIX: Refresh must reset loading flag + re-check payment + reload
+// FIX: View Jobs NEVER goes to jobs.html (jobseeker page). Goes to employer-jobs.html
+document.getElementById('viewJobsBtn').onclick = () => { location.href = 'employer-jobs.html'; };
 document.getElementById('refreshBtn').onclick = async () => {
   loadingDashboard = false;
   document.getElementById('refreshBtn').textContent = '↻ Refreshing...';
   await checkPayment();
   await loadDashboard();
   document.getElementById('refreshBtn').textContent = '↻ Refresh';
-  // Hard reload as final fallback so cache cannot keep old grey state
-  // Comment out next line if you don't want full reload:
-  // location.reload();
 };
-// FIX: Log Out must clear ALL employer keys, not just jobway_user
 document.getElementById('logoutBtn').onclick = async () => {
   try{ await Promise.race([supabaseClient.auth.signOut(), new Promise(r=>setTimeout(r,1000))]); }catch(e){}
   try{
@@ -272,7 +292,9 @@ function cleanCvPath(raw){
 function getCvPath(app){ return cleanCvPath(app._cv_path || app.cv_path || app.cv_url || app.profiles?.cv_url || ''); }
 function getCvName(app){ if(app._cv_name) return app._cv_name; if(app.cv_name) return app.cv_name; if(app.profiles?.cv_name) return app.profiles.cv_name; const path = getCvPath(app); if(!path) return 'Candidate CV'; try{ return decodeURIComponent(path.split('/').pop()); }catch(e){ return 'Candidate CV'; } }
 async function enrichApplications(applications){
- const ids = [...new Set(applications.map(a => a.applicant_id).filter(Boolean))];
+ const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(Boolean))];
+ // FIX UUID: Only send real uuids to profiles.id (uuid column). Phones would crash it.
+ const ids = rawIds.filter(isUuid);
  let profileMap = {};
  if(ids.length){
   const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,cv_url,cv_name').in('id',ids);
@@ -291,7 +313,7 @@ async function enrichApplications(applications){
   else { app._job_category = ''; app._qualifications = ''; app._experience_years = ''; app._area = ''; }
   if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); app._cv_name = app.cv_name || null; continue; }
   if(app.profiles?.cv_url){ app._cv_path = cleanCvPath(app.profiles.cv_url); app._cv_name = app.profiles.cv_name || null; continue; }
-  if(!app.applicant_id) continue;
+  if(!app.applicant_id || !isUuid(app.applicant_id)) continue;
   try{
    const {data,error} = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone,job_category,category,qualifications,experience_years,area,location').eq('user_id',app.applicant_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
    if(error){ console.warn('Candidate CV lookup:',error.message); continue; }
@@ -302,13 +324,15 @@ async function enrichApplications(applications){
 }
 async function loadCredits(){
   if(!currentUser?.id){ document.getElementById('creditsText').innerText='Please log in'; return null; }
-  // FIX: Try all ID variants, not just exact id
+  await resolveEmployerUuid();
   var ids = idVariants();
   var data = null;
-  try{
-    var r = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
-    data = r.data || null;
-  }catch(e){}
+  if(ids.length){
+    try{
+      var r = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
+      data = r.data || null;
+    }catch(e){}
+  }
   currentWallet = data || { credits:0, plan:'free' };
   updateCreditsBanner();
   return currentWallet;
@@ -336,7 +360,12 @@ async function openSecureCV(path,appId,button){
   if(!currentWallet) await loadCredits();
   const unlimited = isUnlimitedWallet(currentWallet);
   const credits = currentWallet?.credits || 0;
-  const { data: already } = await supabaseClient.from('cv_unlocks').select('id').eq('employer_id', currentUser.id).eq('application_id', appId).maybeSingle();
+  var empIdForUnlock = EMPLOYER_UUID || (isUuid(currentUser.id) ? currentUser.id : null);
+  var already = null;
+  if(empIdForUnlock){
+    var chk = await supabaseClient.from('cv_unlocks').select('id').eq('employer_id', empIdForUnlock).eq('application_id', appId).maybeSingle();
+    already = chk.data;
+  }
   if(!already && !unlimited && credits <= 0){
     button.disabled = false; button.innerText = original;
     alert('🔒 No CV credits left.\n\nBuy more:\n• 20 CVs — R999\n• 100 CVs — R2,499 (POPULAR)\n• 250 CVs — R5,999\n• Unlimited — R9,999 / month');
@@ -347,14 +376,16 @@ async function openSecureCV(path,appId,button){
   const {data,error} = await supabaseClient.storage.from('cvs').createSignedUrl(clean,300);
   if(error) throw error;
   if(!data?.signedUrl) throw new Error('Secure CV link was not created.');
-  const {error:logError} = await supabaseClient.from('cv_access_log').insert([{application_id:appId,cv_path:clean,accessed_by:currentUser.id}]);
-  if(logError){ console.warn('CV access logging:',logError.message); }
+  if(empIdForUnlock){
+    const {error:logError} = await supabaseClient.from('cv_access_log').insert([{application_id:appId,cv_path:clean,accessed_by:empIdForUnlock}]);
+    if(logError){ console.warn('CV access logging:',logError.message); }
+  }
   const opened = window.open(data.signedUrl,'_blank','noopener');
   if(!opened){ alert('Your browser blocked the CV. Allow popups for JobWay.'); }
-  if(!already && !unlimited){
+  if(!already && !unlimited && empIdForUnlock){
     const newCredits = Math.max(0, credits - 1);
-    await supabaseClient.from('employer_credits').update({ credits: newCredits, updated_at: new Date().toISOString() }).eq('employer_id', currentUser.id);
-    await supabaseClient.from('cv_unlocks').insert([{ employer_id: currentUser.id, application_id: appId, cv_path: clean }]);
+    await supabaseClient.from('employer_credits').update({ credits: newCredits, updated_at: new Date().toISOString() }).eq('employer_id', empIdForUnlock);
+    await supabaseClient.from('cv_unlocks').insert([{ employer_id: empIdForUnlock, application_id: appId, cv_path: clean }]);
     currentWallet.credits = newCredits;
     updateCreditsBanner();
     button.innerText = '✓ CV opened — 1 credit used';
@@ -384,7 +415,7 @@ function buildWhatsAppMessage(app,status){
  return {phone,message};
 }
 function openWhatsApp(phone,message){ if(!phone){ alert('No WhatsApp number is available for this candidate.'); return false; } const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); const popup = window.open(url,'_blank'); if(!popup){ alert('WhatsApp popup blocked. Please allow popups for JobWay.'); return false; } return true; }
-async function saveCandidateNotification(app,status,message){ if(!app.applicant_id) return; try{ const {error} = await supabaseClient.from('notifications').insert([{user_id:app.applicant_id,title:'Application: ' + status,message:message}]); if(error) console.warn('Notification:',error.message); }catch(e){ console.warn('Notification error:',e); } }
+async function saveCandidateNotification(app,status,message){ if(!app.applicant_id || !isUuid(app.applicant_id)) return; try{ const {error} = await supabaseClient.from('notifications').insert([{user_id:app.applicant_id,title:'Application: ' + status,message:message}]); if(error) console.warn('Notification:',error.message); }catch(e){ console.warn('Notification error:',e); } }
 async function updateStatus(id,newStatus,sendWA=true){
  if(!STATUSES.includes(newStatus)){ alert('Invalid application status.'); return; }
  const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
@@ -460,7 +491,7 @@ function renderApplicant(app){
 function renderJobs(){
  const el = document.getElementById('jobsList');
  if(!currentJobs.length){ el.innerHTML = `<div class="card empty">You haven't posted any jobs yet.<br><br><a href="pricing.html">Pay R299 to post your first job →</a></div>`; return; }
- el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; const live = job.is_active !== false && job.status !== 'closed'; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b> <span class="badge ${live?'b-green':'b-grey'}">${live?'● LIVE':'Paused'}</span><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small><div class="btn-row"><button class="btn btn-green" onclick="location.href='jobs.html'">Check if LIVE →</button></div></div>`; }).join('');
+ el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; const live = job.is_active !== false && job.status !== 'closed'; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b> <span class="badge ${live?'b-green':'b-grey'}">${live?'● LIVE':'Paused'}</span><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small><div class="btn-row"><button class="btn btn-green" onclick="location.href='employer-jobs.html'">Check if LIVE →</button></div></div>`; }).join('');
 }
 function filterApplicants(){
  const search = document.getElementById('searchInput').value.trim().toLowerCase(); const status = document.getElementById('statusFilter').value; const cat = document.getElementById('categoryFilter').value; const exp = document.getElementById('expFilter').value; const area = document.getElementById('areaFilter').value; let visible = 0;
@@ -479,11 +510,24 @@ async function loadDashboard(){
  try{
   currentUser = getCurrentUser();
   if(!currentUser || !currentUser.id){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
-  // FIX: Removed Supabase Auth session check - WhatsApp login has no Auth session, it always threw
+  await resolveEmployerUuid();
   await checkPayment();
   await loadCredits();
-  var ids = idVariants();
-  const {data:jobs,error:jobsError} = await supabaseClient.from('jobs').select('*').in('employer_id', ids).order('created_at',{ascending:false}); if(jobsError) throw jobsError;
+  // FIX UUID: Jobs query - uuid only, plus phone-column fallbacks
+  var jobs = [];
+  var jobsError = null;
+  var uuids = idVariants();
+  if(uuids.length){
+    var r1 = await supabaseClient.from('jobs').select('*').in('employer_id', uuids).order('created_at',{ascending:false});
+    jobs = r1.data || []; jobsError = r1.error;
+  }
+  if(!jobs.length){
+    try{ var r2 = await supabaseClient.from('jobs').select('*').in('employer_phone', phoneVariants()).order('created_at',{ascending:false}); if(r2.data && r2.data.length) jobs = r2.data; }catch(e){}
+  }
+  if(!jobs.length){
+    try{ var r3 = await supabaseClient.from('jobs').select('*').in('whatsapp_number', phoneVariants()).order('created_at',{ascending:false}); if(r3.data && r3.data.length) jobs = r3.data; }catch(e){}
+  }
+  if(jobsError && !jobs.length) throw jobsError;
   currentJobs = jobs || [];
   currentApps = []; const jobIds = currentJobs.map(j=>j.id);
   if(jobIds.length){ const {data:apps,error:appsError} = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
@@ -502,7 +546,7 @@ document.getElementById('list').addEventListener('click',function(e){
 document.getElementById('list').addEventListener('change',function(e){ const element = e.target; if(element.dataset.action === 'select-status'){ changeStatusOnly(element.dataset.id,element.value); } });
 function startRealtime(){
  if(!currentUser?.id) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
- realtimeChannel = supabaseClient.channel('jobway-employer-'+currentUser.id).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); });
+ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); });
 }
 async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser?.id){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
 startDashboard();
