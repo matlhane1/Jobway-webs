@@ -35,10 +35,8 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
 <div class="top"><a href="employer-dashboard.html">← Dashboard</a><h3 style="margin:0;font-family:'Space Grotesk',sans-serif;color:#01F9C6">JobWay</h3></div>
 <div class="card">
 <div id="creditBanner" class="credit-banner"></div>
-
 <h2 style="margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-weight:800">Post a New Job</h2>
 <p style="margin:0 0 14px;color:#8db0bf;font-size:12px">Company logo upload is <b style="color:#01F9C6">FREE</b> — jobs with logos get 3x more applications</p>
-
 <label>Company Logo — Free</label>
 <input type="file" id="logoFile" accept="image/*" style="display:none">
 <div class="logo-box" id="logoBox" onclick="document.getElementById('logoFile').click()">
@@ -53,26 +51,22 @@ a{color:white;text-decoration:none;font-weight:700;font-size:14px}
     <div id="logoName" class="hint"></div>
   </div>
 </div>
-
 <label>Job Title *</label><input id="title" placeholder="e.g. Cashier">
 <label>Company Name *</label><input id="company" placeholder="e.g. Shoprite">
-
 <div class="invoice-box">
 <div class="invoice-title">📧 INVOICE DETAILS - Sent from employers@jobway.co.za</div>
 <label style="margin-top:6px">Company Email for Invoices *</label>
 <input id="invoiceEmail" type="email" placeholder="accounts@company.co.za">
-<div class="hint">Invoice will be sent here instantly after payment</div>
+<div class="hint">Invoice will be sent here instantly after payment. This email is NOT for login.</div>
 <label>VAT Number (optional - for invoice)</label>
 <input id="vatNumber" placeholder="4xxxxxxxxx">
 </div>
-
 <label>Location</label><input id="location" placeholder="e.g. Thohoyandou">
 <label>Salary</label><input id="salary" placeholder="e.g. R4500">
 <label>WhatsApp Number for Applicants *</label><input id="whatsapp" placeholder="e.g. 0790608952">
 <label>Type</label><select id="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
 <label>Closing Date</label><input id="closing" type="date">
 <label>Description</label><textarea id="desc" rows="4" placeholder="Job requirements..."></textarea>
-
 <button class="btn" id="post">Post Job</button>
 <button class="btn-outline" id="saveDraft">Save Draft (Free - Post Later)</button>
 <div id="msg" style="margin-top:12px;text-align:center;font-size:12px;color:#7fb0be"></div>
@@ -83,7 +77,6 @@ let logoData = null;
 let logoFileObj = null;
 let compressedBlob = null;
 let userCredits = { job_credits: 0, cv_credits: 0 };
-
 function compressImage(file, cb){
   const reader = new FileReader();
   reader.onload = e=>{
@@ -107,7 +100,6 @@ function compressImage(file, cb){
   };
   reader.readAsDataURL(file);
 }
-
 document.getElementById('logoFile').addEventListener('change', function(){
   const file = this.files[0];
   if(!file) return;
@@ -121,22 +113,17 @@ document.getElementById('logoFile').addEventListener('change', function(){
     document.getElementById('logoName').innerText = file.name + ' • compressed • will upload to company-logos';
   });
 });
-
-// LOAD CREDITS FROM SUPABASE
 async function loadCredits(){
   try{
     let user=null;
     try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
     if(!user || !user.id) return;
-    
     const { data } = await supabaseClient.from('employer_limits').select('*').eq('employer_id', user.id).single();
     if(data){
       userCredits = data;
       const banner = document.getElementById('creditBanner');
       banner.style.display='block';
       banner.innerHTML = `💼 ${data.job_display || data.job_credits+' jobs'} • 📄 ${data.cv_display || data.cv_credits+' CVs'} • ${data.plan ? 'Plan: '+data.plan : ''}`;
-      
-      // Update button text
       if(data.job_credits > 0 || data.job_credits >= 999999){
         document.getElementById('post').innerText = `Post Job — Uses 1 Credit (${data.job_credits>=999999?'Unlimited':data.job_credits+' left'})`;
       } else {
@@ -150,7 +137,6 @@ async function loadCredits(){
     }
   }catch(e){ console.log('credit load', e); }
 }
-
 window.onload = ()=>{
   document.getElementById('invoiceEmail').value = localStorage.getItem('invoice_email') || localStorage.getItem('jobway_user_email') || '';
   document.getElementById('company').value = localStorage.getItem('company_name') || '';
@@ -158,18 +144,15 @@ window.onload = ()=>{
   document.getElementById('vatNumber').value = localStorage.getItem('vat_number') || '';
   loadCredits();
 };
-
 async function handlePost(isDraft=false){
 const titleVal=document.getElementById('title').value.trim();
 const companyVal=document.getElementById('company').value.trim();
 const invoiceEmailVal=document.getElementById('invoiceEmail').value.trim().toLowerCase();
 if(!titleVal||!companyVal){alert('Fill title & company');return;}
 if(!invoiceEmailVal || !invoiceEmailVal.includes('@')){alert('Please enter company email for invoices'); document.getElementById('invoiceEmail').focus(); return;}
-
 const b=document.getElementById('post');
 b.textContent=isDraft?'Saving...':'Checking credits...';b.disabled=true;
 document.getElementById('msg').innerText='Uploading logo & checking credits...';
-
 let logoUrl = logoData;
 if(logoFileObj){
   try{
@@ -182,22 +165,18 @@ if(logoFileObj){
     }
   }catch(e){}
 }
-
 let user=null;
 try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
-
 let wa = document.getElementById('whatsapp').value.trim();
 if(!wa && user) wa = user.phone || user.whatsapp_number || '';
-
 const vatVal = document.getElementById('vatNumber').value.trim();
-
+// Email is INVOICE ONLY - never login. Save it for pricing + invoice.
 localStorage.setItem('invoice_email', invoiceEmailVal);
 localStorage.setItem('jobway_user_email', invoiceEmailVal);
 localStorage.setItem('company_name', companyVal);
 localStorage.setItem('whatsapp_number', wa);
 localStorage.setItem('vat_number', vatVal);
 localStorage.setItem('pending_job_title', titleVal);
-
 if(user && user.id){
   try{
     await supabaseClient.from('companies').upsert({
@@ -211,7 +190,6 @@ if(user && user.id){
     }, {onConflict: 'user_id'});
   }catch(e){ console.log('company upsert', e); }
 }
-
 const job={
   title:titleVal,
   company:companyVal,
@@ -225,40 +203,33 @@ const job={
   employer_id: (user && user.id) ? user.id : null,
   employer_email: invoiceEmailVal,
   invoice_email: invoiceEmailVal,
+  vat_number: vatVal,
   status: isDraft ? 'draft' : 'active'
 };
-
 if(isDraft){
   const {error}=await supabaseClient.from('jobs').insert([job]);
   if(error){ alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; }
   alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
-
-// --- CREDIT CHECK LOGIC ---
+// --- CREDIT CHECK ---
 if(user && user.id){
-  // Try to deduct 1 job credit
-  const { data: canPost, error: creditError } = await supabaseClient.rpc('use_job_credit', { p_employer_id: user.id });
-  
+  const { data: canPost } = await supabaseClient.rpc('use_job_credit', { p_employer_id: user.id });
   if(canPost === true){
-    // Has credits - post directly
     const {error}=await supabaseClient.from('jobs').insert([job]);
-    if(error){ 
-      // Refund credit if job insert failed
+    if(error){
       await supabaseClient.rpc('add_job_credits', { employer_id: user.id, amount: 1 });
-      alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; 
+      alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return;
     }
-    alert('✅ Job posted! 1 credit used.'); 
-    location.href='employer-dashboard.html'; 
+    alert('✅ Job posted! 1 credit used.');
+    location.href='employer-dashboard.html';
     return;
   }
 }
-
-// No credits - go to payment
+// No credits - save as pending, DO NOT insert yet. Pricing will send invoice_email to PayFast.
 localStorage.setItem('pending_job', JSON.stringify(job));
 document.getElementById('msg').innerHTML='No credits — redirecting to payment...';
 location.href=`pricing.html?email=${encodeURIComponent(invoiceEmailVal)}&company=${encodeURIComponent(companyVal)}&job=${encodeURIComponent(titleVal)}`;
 }
-
 document.getElementById('post').onclick=()=>handlePost(false);
 document.getElementById('saveDraft').onclick=()=>handlePost(true);
 </script></body></html>
