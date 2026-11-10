@@ -103,7 +103,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
  <div class="credits-banner">
   <div>
     <div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#8DB0BF;text-transform:uppercase">Employer CV Access</div>
-    <div id="creditsText" style="font-size:15px;font-weight:700;color:#fff;margin-top:8px">Loading…</div>
+    <div id="creditsText" style="font-size:13px;font-weight:500;color:#8DB0BF;margin-top:8px">Checking your credits…</div>
     <div id="planText" style="font-size:13px;color:#C2D6DD;margin-top:4px">Current plan: Free</div>
     <div id="paymentText" style="font-size:13px;color:#C2D6DD;margin-top:2px">Payment status: Unpaid</div>
     <div style="font-size:12px;color:#8DB0BF;margin-top:8px;line-height:1.5">1 CV view = 1 credit. Previously unlocked CVs can be viewed again at no additional cost.</div>
@@ -148,7 +148,6 @@ const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const STATUSES = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired','Not Selected'];
-// FIX: Product -> credits map for claiming guest payments by WhatsApp. Must match payfast_notify PRODUCTS.
 const PRODUCT_CREDITS = {
   payg_job: { job: 1, cv: 0, plan: 'Pay As You Go Job Posting' },
   starter_monthly: { job: 5, cv: 0, plan: 'Starter Monthly' },
@@ -184,7 +183,6 @@ function normalizeCategory(v){
 }
 function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
-// FIX: WhatsApp is identity. Normalise to 27... so 079... / +2779... / 2779... all match.
 function normalizeWhatsapp(v){
   let d = String(v||'').replace(/\D/g,'');
   if(!d) return '';
@@ -192,6 +190,22 @@ function normalizeWhatsapp(v){
   if(d.startsWith('0') && d.length===10) return '27'+d.slice(1);
   if(d.length===9) return '27'+d;
   return d;
+}
+// FIX: Loading state should be quiet (grey), real credits should be white bold. Prevents distraction.
+function setCreditsLoading(){
+  var el = document.getElementById('creditsText');
+  if(!el) return;
+  el.style.color = '#8DB0BF';
+  el.style.fontWeight = '500';
+  el.style.fontSize = '13px';
+  el.textContent = 'Checking your credits…';
+}
+function setCreditsLoaded(){
+  var el = document.getElementById('creditsText');
+  if(!el) return;
+  el.style.color = '#fff';
+  el.style.fontWeight = '700';
+  el.style.fontSize = '15px';
 }
 function getCurrentUser(){
   try{
@@ -208,7 +222,6 @@ function idVariants(){
   if(isUuid(base)) return [base];
   return [];
 }
-// FIX: Phone variants are all normalised WhatsApp forms. Email is NEVER here - email is invoice ONLY.
 function phoneVariants(){
   var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || currentUser?.id || '';
   var norm = normalizeWhatsapp(raw);
@@ -252,7 +265,6 @@ function updatePostJobButton(){
   else { btn.classList.add('locked'); btn.textContent = '🔒 Pay to Post Job'; }
 }
 function handlePostJob(){
-  // FIX: No login required to PAY. Pricing is guest checkout. Dashboard only gates POSTING, not PAYING.
   if(!HAS_PAID){
     alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
     location.href = 'pricing.html';
@@ -260,9 +272,6 @@ function handlePostJob(){
   }
   location.href = 'post-job.html';
 }
-// FIX: Claim guest payments by WHATSAPP_NUMBER. Email is invoice ONLY, never used to claim.
-// Guest paid with WhatsApp 2779... -> employer_id = null, status = COMPLETE, whatsapp_number = 2779...
-// Employer now logs in with same WhatsApp -> we find those payments, link them, add credits.
 async function claimGuestPayments(){
   if(claimDone) return 0;
   claimDone = true;
@@ -274,7 +283,6 @@ async function claimGuestPayments(){
   if(!phones.length) return 0;
   var claimed = [];
   try{
-    // FIX: Query whatsapp_number, NOT phone (phone column does not exist in payments).
     var q = await supabaseClient.from('payments').select('*').in('whatsapp_number', phones).eq('status','COMPLETE').is('employer_id', null);
     if(q.error){ console.log('claim query:', q.error.message); return 0; }
     claimed = q.data || [];
@@ -371,6 +379,7 @@ document.getElementById('viewJobsBtn').onclick = () => { location.href = 'employ
 document.getElementById('refreshBtn').onclick = async () => {
   loadingDashboard = false;
   claimDone = false;
+  setCreditsLoading();
   document.getElementById('refreshBtn').textContent = '↻ Refreshing...';
   await checkPayment();
   await loadDashboard();
@@ -436,7 +445,8 @@ async function enrichApplications(applications){
  return applications;
 }
 async function loadCredits(){
-  if(!currentUser?.id){ var ct = document.getElementById('creditsText'); if(ct) ct.innerText='Please log in to view credits'; return null; }
+  if(!currentUser?.id){ var ct = document.getElementById('creditsText'); if(ct){ setCreditsLoading(); ct.textContent='Please log in to view credits'; } return null; }
+  setCreditsLoading();
   await resolveEmployerUuid();
   var ids = idVariants();
   var data = null;
@@ -456,6 +466,7 @@ function updateCreditsBanner(){
   var planEl = document.getElementById('planText');
   var payEl = document.getElementById('paymentText');
   if(!creditsEl) return;
+  setCreditsLoaded();
   if(!currentWallet){
     creditsEl.textContent = '0 CV credits remaining';
     if(planEl) planEl.textContent = 'Current plan: Free';
@@ -660,7 +671,7 @@ async function loadDashboard(){
   if(jobIds.length){ const {data:apps,[STRIPPED] = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
   document.getElementById('jobCount').innerText = currentJobs.length; document.getElementById('appCount').innerText = currentApps.length;
   if(currentApps.length){ list.innerHTML = currentApps.map(renderApplicant).join(''); document.getElementById('empty').style.display = 'none'; filterApplicants(); }else{ list.innerHTML = ''; document.getElementById('empty').style.display = 'block'; document.getElementById('filterCount').innerText = ''; }
-  renderJobs(); showMessage('');
+  renderJobs();
  }catch(e){ console.error('Dashboard loading error:',e); showMessage('Dashboard error: ' + (e.message || 'Unable to load your information.'),'error'); list.innerHTML = `<div class="card">Unable to load your dashboard.<br><br><button class="btn btn-green" id="retryBtn">Try Again</button></div>`; document.getElementById('retryBtn').addEventListener('click',()=>{ loadingDashboard=false; loadDashboard(); }); }finally{ loadingDashboard = false; }
 }
 document.getElementById('list').addEventListener('click',function(e){
