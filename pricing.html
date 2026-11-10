@@ -159,9 +159,9 @@ button{cursor:pointer}
   <div class="modal-header"><b id="modalTitle">Complete your purchase</b><button class="close-btn" onclick="closePay()" aria-label="Close payment window">×</button></div>
   <div class="order-box"><span id="mItem">JobWay</span><b class="order-price" id="mAmount">R0</b></div>
   <div id="mCategoryBox" style="display:none;background:#0F2230;border-radius:11px;padding:11px;font-size:12px;margin-bottom:10px">CV Category: <b id="mCategory" style="color:#01F9C6"></b><br><span id="mStock" style="color:#A8C8D0"></span></div>
-  <label class="field-label" for="emailField">Billing email address</label>
+  <label class="field-label" for="emailField">Email for Invoice *</label>
   <input id="emailField" class="email-input" type="email" autocomplete="email" placeholder="hr@company.co.za" required>
-  <p style="font-size:11px;color:#7FA5B0;margin-top:7px">Your billing email will be used for payment and invoice records.</p>
+  <p style="font-size:11px;color:#7FA5B0;margin-top:7px">Invoice will be sent here instantly after payment. This email is NOT for login.</p>
   <button class="payment-btn" id="payBtn" onclick="doPay()">Continue to PayFast →</button>
   <p class="pay-error" id="payErr" role="alert"></p>
   <div class="fallback-box" id="fallbackBox"><b style="color:#FFB020">Need to pay by EFT?</b><p>Contact JobWay to request the official banking details and payment instructions.</p><p style="margin-top:8px">Your credits or subscription will only be activated after payment has been verified.</p><button class="whatsapp-btn" onclick="sendWhatsAppProof()">Request EFT Details on WhatsApp →</button></div>
@@ -173,7 +173,6 @@ button{cursor:pointer}
 const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const WHATSAPP_NUMBER = "27790608952";
-// FIXED: Maps display name -> product_code that payfast_create_payment expects
 const PRODUCTS = {
  "JobWay Single Job Post": { amount:299, code:"payg_job" },
  "JobWay Starter Monthly": { amount:999, code:"starter_monthly" },
@@ -255,21 +254,6 @@ function updateCvButtons(){
   });
 }
 document.getElementById("cvCategory").addEventListener("change", e=>{ selectedCategory = e.target.value; updateCvButtons(); });
-function getAccessToken(){
- try{
-  for(let i=0;i<localStorage.length;i++){
-   const key = localStorage.key(i);
-   if(!key || !key.includes("auth-token")) continue;
-   const raw = localStorage.getItem(key);
-   if(!raw) continue;
-   const session = JSON.parse(raw);
-   if(session.access_token) return session.access_token;
-   if(session.currentSession?.access_token) return session.currentSession.access_token;
-   if(session.session?.access_token) return session.session.access_token;
-  }
- }catch(error){ console.error("Session lookup failed:",error); }
- return null;
-}
 function getEmployerId(){
  try{ const user = JSON.parse(localStorage.getItem("jobway_user") || localStorage.getItem("user") || "null"); return user?.id || null; }catch(error){ return null; }
 }
@@ -294,7 +278,11 @@ function openPay(item, code){
    document.getElementById("mCategory").textContent = selectedCategory;
    document.getElementById("mStock").textContent = (cvPool[selectedCategory]||0) + " " + selectedCategory + " CVs available — you are buying " + prod.cvCount;
  } else { document.getElementById("mCategoryBox").style.display="none"; }
- document.getElementById("emailField").value = localStorage.getItem("jobway_user_email") || "";
+ // Invoice email: from Post-a-Job ?email= OR pending_job OR saved
+ const urlParams = new URLSearchParams(location.search);
+ let pending = {};
+ try{ pending = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
+ document.getElementById("emailField").value = urlParams.get("email") || pending.invoice_email || pending.employer_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
  document.getElementById("payErr").style.display = "none";
  document.getElementById("fallbackBox").style.display = "none";
  document.getElementById("payBtn").disabled = false;
@@ -313,22 +301,38 @@ async function doPay(){
  document.getElementById("payErr").style.display = "none";
  document.getElementById("fallbackBox").style.display = "none";
  if(!curItem || !PRODUCTS[curItem]){ showError("Please select a valid JobWay product."); return; }
- if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailField.style.borderColor = "#ff5555"; showError("Please enter a valid billing email address."); return; }
+ if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailField.style.borderColor = "#ff5555"; showError("Please enter a valid email for your invoice."); return; }
  emailField.style.borderColor = "";
- const accessToken = getAccessToken();
- const employerId = getEmployerId();
- if(!accessToken || !employerId){ showError("Please log in to your JobWay employer account before purchasing. If you are already logged in, please sign in again."); return; }
- localStorage.setItem("jobway_user_email",email);
- try{ localStorage.setItem("jobway_pending_payment", JSON.stringify({ item:curItem, product_code:curCode, email:email, amount:PRODUCTS[curItem].amount, employer_id:employerId, cv_category:selectedCategory||null, created_at:new Date().toISOString() })); }catch(e){}
+ // YOUR LOGIN: localStorage jobway_user, NOT Supabase Auth token. Do NOT block if no token.
+ let pendingJob = {};
+ try{ pendingJob = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
+ let employerId = getEmployerId() || pendingJob.employer_id || "";
+ const whatsapp = pendingJob.whatsapp_number || localStorage.getItem("whatsapp_number") || "";
+ const companyName = pendingJob.company || localStorage.getItem("company_name") || "";
+ localStorage.setItem("jobway_user_email", email);
+ localStorage.setItem("invoice_email", email);
+ try{ localStorage.setItem("jobway_pending_payment", JSON.stringify({ item:curItem, product_code:curCode, email:email, invoice_email:email, amount:PRODUCTS[curItem].amount, employer_id:employerId, whatsapp:whatsapp, company_name:companyName, cv_category:selectedCategory||null, created_at:new Date().toISOString() })); }catch(e){}
  button.disabled = true; button.textContent = "Preparing payment...";
  try{
-  // FIXED: Send what payfast_create_payment actually expects: product_code + custom_str1 + cv_category
-  // And handle what it actually returns: { success:true, url, payment_id }
-  const response = await fetch(SUPABASE_URL + "/functions/v1/payfast_create_payment", { method:"POST", headers:{ "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":"Bearer " + accessToken }, body:JSON.stringify({ product_code:curCode, custom_str1:employerId, custom_str3:curCode, custom_str4:selectedCategory||"", cv_category:selectedCategory||null, email:email }) });
+  const response = await fetch(SUPABASE_URL + "/functions/v1/payfast_create_payment", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "apikey":SUPABASE_KEY },
+    body:JSON.stringify({
+      item: curItem,
+      product_code: curCode,
+      employer_id: employerId,
+      invoice_email: email,
+      email: email,
+      whatsapp: whatsapp,
+      whatsapp_number: whatsapp,
+      company_name: companyName,
+      cv_category: selectedCategory||"",
+      custom_str4: selectedCategory||""
+    })
+  });
   const data = await response.json().catch(()=>({}));
   if(!response.ok){ throw new Error(data.error || "Unable to create your payment."); }
   if(!data.url){ throw new Error("The payment server returned an invalid checkout response."); }
-  // Your edge function already built the signed PayFast URL - just redirect
   window.location.href = data.url;
  }catch(error){
   console.error("JobWay payment error:",error);
@@ -340,10 +344,10 @@ async function doPay(){
 function sendWhatsAppProof(){
  const email = document.getElementById("emailField").value.trim();
  if(!curItem || !PRODUCTS[curItem]){ alert("Please select a product first."); return; }
- if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert("Please enter a valid billing email first."); return; }
+ if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert("Please enter a valid email for your invoice first."); return; }
  const amount = PRODUCTS[curItem].amount;
  const employerId = getEmployerId() || "not logged in";
- const message = `Hello JobWay,\n\nI would like to enquire about paying by EFT.\n\nProduct: ${curItem}${selectedCategory ? " ("+selectedCategory+")" : ""}\nAmount: R${amount.toLocaleString("en-ZA")}\nBilling email: ${email}\nEmployer ID: ${employerId}\n\nPlease send me your official banking details and payment instructions.\n\nThank you.`;
+ const message = `Hello JobWay,\n\nI would like to enquire about paying by EFT.\n\nProduct: ${curItem}${selectedCategory ? " ("+selectedCategory+")" : ""}\nAmount: R${amount.toLocaleString("en-ZA")}\nInvoice email: ${email}\nEmployer ID: ${employerId}\n\nPlease send me your official banking details and payment instructions.\n\nThank you.`;
  const url = "https://api.whatsapp.com/send?phone=" + WHATSAPP_NUMBER + "&text=" + encodeURIComponent(message);
  window.open(url,"_blank","noopener,noreferrer");
 }
