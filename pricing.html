@@ -149,7 +149,7 @@ button{cursor:pointer}
   <div class="card" id="card-cv20"><div class="plan-name">20 CV UNLOCKS</div><div class="price">R999 <small>/ one-time</small></div><ul class="features"><li>20 CV unlock credits</li><li>Recruitment database access</li></ul><div class="stock-msg" id="msg-cv20" style="display:none"></div><button class="btn-card btn-white" data-item="JobWay 20 CV Unlocks" data-code="cv_20" data-cv-count="20">Unlock 20 — R999</button></div>
   <div class="card popular" id="card-cv100"><div class="badge">POPULAR</div><div class="plan-name" style="margin-top:8px">100 CV UNLOCKS</div><div class="price">R2,499 <small>/ one-time</small></div><ul class="features"><li>100 CV unlock credits</li><li>Recruitment database access</li></ul><div class="stock-msg" id="msg-cv100" style="display:none"></div><button class="btn-card btn-green-pop" data-item="JobWay 100 CV Unlocks" data-code="cv_100" data-cv-count="100">Unlock 100 — R2,499</button></div>
   <div class="card" id="card-cv250"><div class="plan-name">250 CV UNLOCKS</div><div class="price">R5,999 <small>/ one-time</small></div><ul class="features"><li>250 CV unlock credits</li><li>Recruitment database access</li></ul><div class="stock-msg" id="msg-cv250" style="display:none"></div><button class="btn-card btn-white" data-item="JobWay 250 CV Unlocks" data-code="cv_250" data-cv-count="250">Unlock 250 — R5,999</button></div>
-  <div class="card"><div class="plan-name">UNLIMITED CV ACCESS</div><div class="price">R9,999 <small>/ month</small></div><ul class="features"><li>Unlimited CV database access</li><li>Subject to candidate consent</li><li>Monthly subscription</li></ul><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks" data-code="cv_unlimited">Unlimited — R9,999</button></div>
+  <div class="card" id="card-cv-unlimited"><div class="plan-name">UNLIMITED CV ACCESS</div><div class="price">R9,999 <small>/ month</small></div><ul class="features"><li>Unlimited CV database access</li><li>Subject to candidate consent</li><li>Monthly subscription</li></ul><div class="stock-msg" id="msg-cv-unlimited" style="display:none"></div><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks" data-code="cv_unlimited" data-cv-unlimited="1">Unlimited — R9,999</button></div>
  </div>
  <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry, VAT treatment and CV access conditions are subject to the applicable JobWay terms and conditions. CV information must only be accessed for authorised recruitment purposes.<br><br><b style="color:white">CV Stock Guarantee:</b> CV unlocks are sold per category. If we don't have enough CVs in your selected category, checkout will be blocked and you will be offered a job post (R299) to collect CVs in that category instead.</div>
 </main>
@@ -164,6 +164,11 @@ button{cursor:pointer}
   <p style="font-size:11px;color:#7FA5B0;margin-top:7px">Invoice will be sent here instantly after payment. This email is NOT for login.</p>
   <button class="payment-btn" id="payBtn" onclick="doPay()">Continue to PayFast →</button>
   <p class="pay-error" id="payErr" role="alert"></p>
+  <div id="stockFallback" style="display:none;margin-top:12px;background:rgba(255,176,32,.12);border:1px solid #FFB020;border-radius:11px;padding:14px;font-size:12px;line-height:1.7">
+    <b style="color:#FFB020" id="stockFallbackTitle">Not enough CVs in this category</b>
+    <p id="stockFallbackText" style="margin:6px 0"></p>
+    <button id="stockFallbackBtn" onclick="switchToSingleJobPost()" style="width:100%;padding:12px;background:#01F9C6;border:0;border-radius:999px;font-weight:900;cursor:pointer">Post a job — R299 instead →</button>
+  </div>
   <div class="fallback-box" id="fallbackBox"><b style="color:#FFB020">Need to pay by EFT?</b><p>Contact JobWay to request the official banking details and payment instructions.</p><p style="margin-top:8px">Your credits or subscription will only be activated after payment has been verified.</p><button class="whatsapp-btn" onclick="sendWhatsAppProof()">Request EFT Details on WhatsApp →</button></div>
   <p class="small-text">Do not share your banking password, card PIN or OTP with anyone.</p>
  </div>
@@ -186,7 +191,7 @@ const PRODUCTS = {
  "JobWay 20 CV Unlocks": { amount:999, code:"cv_20", cvCount:20 },
  "JobWay 100 CV Unlocks": { amount:2499, code:"cv_100", cvCount:100 },
  "JobWay 250 CV Unlocks": { amount:5999, code:"cv_250", cvCount:250 },
- "JobWay Unlimited CV Unlocks": { amount:9999, code:"cv_unlimited" }
+ "JobWay Unlimited CV Unlocks": { amount:9999, code:"cv_unlimited", cvUnlimited:true }
 };
 const ALL_CATEGORIES = ["Security","Cleaning","General Worker","Call Centre","Sales","Construction","Engineering","IT and Technology","Finance and Accounting","Mining","Banking","Insurance","Hospitality and Tourism","Automotive Industry","Telecommunications","Manufacturing","Cashier","Driver","Warehouse","Retail","Admin","General","Other"];
 function normalizeCategory(v){
@@ -203,10 +208,18 @@ let cvPool = {};
 let selectedCategory = "";
 async function loadCvPool(){
   try{
-    const res = await fetch(SUPABASE_URL + "/rest/v1/candidate_cvs?select=job_category,category", { headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY } });
-    const rows = await res.json();
     cvPool = {};
-    (rows||[]).forEach(r=>{ const c = normalizeCategory(r.job_category || r.category || "Other"); cvPool[c] = (cvPool[c]||0)+1; });
+    let offset = 0;
+    const pageSize = 1000;
+    while(true){
+      const res = await fetch(SUPABASE_URL + "/rest/v1/candidate_cvs?select=job_category,category&limit="+pageSize+"&offset="+offset, { headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY } });
+      const rows = await res.json();
+      if(!Array.isArray(rows) || rows.length===0) break;
+      (rows||[]).forEach(r=>{ const c = normalizeCategory(r.job_category || r.category || "Other"); cvPool[c] = (cvPool[c]||0)+1; });
+      if(rows.length < pageSize) break;
+      offset += pageSize;
+      if(offset > 20000) break;
+    }
     renderPool();
   }catch(e){ document.getElementById("poolCounts").innerHTML = '<span style="font-size:12px;color:#ff9a9a">Could not load CV stock. Please refresh.</span>'; }
 }
@@ -217,6 +230,7 @@ function renderPool(){
   el.innerHTML = html;
   updateCvButtons();
 }
+function isCvItem(item){ return PRODUCTS[item] && (PRODUCTS[item].cvCount || PRODUCTS[item].cvUnlimited); }
 function updateCvButtons(){
   const cat = selectedCategory;
   const msgEl = document.getElementById("stockMsg");
@@ -224,6 +238,8 @@ function updateCvButtons(){
     msgEl.className = "stock-msg warn"; msgEl.style.display="block";
     msgEl.innerHTML = "👆 Select a category above to see if we have enough CVs for you.";
     document.querySelectorAll("[data-cv-count]").forEach(b=>{ b.disabled=true; b.textContent="Select category first ↑"; });
+    const unlim = document.querySelector('[data-cv-unlimited]');
+    if(unlim){ unlim.disabled=true; unlim.textContent="Select category first ↑"; }
     return;
   }
   const available = cvPool[cat]||0;
@@ -252,6 +268,20 @@ function updateCvButtons(){
       if(perMsg){ perMsg.className="stock-msg ok"; perMsg.style.display="block"; perMsg.innerHTML = `✅ ${available} ${cat} CVs available — enough for this pack.`; }
     }
   });
+  const unlimBtn = document.querySelector('[data-cv-unlimited]');
+  const unlimMsg = document.getElementById("msg-cv-unlimited");
+  const unlimCard = document.getElementById("card-cv-unlimited");
+  if(unlimBtn){
+    if(available===0){
+      unlimBtn.disabled=true; unlimBtn.textContent=`No ${cat} CVs — cannot sell Unlimited`;
+      if(unlimCard) unlimCard.classList.add("blocked");
+      if(unlimMsg){ unlimMsg.className="stock-msg warn"; unlimMsg.style.display="block"; unlimMsg.innerHTML=`No ${cat} CVs in stock yet.`; }
+    } else {
+      unlimBtn.disabled=false; unlimBtn.textContent="Unlimited — R9,999";
+      if(unlimCard) unlimCard.classList.remove("blocked");
+      if(unlimMsg){ unlimMsg.className="stock-msg ok"; unlimMsg.style.display="block"; unlimMsg.innerHTML=`✅ ${available} ${cat} CVs available.`; }
+    }
+  }
 }
 document.getElementById("cvCategory").addEventListener("change", e=>{ selectedCategory = e.target.value; updateCvButtons(); });
 function getEmployerId(){
@@ -261,33 +291,74 @@ function openPay(item, code){
  if(!PRODUCTS[item]){ alert("This JobWay product is unavailable."); return; }
  const prod = PRODUCTS[item];
  curCode = code || prod.code;
- if(prod.cvCount){
+ // CV products REQUIRE category - including Unlimited
+ if(isCvItem(item)){
    if(!selectedCategory){ alert("Please select a CV category first (e.g. Security or Mining) so we can check stock."); document.getElementById("cvCategory").focus(); return; }
    const available = cvPool[selectedCategory]||0;
-   if(available < prod.cvCount){
+   if(available===0){
+     showStockFallback(`No ${selectedCategory} CVs available right now.`, `We cannot sell you CVs in this category yet. Post a ${selectedCategory} job for R299 and candidates will apply to you.`);
+     openPaySingleJobPostOnly();
+     return;
+   }
+   if(prod.cvCount && available < prod.cvCount){
      alert(`Cannot sell ${prod.cvCount} ${selectedCategory} CVs.\n\nWe only have ${available} ${selectedCategory} CVs in the database.\n\nPlease either:\n1. Post a ${selectedCategory} job for R299 to collect more CVs, OR\n2. Choose a smaller pack, OR\n3. Choose a category with more stock.`);
      return;
    }
  }
  curItem = item;
  const product = PRODUCTS[item];
- document.getElementById("mItem").textContent = item + (prod.cvCount && selectedCategory ? " ("+selectedCategory+")" : "");
+ document.getElementById("mItem").textContent = item + (isCvItem(item) && selectedCategory ? " ("+selectedCategory+")" : "");
  document.getElementById("mAmount").textContent = "R" + product.amount.toLocaleString("en-ZA");
- if(prod.cvCount && selectedCategory){
+ if(isCvItem(item) && selectedCategory){
    document.getElementById("mCategoryBox").style.display="block";
    document.getElementById("mCategory").textContent = selectedCategory;
-   document.getElementById("mStock").textContent = (cvPool[selectedCategory]||0) + " " + selectedCategory + " CVs available — you are buying " + prod.cvCount;
+   document.getElementById("mStock").textContent = (cvPool[selectedCategory]||0) + " " + selectedCategory + " CVs available" + (prod.cvCount ? " — you are buying " + prod.cvCount : " — Unlimited access");
  } else { document.getElementById("mCategoryBox").style.display="none"; }
- // Invoice email: from Post-a-Job ?email= OR pending_job OR saved
  const urlParams = new URLSearchParams(location.search);
  let pending = {};
  try{ pending = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
  document.getElementById("emailField").value = urlParams.get("email") || pending.invoice_email || pending.employer_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
  document.getElementById("payErr").style.display = "none";
  document.getElementById("fallbackBox").style.display = "none";
+ document.getElementById("stockFallback").style.display = "none";
  document.getElementById("payBtn").disabled = false;
  document.getElementById("payBtn").textContent = "Continue to PayFast →";
  document.getElementById("payModal").classList.add("show");
+}
+function openPaySingleJobPostOnly(){
+  curItem = "JobWay Single Job Post";
+  curCode = "payg_job";
+  document.getElementById("mItem").textContent = "JobWay Single Job Post" + (selectedCategory ? " ("+selectedCategory+")" : "");
+  document.getElementById("mAmount").textContent = "R299";
+  document.getElementById("mCategoryBox").style.display = "none";
+  const urlParams = new URLSearchParams(location.search);
+  let pending = {};
+  try{ pending = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
+  document.getElementById("emailField").value = urlParams.get("email") || pending.invoice_email || pending.employer_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
+  document.getElementById("payErr").style.display = "none";
+  document.getElementById("fallbackBox").style.display = "none";
+  document.getElementById("payBtn").disabled = false;
+  document.getElementById("payBtn").textContent = "Continue to PayFast →";
+  document.getElementById("payModal").classList.add("show");
+}
+function showStockFallback(title, text){
+  document.getElementById("stockFallbackTitle").textContent = title;
+  document.getElementById("stockFallbackText").textContent = text;
+  document.getElementById("stockFallback").style.display = "block";
+}
+function switchToSingleJobPost(){
+  // Called from fallback button in modal - switch order to R299 Single Job Post, keep same email + category
+  const email = document.getElementById("emailField").value.trim();
+  curItem = "JobWay Single Job Post";
+  curCode = "payg_job";
+  document.getElementById("mItem").textContent = "JobWay Single Job Post" + (selectedCategory ? " ("+selectedCategory+")" : "");
+  document.getElementById("mAmount").textContent = "R299";
+  document.getElementById("mCategoryBox").style.display = "none";
+  document.getElementById("stockFallback").style.display = "none";
+  document.getElementById("payErr").style.display = "none";
+  document.getElementById("payBtn").disabled = false;
+  document.getElementById("payBtn").textContent = "Continue to PayFast →";
+  if(email) document.getElementById("emailField").value = email;
 }
 function closePay(){ document.getElementById("payModal").classList.remove("show"); }
 document.getElementById("payModal").addEventListener("click", function(event){ if(event.target.id === "payModal"){ closePay(); } });
@@ -300,10 +371,10 @@ async function doPay(){
  const button = document.getElementById("payBtn");
  document.getElementById("payErr").style.display = "none";
  document.getElementById("fallbackBox").style.display = "none";
+ document.getElementById("stockFallback").style.display = "none";
  if(!curItem || !PRODUCTS[curItem]){ showError("Please select a valid JobWay product."); return; }
  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailField.style.borderColor = "#ff5555"; showError("Please enter a valid email for your invoice."); return; }
  emailField.style.borderColor = "";
- // YOUR LOGIN: localStorage jobway_user, NOT Supabase Auth token. Do NOT block if no token.
  let pendingJob = {};
  try{ pendingJob = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
  let employerId = getEmployerId() || pendingJob.employer_id || "";
@@ -326,13 +397,39 @@ async function doPay(){
       whatsapp: whatsapp,
       whatsapp_number: whatsapp,
       company_name: companyName,
-      cv_category: selectedCategory||"",
-      custom_str4: selectedCategory||""
+      cv_category: isCvItem(curItem) ? (selectedCategory||"") : "",
+      custom_str4: isCvItem(curItem) ? (selectedCategory||"") : ""
     })
   });
   const data = await response.json().catch(()=>({}));
-  if(!response.ok){ throw new Error(data.error || "Unable to create your payment."); }
+  if(!response.ok){
+    // Backend stock check failed - e.g. Only 15 Security CVs, asked for 20
+    if(data.suggestion === "single_job_post" || (data.error && data.error.includes("CVs available"))){
+      showError(data.error || "Not enough CVs in this category.");
+      // Update pool from backend counts if provided
+      if(data.counts){
+        Object.keys(data.counts).forEach(k=>{
+          const pretty = ALL_CATEGORIES.find(c=>c.toLowerCase().replace(/[^a-z0-9]+/g,"_")===k) || k;
+          cvPool[pretty] = data.counts[k];
+        });
+        renderPool();
+      }
+      showStockFallback("Not enough CVs in this category", data.error || "Try a Single Job Post instead.");
+      document.getElementById("fallbackBox").style.display = "none";
+      button.disabled = false; button.textContent = "Continue to PayFast →";
+      return;
+    }
+    throw new Error(data.error || "Unable to create your payment.");
+  }
   if(!data.url){ throw new Error("The payment server returned an invalid checkout response."); }
+  // Backend returned fresh counts - update pool
+  if(data.counts){
+    Object.keys(data.counts).forEach(k=>{
+      const pretty = ALL_CATEGORIES.find(c=>c.toLowerCase().replace(/[^a-z0-9]+/g,"_")===k) || k;
+      cvPool[pretty] = data.counts[k];
+    });
+    renderPool();
+  }
   window.location.href = data.url;
  }catch(error){
   console.error("JobWay payment error:",error);
