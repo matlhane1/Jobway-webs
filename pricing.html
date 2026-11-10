@@ -363,6 +363,7 @@ document.getElementById("payModal").addEventListener("click", function(event){ i
 document.addEventListener("keydown",function(event){ if(event.key === "Escape"){ closePay(); } });
 document.querySelectorAll("[data-item]").forEach(button=>{ button.addEventListener("click",function(){ openPay(this.dataset.item, this.dataset.code); }); });
 function showError(message){ const error = document.getElementById("payErr"); error.textContent = message; error.style.display = "block"; }
+function resetPayBtn(){ const b=document.getElementById("payBtn"); b.disabled=false; b.textContent="Continue to PayFast →"; }
 async function doPay(){
  const emailField = document.getElementById("emailField");
  const email = emailField.value.trim().toLowerCase();
@@ -382,6 +383,8 @@ async function doPay(){
  localStorage.setItem("invoice_email", email);
  try{ localStorage.setItem("jobway_pending_payment", JSON.stringify({ item:curItem, product_code:curCode, email:email, invoice_email:email, amount:PRODUCTS[curItem].amount, employer_id:employerId, whatsapp:whatsapp, company_name:companyName, cv_category:selectedCategory||null, created_at:new Date().toISOString() })); }catch(e){}
  button.disabled = true; button.textContent = "Preparing payment...";
+ const controller = new AbortController();
+ const timeoutId = setTimeout(()=>controller.abort(), 15000);
  try{
   const response = await fetch(SUPABASE_URL + "/functions/v1/payfast_create_payment", {
     method:"POST",
@@ -390,6 +393,7 @@ async function doPay(){
       "apikey": SUPABASE_KEY,
       "Authorization": "Bearer " + SUPABASE_KEY
     },
+    signal: controller.signal,
     body:JSON.stringify({
       item: curItem,
       product_code: curCode,
@@ -403,7 +407,14 @@ async function doPay(){
       custom_str4: isCvItem(curItem) ? (selectedCategory||"") : ""
     })
   });
+  clearTimeout(timeoutId);
   const data = await response.json().catch(()=>({}));
+  if(response.status===401){
+    showError("Payment blocked (401). In Supabase turn OFF Verify JWT for payfast_create_payment and payfast_notify, then try again.");
+    document.getElementById("fallbackBox").style.display = "block";
+    resetPayBtn();
+    return;
+  }
   if(!response.ok){
     if(data.suggestion === "single_job_post" || (data.error && data.error.includes("CVs available"))){
       showError(data.error || "Not enough CVs in this category.");
@@ -415,11 +426,10 @@ async function doPay(){
         renderPool();
       }
       showStockFallback("Not enough CVs in this category", data.error || "Try a Single Job Post instead.");
-      document.getElementById("fallbackBox").style.display = "none";
-      button.disabled = false; button.textContent = "Continue to PayFast →";
+      resetPayBtn();
       return;
     }
-    throw new Error(data.error || "Unable to create your payment.");
+    throw new Error(data.error || ("Unable to create your payment. (Status "+response.status+")"));
   }
   if(!data.url){ throw new Error("The payment server returned an invalid checkout response."); }
   if(data.counts){
@@ -429,12 +439,16 @@ async function doPay(){
     });
     renderPool();
   }
+  button.textContent = "Redirecting to PayFast...";
   window.location.href = data.url;
+  setTimeout(()=>{ window.open(data.url, "_blank"); resetPayBtn(); }, 2500);
  }catch(error){
+  clearTimeout(timeoutId);
   console.error("JobWay payment error:",error);
-  showError(error.message || "Payment could not be started. Please try again.");
+  if(error && error.name==="AbortError"){ showError("Payment timed out after 15 seconds. Check Supabase Logs for payfast_create_payment, then try again."); }
+  else { showError(error.message || "Payment could not be started. Please try again."); }
   document.getElementById("fallbackBox").style.display = "block";
-  button.disabled = false; button.textContent = "Continue to PayFast →";
+  resetPayBtn();
  }
 }
 function sendWhatsAppProof(){
