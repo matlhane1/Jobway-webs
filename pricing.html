@@ -88,7 +88,7 @@ button{cursor:pointer}
 <main class="wrap">
  <h1 class="h1">Simple pricing. Choose what fits.</h1>
  <p class="sub">Affordable recruitment solutions for South African businesses. Choose job postings, job credits or access to the CV database.</p>
- <div class="trust"><span>PayFast checkout</span><span>Employer accounts</span><span>Branded company pages</span><span>Transparent pricing</span></div>
+ <div class="trust"><span>PayFast checkout</span><span>No login to pay</span><span>Invoice from invoices@jobway.co.za</span><span>Transparent pricing</span></div>
  <div class="pay-logos"><span class="label">PAYMENT OPTIONS</span><span class="logo-card">VISA</span><span class="logo-card">Mastercard</span><span class="logo-card">PayFast</span><span class="logo-card">BANK PAYMENTS</span></div>
  <div class="single-featured">
   <div style="flex:1"><div class="plan-name">PAY PER POST</div><div class="price">R299 <small>/ 30 days</small></div><ul class="features"><li>1 job post for 30 days</li><li>Branded company page</li><li>Manage applications</li><li>Access your employer dashboard</li></ul></div>
@@ -118,29 +118,7 @@ button{cursor:pointer}
   <label class="field-label" for="cvCategory">I WANT CVs FOR:</label>
   <select id="cvCategory" class="select-input" style="max-width:320px">
     <option value="">Select category...</option>
-    <option>Security</option>
-    <option>Cleaning</option>
-    <option>General Worker</option>
-    <option>Call Centre</option>
-    <option>Sales</option>
-    <option>Construction</option>
-    <option>Engineering</option>
-    <option>IT and Technology</option>
-    <option>Finance and Accounting</option>
-    <option>Mining</option>
-    <option>Banking</option>
-    <option>Insurance</option>
-    <option>Hospitality and Tourism</option>
-    <option>Automotive Industry</option>
-    <option>Telecommunications</option>
-    <option>Manufacturing</option>
-    <option>Cashier</option>
-    <option>Driver</option>
-    <option>Warehouse</option>
-    <option>Retail</option>
-    <option>Admin</option>
-    <option>General</option>
-    <option>Other</option>
+    <option>Security</option><option>Cleaning</option><option>General Worker</option><option>Call Centre</option><option>Sales</option><option>Construction</option><option>Engineering</option><option>IT and Technology</option><option>Finance and Accounting</option><option>Mining</option><option>Banking</option><option>Insurance</option><option>Hospitality and Tourism</option><option>Automotive Industry</option><option>Telecommunications</option><option>Manufacturing</option><option>Cashier</option><option>Driver</option><option>Warehouse</option><option>Retail</option><option>Admin</option><option>General</option><option>Other</option>
   </select>
   <div id="poolCounts" class="pool-grid"><span style="font-size:12px;color:#A8C8D0">Loading CV stock...</span></div>
   <div id="stockMsg" class="stock-msg"></div>
@@ -151,7 +129,7 @@ button{cursor:pointer}
   <div class="card" id="card-cv250"><div class="plan-name">250 CV UNLOCKS</div><div class="price">R5,999 <small>/ one-time</small></div><ul class="features"><li>250 CV unlock credits</li><li>Recruitment database access</li></ul><div class="stock-msg" id="msg-cv250" style="display:none"></div><button class="btn-card btn-white" data-item="JobWay 250 CV Unlocks" data-code="cv_250" data-cv-count="250">Unlock 250 — R5,999</button></div>
   <div class="card" id="card-cv-unlimited"><div class="plan-name">UNLIMITED CV ACCESS</div><div class="price">R9,999 <small>/ month</small></div><ul class="features"><li>Unlimited CV database access</li><li>Subject to candidate consent</li><li>Monthly subscription</li></ul><div class="stock-msg" id="msg-cv-unlimited" style="display:none"></div><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks" data-code="cv_unlimited" data-cv-unlimited="1">Unlimited — R9,999</button></div>
  </div>
- <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry, VAT treatment and CV access conditions are subject to the applicable JobWay terms and conditions. CV information must only be accessed for authorised recruitment purposes.<br><br><b style="color:white">CV Stock Guarantee:</b> CV unlocks are sold per category. If we don't have enough CVs in your selected category, checkout will be blocked and you will be offered a job post (R299) to collect CVs in that category instead.</div>
+ <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry and CV access conditions are subject to the applicable JobWay terms and conditions. CV information must only be accessed for authorised recruitment purposes.<br><br><b style="color:white">CV Stock Guarantee:</b> CV unlocks are sold per category. If we don't have enough CVs in your selected category, checkout will be blocked and you will be offered a job post (R299) to collect CVs in that category instead.</div>
 </main>
 <footer class="footer">© <span id="year"></span> JobWay.co.za. All rights reserved.<br>Your job, your way.</footer>
 <div class="modal" id="payModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -159,10 +137,13 @@ button{cursor:pointer}
   <div class="modal-header"><b id="modalTitle">Complete your purchase</b><button class="close-btn" onclick="closePay()" aria-label="Close payment window">×</button></div>
   <div class="order-box"><span id="mItem">JobWay</span><b class="order-price" id="mAmount">R0</b></div>
   <div id="mCategoryBox" style="display:none;background:#0F2230;border-radius:11px;padding:11px;font-size:12px;margin-bottom:10px">CV Category: <b id="mCategory" style="color:#01F9C6"></b><br><span id="mStock" style="color:#A8C8D0"></span></div>
-  <label class="field-label" for="emailField">Email for Invoice *</label>
+  <!-- FIX: NO WhatsApp, NO login to pay. Only Email for invoice. -->
+  <label class="field-label" for="emailField">Company Email to Receive Invoice *</label>
   <input id="emailField" class="email-input" type="email" autocomplete="email" placeholder="hr@company.co.za" required>
-  <p style="font-size:11px;color:#7FA5B0;margin-top:7px">Invoice will be sent here instantly after payment. This email is NOT for login.</p>
-  <button class="payment-btn" id="payBtn" onclick="doPay()">Continue to PayFast →</button>
+  <p style="font-size:11px;color:#7FA5B0;margin-top:4px">This is the company email that will receive the invoice from invoices@jobway.co.za. This email is NOT for login — no login is needed to pay.</p>
+  <label class="field-label" for="companyField">Company Name (for invoice)</label>
+  <input id="companyField" class="email-input" type="text" placeholder="Your Company (Pty) Ltd">
+  <button class="payment-btn" id="payBtn" onclick="doPay()">Pay with Card or Bank App →</button>
   <p class="pay-error" id="payErr" role="alert"></p>
   <div id="stockFallback" style="display:none;margin-top:12px;background:rgba(255,176,32,.12);border:1px solid #FFB020;border-radius:11px;padding:14px;font-size:12px;line-height:1.7">
     <b style="color:#FFB020" id="stockFallbackTitle">Not enough CVs in this category</b>
@@ -202,6 +183,7 @@ function normalizeCategory(v){
   if(v === "Automotive") return "Automotive Industry";
   return v;
 }
+function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
 let curItem = "";
 let curCode = "";
 let cvPool = {};
@@ -285,7 +267,34 @@ function updateCvButtons(){
 }
 document.getElementById("cvCategory").addEventListener("change", e=>{ selectedCategory = e.target.value; updateCvButtons(); });
 function getEmployerId(){
- try{ const user = JSON.parse(localStorage.getItem("jobway_user") || localStorage.getItem("user") || "null"); return user?.id || null; }catch(error){ return null; }
+  const keys = ["jobway_employer","jobway_user","user"];
+  for (const k of keys) {
+    try {
+      const o = JSON.parse(localStorage.getItem(k) || "null");
+      if (o && isUuid(o.id)) return o.id;
+      if (o && isUuid(o.employer_id)) return o.employer_id;
+    } catch(e){}
+  }
+  try {
+    const pending = JSON.parse(localStorage.getItem("pending_job") || "{}");
+    if (pending.employer_id && isUuid(pending.employer_id)) return pending.employer_id;
+  } catch(e){}
+  return "";
+}
+function getStoredCompany(){
+  try {
+    const pending = JSON.parse(localStorage.getItem("pending_job") || "{}");
+    return { company: pending.company || pending.company_name || localStorage.getItem("company_name") || "" };
+  } catch(e){ return { company:"" }; }
+}
+function fillModalFields(){
+  const urlParams = new URLSearchParams(location.search);
+  let pending = {};
+  try{ pending = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
+  const stored = getStoredCompany();
+  // Email ONLY - company email to receive invoice. NOT login.
+  document.getElementById("emailField").value = urlParams.get("email") || pending.invoice_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
+  document.getElementById("companyField").value = stored.company || "";
 }
 function openPay(item, code){
  if(!PRODUCTS[item]){ alert("This JobWay product is unavailable."); return; }
@@ -313,15 +322,12 @@ function openPay(item, code){
    document.getElementById("mCategory").textContent = selectedCategory;
    document.getElementById("mStock").textContent = (cvPool[selectedCategory]||0) + " " + selectedCategory + " CVs available" + (prod.cvCount ? " — you are buying " + prod.cvCount : " — Unlimited access");
  } else { document.getElementById("mCategoryBox").style.display="none"; }
- const urlParams = new URLSearchParams(location.search);
- let pending = {};
- try{ pending = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
- document.getElementById("emailField").value = urlParams.get("email") || pending.invoice_email || pending.employer_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
+ fillModalFields();
  document.getElementById("payErr").style.display = "none";
  document.getElementById("fallbackBox").style.display = "none";
  document.getElementById("stockFallback").style.display = "none";
  document.getElementById("payBtn").disabled = false;
- document.getElementById("payBtn").textContent = "Continue to PayFast →";
+ document.getElementById("payBtn").textContent = "Pay with Card or Bank App →";
  document.getElementById("payModal").classList.add("show");
 }
 function openPaySingleJobPostOnly(){
@@ -330,14 +336,11 @@ function openPaySingleJobPostOnly(){
   document.getElementById("mItem").textContent = "JobWay Single Job Post" + (selectedCategory ? " ("+selectedCategory+")" : "");
   document.getElementById("mAmount").textContent = "R299";
   document.getElementById("mCategoryBox").style.display = "none";
-  const urlParams = new URLSearchParams(location.search);
-  let pending = {};
-  try{ pending = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
-  document.getElementById("emailField").value = urlParams.get("email") || pending.invoice_email || pending.employer_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
+  fillModalFields();
   document.getElementById("payErr").style.display = "none";
   document.getElementById("fallbackBox").style.display = "none";
   document.getElementById("payBtn").disabled = false;
-  document.getElementById("payBtn").textContent = "Continue to PayFast →";
+  document.getElementById("payBtn").textContent = "Pay with Card or Bank App →";
   document.getElementById("payModal").classList.add("show");
 }
 function showStockFallback(title, text){
@@ -355,7 +358,7 @@ function switchToSingleJobPost(){
   document.getElementById("stockFallback").style.display = "none";
   document.getElementById("payErr").style.display = "none";
   document.getElementById("payBtn").disabled = false;
-  document.getElementById("payBtn").textContent = "Continue to PayFast →";
+  document.getElementById("payBtn").textContent = "Pay with Card or Bank App →";
   if(email) document.getElementById("emailField").value = email;
 }
 function closePay(){ document.getElementById("payModal").classList.remove("show"); }
@@ -363,48 +366,57 @@ document.getElementById("payModal").addEventListener("click", function(event){ i
 document.addEventListener("keydown",function(event){ if(event.key === "Escape"){ closePay(); } });
 document.querySelectorAll("[data-item]").forEach(button=>{ button.addEventListener("click",function(){ openPay(this.dataset.item, this.dataset.code); }); });
 function showError(message){ const error = document.getElementById("payErr"); error.textContent = message; error.style.display = "block"; }
-function resetPayBtn(){ const b=document.getElementById("payBtn"); b.disabled=false; b.textContent="Continue to PayFast →"; }
+function resetPayBtn(){ const b=document.getElementById("payBtn"); b.disabled=false; b.textContent="Pay with Card or Bank App →"; }
 async function doPay(){
  const emailField = document.getElementById("emailField");
  const email = emailField.value.trim().toLowerCase();
+ const companyName = document.getElementById("companyField").value.trim();
  const button = document.getElementById("payBtn");
  document.getElementById("payErr").style.display = "none";
  document.getElementById("fallbackBox").style.display = "none";
  document.getElementById("stockFallback").style.display = "none";
  if(!curItem || !PRODUCTS[curItem]){ showError("Please select a valid JobWay product."); return; }
- if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailField.style.borderColor = "#ff5555"; showError("Please enter a valid email for your invoice."); return; }
+ // FIX: NO WhatsApp, NO login to pay. Only company email to receive invoice.
+ if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailField.style.borderColor = "#ff5555"; showError("Please enter the company email that will receive the invoice."); return; }
  emailField.style.borderColor = "";
  let pendingJob = {};
  try{ pendingJob = JSON.parse(localStorage.getItem("pending_job") || "{}"); }catch(e){}
  let employerId = getEmployerId() || pendingJob.employer_id || "";
- const whatsapp = pendingJob.whatsapp_number || localStorage.getItem("whatsapp_number") || "";
- const companyName = pendingJob.company || localStorage.getItem("company_name") || "";
+ if (employerId && !isUuid(employerId)) employerId = "";
+ const stored = getStoredCompany();
+ const finalCompany = companyName || stored.company || pendingJob.company || "";
+ const product = PRODUCTS[curItem];
+ const cvCategory = isCvItem(curItem) ? (selectedCategory||"") : "";
+ const cvCount = product.cvCount || 0;
  localStorage.setItem("jobway_user_email", email);
  localStorage.setItem("invoice_email", email);
- try{ localStorage.setItem("jobway_pending_payment", JSON.stringify({ item:curItem, product_code:curCode, email:email, invoice_email:email, amount:PRODUCTS[curItem].amount, employer_id:employerId, whatsapp:whatsapp, company_name:companyName, cv_category:selectedCategory||null, created_at:new Date().toISOString() })); }catch(e){}
+ if (finalCompany) localStorage.setItem("company_name", finalCompany);
+ try{ localStorage.setItem("jobway_pending_payment", JSON.stringify({ item:curItem, item_name:curItem, product_code:curCode, invoice_email:email, amount:product.amount, employer_id:employerId, company_name:finalCompany, cv_category:cvCategory||null, cv_count:cvCount||null, created_at:new Date().toISOString() })); }catch(e){}
  button.disabled = true; button.textContent = "Preparing payment...";
  const controller = new AbortController();
  const timeoutId = setTimeout(()=>controller.abort(), 15000);
  try{
   const response = await fetch(SUPABASE_URL + "/functions/v1/payfast_create_payment", {
     method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "apikey": SUPABASE_KEY,
-      "Authorization": "Bearer " + SUPABASE_KEY
-    },
+    headers:{ "Content-Type":"application/json", "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY },
     signal: controller.signal,
     body:JSON.stringify({
       item: curItem,
+      item_name: curItem,
+      product_name: curItem,
       product_code: curCode,
+      plan: curItem,
+      amount: product.amount,
+      amount_gross: product.amount,
       employer_id: employerId,
+      user_id: employerId,
       invoice_email: email,
-      email: email,
-      whatsapp: whatsapp,
-      whatsapp_number: whatsapp,
-      company_name: companyName,
-      cv_category: isCvItem(curItem) ? (selectedCategory||"") : "",
-      custom_str4: isCvItem(curItem) ? (selectedCategory||"") : ""
+      company_name: finalCompany,
+      company: finalCompany,
+      vat_number: "",
+      cv_category: cvCategory,
+      cv_count: cvCount,
+      cv_unlimited: !!product.cvUnlimited
     })
   });
   clearTimeout(timeoutId);
@@ -454,10 +466,10 @@ async function doPay(){
 function sendWhatsAppProof(){
  const email = document.getElementById("emailField").value.trim();
  if(!curItem || !PRODUCTS[curItem]){ alert("Please select a product first."); return; }
- if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert("Please enter a valid email for your invoice first."); return; }
+ if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert("Please enter the company email for your invoice first."); return; }
  const amount = PRODUCTS[curItem].amount;
- const employerId = getEmployerId() || "not logged in";
- const message = `Hello JobWay,\n\nI would like to enquire about paying by EFT.\n\nProduct: ${curItem}${selectedCategory ? " ("+selectedCategory+")" : ""}\nAmount: R${amount.toLocaleString("en-ZA")}\nInvoice email: ${email}\nEmployer ID: ${employerId}\n\nPlease send me your official banking details and payment instructions.\n\nThank you.`;
+ const companyName = document.getElementById("companyField").value.trim();
+ const message = `Hello JobWay,\n\nI would like to enquire about paying by EFT.\n\nProduct: ${curItem}${selectedCategory ? " ("+selectedCategory+")" : ""}\nAmount: R${amount.toLocaleString("en-ZA")}\nInvoice email: ${email}\nCompany: ${companyName || "-"}\n\nPlease send me your official banking details and payment instructions.\n\nThank you.`;
  const url = "https://api.whatsapp.com/send?phone=" + WHATSAPP_NUMBER + "&text=" + encodeURIComponent(message);
  window.open(url,"_blank","noopener,noreferrer");
 }
