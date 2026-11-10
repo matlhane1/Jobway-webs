@@ -27,7 +27,7 @@ body{font-family:Arial,sans-serif;background:#0F2835;color:#fff;min-height:100vh
 </div>
 <div class="wrap">
   <h2 style="margin:12px 0 4px">My Jobs - Check if LIVE</h2>
-  <p style="color:#8DB0BF;font-size:12px;margin-bottom:16px">This is YOUR jobs only. Jobseekers see these on jobs.html.</p>
+  <p style="color:#8DB0BF;font-size:12px;margin-bottom:16px">This is YOUR jobs only.</p>
   <div id="list"><p style="text-align:center;color:#8DB0BF;padding:30px">Loading your jobs...</p></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -46,19 +46,16 @@ async function load(){
   if(phone.startsWith('27')) phones.push('0'+phone.slice(2));
   if(phone.startsWith('0')) phones.push('27'+phone.slice(1));
   phones.push('+'+phone);
-  // 1. Try to get real uuid from profiles
   var uuid = null;
   try{
     var pr = await sb.from('profiles').select('id').or('phone.eq.'+phone+',whatsapp_number.eq.'+phone).limit(1).maybeSingle();
     if(pr.data && isUuid(pr.data.id)) uuid = pr.data.id;
   }catch(e){}
   var jobs = [];
-  // 2. Query jobs by uuid (safe - never send phone to uuid column)
   if(uuid){
     var r1 = await sb.from('jobs').select('*').eq('employer_id', uuid).order('created_at',{ascending:false});
     jobs = r1.data || [];
   }
-  // 3. Fallback: query by phone columns if your jobs table has them
   if(!jobs.length){
     try{ var r2 = await sb.from('jobs').select('*').in('employer_phone', phones).order('created_at',{ascending:false}); if(r2.data && r2.data.length) jobs = r2.data; }catch(e){}
   }
