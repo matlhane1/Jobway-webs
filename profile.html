@@ -49,8 +49,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <input class="input" id="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="e.g. 072 123 4567">
 <label class="label" for="location">Province / Location</label>
 <select class="input" id="location"><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Eastern Cape</option><option>North West</option><option>Mpumalanga</option><option>Free State</option><option>Northern Cape</option><option>Remote</option></select>
-
-<!-- Job Category / Qualifications / Experience - EXPANDED -->
 <label class="label" for="jobCategory">What job are you looking for? *</label>
 <select class="input" id="jobCategory" required>
 <option value="">Select job category...</option>
@@ -77,10 +75,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <option>Admin</option>
 <option>Other</option>
 </select>
-
 <label class="label" for="qualifications">Qualifications *</label>
 <input class="input" id="qualifications" maxlength="500" placeholder="e.g. Grade 12, PSIRA Grade C, First Aid">
-
 <label class="label" for="experienceYears">Level of Experience *</label>
 <select class="input" id="experienceYears" required>
 <option value="">Select experience...</option>
@@ -89,7 +85,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <option>3-5 years</option>
 <option>5+ years</option>
 </select>
-
 <label class="label" for="skills">Skills (comma separated)</label>
 <input class="input" id="skills" maxlength="1000" placeholder="e.g. Driving, Code 10, Forklift">
 <div id="skillsPreview" style="margin-top:8px"></div>
@@ -119,7 +114,6 @@ let selectedFile = null;
 let savedCvPath = '';
 let savedCvName = '';
 const $ = id => document.getElementById(id);
-// Normalize old category names to new names so old CVs still match filters
 function normalizeCategory(v){
   if(!v) return '';
   if(v === 'Hospitality') return 'Hospitality and Tourism';
@@ -176,12 +170,31 @@ function makeUUID() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; const v = c === 'x' ? r : (r&3|8); return v.toString(16); });
 }
+// FIXED: Phone numbers are NOT UUIDs. 0726003268 -> 27726003268 must NOT be used as id/user_id.
+function isUUID(v){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||''));
+}
 function getStableUserId(user) {
-  if (user && (user.id || user.user_id || user.profile_id)) return user.id || user.user_id || user.profile_id;
+  var raw = user && (user.id || user.user_id || user.profile_id);
+  // 1. Real UUID? Use it.
+  if (isUUID(raw)) return raw;
+  // 2. Stored profile has real UUID? Use it.
   var p = getLocalProfile();
-  if (p.userId) return p.userId;
+  if (isUUID(p.userId)) return p.userId;
+  // 3. Raw is a phone number like 27726003268 / 0726003268 - NOT a UUID.
+  // Keep it as phone, generate a real UUID for id/user_id
   var nid = makeUUID();
-  try { var u = user || {}; u.id = nid; localStorage.setItem('jobway_user', JSON.stringify(u)); p.userId = nid; localStorage.setItem('jobway_profile', JSON.stringify(p)); } catch(e){}
+  try {
+    var u = user || {};
+    if (raw) {
+      u.phone = u.phone || u.whatsapp_number || String(raw);
+      u.whatsapp_number = u.whatsapp_number || String(raw);
+    }
+    u.id = nid;
+    localStorage.setItem('jobway_user', JSON.stringify(u));
+    p.userId = nid;
+    localStorage.setItem('jobway_profile', JSON.stringify(p));
+  } catch(e){}
   return nid;
 }
 function getStoredCv() {
@@ -314,7 +327,9 @@ async function deleteEverything() {
   if (!confirm('Delete your profile + CV? This deletes from phone, database AND bucket. Cannot be undone.')) return;
   const user = getUser() || {};
   const p = getLocalProfile();
-  const userId = (user && (user.id || user.user_id || user.profile_id)) || p.userId || null;
+  // FIXED: Only use userId if it is a real UUID. Phone numbers like 27726003268 will crash Supabase if used as uuid.
+  var rawId = (user && (user.id || user.user_id || user.profile_id)) || p.userId || null;
+  var userId = isUUID(rawId) ? rawId : (isUUID(p.userId) ? p.userId : null);
   const phoneRaw = p.whatsapp || user.phone || user.whatsapp_number || $('whatsapp').value || '';
   const phoneClean = normalizeSAWhatsApp(phoneRaw);
   const cvPath = p.cv_path || p.cv_url || getStoredCv() || '';
