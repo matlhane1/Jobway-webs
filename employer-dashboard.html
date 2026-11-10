@@ -24,7 +24,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .btn-orange{background:#FFB020;color:#111}
 .btn-red{background:#3a1a1a;color:#ff9a9a}
 #postJobBtn{background:#01F9C6!important;color:#0A1F2E!important;opacity:1!important}
-#postJobBtn.locked{background:#FFB020!important;color:#111!important}
 #viewJobsBtn{background:#fff!important;color:#0A1F2E!important;opacity:1!important}
 #refreshBtn{background:#1A3E52!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important;opacity:1!important}
 #logoutBtn{background:#3a1a1a!important;color:#ff9a9a!important;border:1px solid #a04444!important;opacity:1!important}
@@ -85,15 +84,46 @@ button:disabled{opacity:.5;cursor:not-allowed}
  .btn-row .btn{flex:1}
 }
 </style>
+<script>
+// FIX: Header buttons must work even if Supabase / dashboard script fails later.
+// Define them EARLY, on window, and use inline onclick in HTML.
+window.goHome = function(){ location.href='index.html'; };
+window.handlePostJob = function(){
+  try{
+    if(!window.__HAS_PAID__){
+      alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
+      location.href='pricing.html';
+      return;
+    }
+  }catch(e){}
+  location.href='post-job.html';
+};
+window.goViewJobs = function(){ location.href='employer-jobs.html'; };
+window.doRefresh = function(){
+  try{
+    window.__FORCE_REFRESH__ = true;
+    var b = document.getElementById('refreshBtn');
+    if(b) b.textContent='↻ Refreshing...';
+  }catch(e){}
+  location.reload();
+};
+window.doLogout = function(){
+  try{
+    ['jobway_employer','employer_whatsapp','employer_email','jobway_jobseeker','jobseeker_whatsapp','jobway_logged_in','user_role','jobway_user','user','userPhone','phone','whatsapp_number','jobway_whatsapp'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    try{ sessionStorage.clear(); }catch(e){}
+  }catch(e){}
+  location.href='login.html';
+};
+</script>
 </head>
 <body>
 <header class="header">
- <div class="logo" id="homeBtn">JobWay • Employer</div>
+ <div class="logo" id="homeBtn" onclick="goHome()">JobWay • Employer</div>
  <div class="header-actions">
-  <button class="btn" id="postJobBtn">🔒 Pay to Post Job</button>
-  <button class="btn" id="viewJobsBtn">View Jobs</button>
-  <button class="btn" id="refreshBtn">↻ Refresh</button>
-  <button class="btn" id="logoutBtn">Log Out</button>
+  <button class="btn" id="postJobBtn" type="button" onclick="handlePostJob()">+ Post Job</button>
+  <button class="btn" id="viewJobsBtn" type="button" onclick="goViewJobs()">View Jobs</button>
+  <button class="btn" id="refreshBtn" type="button" onclick="doRefresh()">↻ Refresh</button>
+  <button class="btn" id="logoutBtn" type="button" onclick="doLogout()">Log Out</button>
  </div>
 </header>
 <main class="container">
@@ -108,7 +138,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div id="paymentText" style="font-size:13px;color:#C2D6DD;margin-top:2px">Payment status: Unpaid</div>
     <div style="font-size:12px;color:#8DB0BF;margin-top:8px;line-height:1.5">1 CV view = 1 credit. Previously unlocked CVs can be viewed again at no additional cost.</div>
   </div>
-  <button class="btn btn-green" onclick="location.href='pricing.html'">Buy More Credits →</button>
+  <button class="btn btn-green" type="button" onclick="location.href='pricing.html'">Buy More Credits →</button>
  </div>
  <div class="stats">
   <div class="stat"><b id="jobCount">0</b><span>My Posted Jobs</span></div>
@@ -133,13 +163,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div class="footer">JobWay.co.za • Your Job, Your Way</div>
 <div class="modal" id="interviewModal">
  <div class="modal-card">
-  <div class="modal-head"><h3>📅 Schedule Interview</h3><button class="btn btn-dark" id="closeInterviewBtn">✕</button></div>
+  <div class="modal-head"><h3>📅 Schedule Interview</h3><button class="btn btn-dark" id="closeInterviewBtn" type="button">✕</button></div>
   <p id="interviewFor" class="meta"></p>
   <label class="label">INTERVIEW DATE</label><input type="date" id="intDate" class="input">
   <label class="label">INTERVIEW TIME</label><input type="time" id="intTime" class="input" value="09:00">
   <label class="label">LOCATION / MEETING LINK</label><input id="intLoc" class="input" placeholder="Office address or online meeting link">
   <label class="label">MESSAGE TO CANDIDATE</label><input id="intMsg" class="input" placeholder="Bring your ID and CV...">
-  <button class="btn btn-green" id="confirmInterviewBtn" style="width:100%;padding:14px;margin-top:17px">Confirm Interview & Send WhatsApp →</button>
+  <button class="btn btn-green" id="confirmInterviewBtn" type="button" style="width:100%;padding:14px;margin-top:17px">Confirm Interview & Send WhatsApp →</button>
  </div>
 </div>
 <script>
@@ -191,21 +221,16 @@ function normalizeWhatsapp(v){
   if(d.length===9) return '27'+d;
   return d;
 }
-// FIX: Loading state should be quiet (grey), real credits should be white bold. Prevents distraction.
 function setCreditsLoading(){
   var el = document.getElementById('creditsText');
   if(!el) return;
-  el.style.color = '#8DB0BF';
-  el.style.fontWeight = '500';
-  el.style.fontSize = '13px';
+  el.style.color = '#8DB0BF'; el.style.fontWeight = '500'; el.style.fontSize = '13px';
   el.textContent = 'Checking your credits…';
 }
 function setCreditsLoaded(){
   var el = document.getElementById('creditsText');
   if(!el) return;
-  el.style.color = '#fff';
-  el.style.fontWeight = '700';
-  el.style.fontSize = '15px';
+  el.style.color = '#fff'; el.style.fontWeight = '700'; el.style.fontSize = '15px';
 }
 function getCurrentUser(){
   try{
@@ -226,12 +251,7 @@ function phoneVariants(){
   var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || currentUser?.id || '';
   var norm = normalizeWhatsapp(raw);
   var v = new Set();
-  if(norm){
-    v.add(norm);
-    if(norm.startsWith('27')) v.add('0'+norm.slice(2));
-    v.add('+'+norm);
-    v.add(norm.slice(2));
-  }
+  if(norm){ v.add(norm); if(norm.startsWith('27')) v.add('0'+norm.slice(2)); v.add('+'+norm); v.add(norm.slice(2)); }
   if(raw) v.add(String(raw));
   return Array.from(v).filter(Boolean);
 }
@@ -256,21 +276,13 @@ async function resolveEmployerUuid(){
 }
 function fmt(date){ if(!date) return 'Not available'; const d = new Date(date); if(isNaN(d.getTime())) return 'Not available'; return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }
 function formatPhone(phone){ const n = normalizeWhatsapp(phone); return n || ''; }
-function showMessage(message,type=''){ const el = document.getElementById('dashboardMessage'); el.innerHTML = message ? `<div class="message ${type}">${esc(message)}</div>` : ''; }
+function showMessage(message,type=''){ const el = document.getElementById('dashboardMessage'); if(el) el.innerHTML = message ? `<div class="message ${type}">${esc(message)}</div>` : ''; }
 function setLoading(button,text){ if(button){ button.disabled = true; button.dataset.originalText = button.innerText; button.innerText = text; } }
 function resetButton(button){ if(button){ button.disabled = false; button.innerText = button.dataset.originalText || 'Submit'; } }
 function updatePostJobButton(){
   var btn = document.getElementById('postJobBtn'); if(!btn) return;
-  if(HAS_PAID){ btn.classList.remove('locked'); btn.textContent = '+ Post Job'; }
-  else { btn.classList.add('locked'); btn.textContent = '🔒 Pay to Post Job'; }
-}
-function handlePostJob(){
-  if(!HAS_PAID){
-    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
-    location.href = 'pricing.html';
-    return;
-  }
-  location.href = 'post-job.html';
+  btn.textContent = '+ Post Job';
+  btn.classList.remove('locked');
 }
 async function claimGuestPayments(){
   if(claimDone) return 0;
@@ -304,9 +316,9 @@ async function claimGuestPayments(){
         if(amt===299) code='payg_job'; else if(amt===999) code='starter_monthly'; else if(amt===2500) code='growth_monthly'; else if(amt===3500) code='pro_monthly'; else if(amt===5999) code='business_monthly'; else if(amt===7500) code='job_50'; else if(amt===14000) code='job_100'; else if(amt===31250) code='job_250'; else if(amt===55000) code='job_500'; else if(amt===2499) code='cv_100'; else if(amt===9999) code='cv_unlimited';
       }
       var prod = PRODUCT_CREDITS[code];
-      if(!prod){ console.log('claim: unknown product', pay.m_payment_id, code); continue; }
+      if(!prod) continue;
       var upd = await supabaseClient.from('payments').update({ employer_id: employerId, note: (pay.note||'') + ' | Claimed by whatsapp_number: ' + normalizeWhatsapp(pay.whatsapp_number||'') + ' -> employer_id ' + employerId }).eq('m_payment_id', pay.m_payment_id).is('employer_id', null);
-      if(upd.error){ console.log('claim update failed', upd.error.message); continue; }
+      if(upd.error) continue;
       var nowIso = new Date().toISOString();
       var expires30 = new Date(Date.now() + 30*24*60*60*1000).toISOString();
       if(prod.unlimited){
@@ -336,15 +348,13 @@ async function claimGuestPayments(){
       claimedCount++;
     }catch(e){ console.log('claim one failed', e); }
   }
-  if(claimedCount>0){
-    showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za.','success');
-  }
+  if(claimedCount>0) showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za.','success');
   return claimedCount;
 }
 async function checkPayment(){
   HAS_PAID = false;
-  await resolveEmployerUuid();
-  await claimGuestPayments();
+  window.__HAS_PAID__ = false;
+  try{ await resolveEmployerUuid(); await claimGuestPayments(); }catch(e){}
   var ids = idVariants();
   var phones = phoneVariants();
   try{
@@ -370,40 +380,17 @@ async function checkPayment(){
       if(s.data && s.data.length) HAS_PAID = true;
     }catch(e){}
   }
+  window.__HAS_PAID__ = HAS_PAID;
   updatePostJobButton();
   return HAS_PAID;
 }
-document.getElementById('homeBtn').onclick = () => { location.href = 'index.html'; };
-document.getElementById('postJobBtn').onclick = handlePostJob;
-document.getElementById('viewJobsBtn').onclick = () => { location.href = 'employer-jobs.html'; };
-document.getElementById('refreshBtn').onclick = async () => {
-  loadingDashboard = false;
-  claimDone = false;
-  setCreditsLoading();
-  document.getElementById('refreshBtn').textContent = '↻ Refreshing...';
-  await checkPayment();
-  await loadDashboard();
-  document.getElementById('refreshBtn').textContent = '↻ Refresh';
-};
-document.getElementById('logoutBtn').onclick = async () => {
-  try{ await Promise.race([supabaseClient.auth.signOut(), new Promise(r=>setTimeout(r,1000))]); }catch(e){}
-  try{
-    localStorage.removeItem('jobway_employer');
-    localStorage.removeItem('employer_whatsapp');
-    localStorage.removeItem('employer_email');
-    localStorage.removeItem('jobway_jobseeker');
-    localStorage.removeItem('jobseeker_whatsapp');
-    localStorage.removeItem('jobway_logged_in');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('jobway_user');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userPhone');
-    localStorage.removeItem('phone');
-    localStorage.removeItem('whatsapp_number');
-    localStorage.removeItem('jobway_whatsapp');
-    sessionStorage.clear();
-  }catch(e){}
-  location.href = 'login.html';
+// Keep old names working, but they now just call the window versions
+window.handlePostJob = function(){
+  if(!window.__HAS_PAID__){
+    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
+    location.href='pricing.html'; return;
+  }
+  location.href='post-job.html';
 };
 function cleanCvPath(raw){
  if(!raw) return null; raw = String(raw).trim(); if(!raw) return null;
@@ -630,7 +617,7 @@ function renderApplicant(app){
 function renderJobs(){
  const el = document.getElementById('jobsList');
  if(!currentJobs.length){ el.innerHTML = `<div class="card empty">You haven't posted any jobs yet.<br><br><a href="pricing.html">Pay R299 to post your first job →</a></div>`; return; }
- el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; const live = job.is_active !== false && job.status !== 'closed'; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b> <span class="badge ${live?'b-green':'b-grey'}">${live?'● LIVE':'Paused'}</span><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small><div class="btn-row"><button class="btn btn-green" onclick="location.href='employer-jobs.html'">Check if LIVE →</button></div></div>`; }).join('');
+ el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; const live = job.is_active !== false && job.status !== 'closed'; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b> <span class="badge ${live?'b-green':'b-grey'}">${live?'● LIVE':'Paused'}</span><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small><div class="btn-row"><button class="btn btn-green" type="button" onclick="location.href='employer-jobs.html'">Check if LIVE →</button></div></div>`; }).join('');
 }
 function filterApplicants(){
  const search = document.getElementById('searchInput').value.trim().toLowerCase(); const status = document.getElementById('statusFilter').value; const cat = document.getElementById('categoryFilter').value; const exp = document.getElementById('expFilter').value; const area = document.getElementById('areaFilter').value; let visible = 0;
@@ -672,7 +659,7 @@ async function loadDashboard(){
   document.getElementById('jobCount').innerText = currentJobs.length; document.getElementById('appCount').innerText = currentApps.length;
   if(currentApps.length){ list.innerHTML = currentApps.map(renderApplicant).join(''); document.getElementById('empty').style.display = 'none'; filterApplicants(); }else{ list.innerHTML = ''; document.getElementById('empty').style.display = 'block'; document.getElementById('filterCount').innerText = ''; }
   renderJobs();
- }catch(e){ console.error('Dashboard loading error:',e); showMessage('Dashboard error: ' + (e.message || 'Unable to load your information.'),'error'); list.innerHTML = `<div class="card">Unable to load your dashboard.<br><br><button class="btn btn-green" id="retryBtn">Try Again</button></div>`; document.getElementById('retryBtn').addEventListener('click',()=>{ loadingDashboard=false; loadDashboard(); }); }finally{ loadingDashboard = false; }
+ }catch(e){ console.error('Dashboard loading error:',e); showMessage('Dashboard error: ' + (e.message || 'Unable to load your information.'),'error'); list.innerHTML = `<div class="card">Unable to load your dashboard.<br><br><button class="btn btn-green" id="retryBtn" type="button">Try Again</button></div>`; var rb=document.getElementById('retryBtn'); if(rb) rb.addEventListener('click',()=>{ loadingDashboard=false; loadDashboard(); }); }finally{ loadingDashboard = false; }
 }
 document.getElementById('list').addEventListener('click',function(e){
  const button = e.target.closest('[data-action]'); if(!button) return; const action = button.dataset.action; const id = button.dataset.id;
@@ -684,7 +671,7 @@ document.getElementById('list').addEventListener('click',function(e){
 document.getElementById('list').addEventListener('change',function(e){ const element = e.target; if(element.dataset.action === 'select-status'){ changeStatusOnly(element.dataset.id,element.value); } });
 function startRealtime(){
  if(!currentUser?.id) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
- realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); });
+ try{ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); }); }catch(e){}
 }
 async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser?.id){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
 startDashboard();
