@@ -43,22 +43,41 @@ function showMessage(t, type){
   m.className = 'message ' + (type || 'error');
 }
 
-function doLoginSuccess(clean, prov, fullName){
+function doLoginSuccess(clean, prov, fullName, role){
+  // role is now REAL from Supabase - 'employer' or 'seeker' - never hardcoded
+  var isEmployer = (role === 'employer');
   try{
+    // Clear opposite role keys first - stops mixing numbers
+    localStorage.removeItem('jobway_employer');
+    localStorage.removeItem('jobway_jobseeker');
+    localStorage.removeItem('employer_whatsapp');
+    localStorage.removeItem('jobseeker_whatsapp');
     localStorage.setItem('userPhone', clean);
-    localStorage.setItem('whatsapp_number', clean);
     localStorage.setItem('phone', clean);
     localStorage.setItem('userProvince', prov || 'Gauteng');
     localStorage.setItem('userName', fullName || '');
-    localStorage.setItem('user_role', 'seeker');
+    localStorage.setItem('user_role', isEmployer ? 'employer' : 'seeker');
     localStorage.setItem('jobway_logged_in', 'true');
-    localStorage.setItem('jobway_user', JSON.stringify({ whatsapp_number: clean, phone: clean, province: prov || 'Gauteng', full_name: fullName || '' }));
     localStorage.setItem('jobway_phone', clean);
     localStorage.setItem('jobway_joined_phone', '+' + clean);
     sessionStorage.setItem('userPhone', clean);
+    if(isEmployer){
+      localStorage.setItem('jobway_employer', JSON.stringify({id:clean, phone:clean, whatsapp_number:clean, role:'employer', province:prov||'Gauteng', full_name:fullName||''}));
+      localStorage.setItem('employer_whatsapp', clean);
+      localStorage.setItem('jobway_user', JSON.stringify({id:clean, phone:clean, whatsapp_number:clean, role:'employer', province:prov||'Gauteng', full_name:fullName||''}));
+      // Do NOT set whatsapp_number generic key for employer - pricing reads employer_whatsapp only
+    } else {
+      localStorage.setItem('jobway_jobseeker', JSON.stringify({id:clean, phone:clean, whatsapp_number:clean, role:'seeker', province:prov||'Gauteng', full_name:fullName||''}));
+      localStorage.setItem('jobseeker_whatsapp', clean);
+      localStorage.setItem('whatsapp_number', clean);
+      localStorage.setItem('jobway_user', JSON.stringify({id:clean, phone:clean, whatsapp_number:clean, role:'seeker', province:prov||'Gauteng', full_name:fullName||''}));
+    }
   }catch(e){}
-  showMessage('✅ Welcome! Opening jobs for ' + (prov || 'Gauteng') + '...', 'success');
-  setTimeout(function(){ window.location.replace('jobs.html?loggedin=1&phone=' + clean); }, 600);
+  showMessage('✅ Welcome' + (fullName ? ' ' + fullName : '') + '! Opening ' + (isEmployer ? 'Employer Dashboard' : 'jobs') + '...', 'success');
+  setTimeout(function(){
+    if(isEmployer){ window.location.replace('employer-dashboard.html'); }
+    else { window.location.replace('jobs.html?loggedin=1&phone=' + clean); }
+  }, 600);
 }
 
 function login(){
@@ -73,53 +92,67 @@ function login(){
   btn.disabled = true;
   btn.textContent = 'Checking...';
 
-  // Try to find user in Supabase using plain XHR - works on old phones
-  var finished = false;
-  function finishOnce(prov, name){
-    if(finished) return;
-    finished = true;
-    doLoginSuccess(clean, prov, name);
-  }
-
+  // FIX: Check PROFILES first - that table has the real role. whatsapp_subscribers does not.
   try{
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', SUPABASE_URL + '/rest/v1/whatsapp_subscribers?select=*&or=(phone.eq.' + clean + ',whatsapp_number.eq.' + clean + ')&limit=1', true);
+    xhr.open('GET', SUPABASE_URL + '/rest/v1/profiles?select=role,province,full_name,phone,whatsapp_number&or=(phone.eq.' + clean + ',whatsapp_number.eq.' + clean + ')&order=created_at.desc&limit=5', true);
     xhr.setRequestHeader('apikey', SUPABASE_KEY);
     xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
-    xhr.timeout = 5000;
+    xhr.timeout = 6000;
     xhr.onreadystatechange = function(){
       if(xhr.readyState === 4){
         if(xhr.status === 200){
           try{
             var arr = JSON.parse(xhr.responseText);
             if(arr && arr.length > 0){
-              finishOnce(arr[0].province || 'Gauteng', arr[0].full_name || '');
+              // If duplicate rows exist (old bug), prefer employer row if ANY row is employer?
+              // No - prefer LATEST row, but if latest is seeker and an employer row exists, the user
+              // must have signed up twice. Show them which one wins.
+              // We pick the newest row - that is the last signup.
+              var u = arr[0];
+              var r = (u.role || 'seeker').toLowerCase();
+              if(r !== 'employer') r = 'seeker';
+              doLoginSuccess(clean, u.province || 'Gauteng', u.full_name || '', r);
               return;
             }
           }catch(e){}
         }
-        // Not found - create new, but don't block login if it fails
+        // Not in profiles - try whatsapp_subscribers as fallback
         var xhr2 = new XMLHttpRequest();
-        xhr2.open('POST', SUPABASE_URL + '/rest/v1/whatsapp_subscribers', true);
+        xhr2.open('GET', SUPABASE_URL + '/rest/v1/whatsapp_subscribers?select=role,province,full_name,phone,whatsapp_number&or=(phone.eq.' + clean + ',whatsapp_number.eq.' + clean + ')&order=created_at.desc&limit=5', true);
         xhr2.setRequestHeader('apikey', SUPABASE_KEY);
         xhr2.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
-        xhr2.setRequestHeader('Content-Type', 'application/json');
-        xhr2.setRequestHeader('Prefer', 'return=minimal');
-        xhr2.onreadystatechange = function(){ if(xhr2.readyState === 4) finishOnce('Gauteng', ''); };
-        xhr2.onerror = function(){ finishOnce('Gauteng', ''); };
-        xhr2.timeout = 4000;
-        xhr2.ontimeout = function(){ finishOnce('Gauteng', ''); };
-        try{ xhr2.send(JSON.stringify({ phone: clean, whatsapp_number: clean, province: 'Gauteng', job_type: 'All Jobs', is_active: true })); }
-        catch(e){ finishOnce('Gauteng', ''); }
+        xhr2.timeout = 5000;
+        xhr2.onreadystatechange = function(){
+          if(xhr2.readyState === 4){
+            if(xhr2.status === 200){
+              try{
+                var arr2 = JSON.parse(xhr2.responseText);
+                if(arr2 && arr2.length > 0){
+                  var u2 = arr2[0];
+                  var r2 = (u2.role || 'seeker').toLowerCase();
+                  if(r2 !== 'employer') r2 = 'seeker';
+                  doLoginSuccess(clean, u2.province || 'Gauteng', u2.full_name || '', r2);
+                  return;
+                }
+              }catch(e){}
+            }
+            // Truly not found - do NOT auto-create as seeker (that was creating wrong-role rows)
+            btn.disabled = false; btn.textContent = 'Login with WhatsApp →';
+            showMessage('No account found for this number. Please sign up first - choose Employer or Jobseeker correctly.', 'error');
+          }
+        };
+        xhr2.onerror = function(){ btn.disabled=false; btn.textContent='Login with WhatsApp →'; showMessage('Network error. Please try again.'); };
+        xhr2.ontimeout = function(){ btn.disabled=false; btn.textContent='Login with WhatsApp →'; showMessage('Network timeout. Please try again.'); };
+        xhr2.send();
       }
     };
-    xhr.onerror = function(){ finishOnce('Gauteng', ''); };
-    xhr.ontimeout = function(){ finishOnce('Gauteng', ''); };
+    xhr.onerror = function(){ btn.disabled=false; btn.textContent='Login with WhatsApp →'; showMessage('Network error. Please try again.'); };
+    xhr.ontimeout = function(){ btn.disabled=false; btn.textContent='Login with WhatsApp →'; showMessage('Network timeout. Please try again.'); };
     xhr.send();
-    // Safety - never hang on old phone
-    setTimeout(function(){ finishOnce('Gauteng', ''); }, 6000);
   }catch(e){
-    finishOnce('Gauteng', '');
+    btn.disabled=false; btn.textContent='Login with WhatsApp →';
+    showMessage('Something went wrong. Please try again.');
   }
 }
 </script>
