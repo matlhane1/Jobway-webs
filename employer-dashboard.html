@@ -23,6 +23,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .btn-whats{background:#25D366;color:white}
 .btn-orange{background:#FFB020;color:#111}
 .btn-red{background:#3a1a1a;color:#ff9a9a}
+/* FIX: Header buttons must be visible, not grey */
+#postJobBtn{background:#01F9C6!important;color:#0A1F2E!important;opacity:1!important}
+#postJobBtn.locked{background:#FFB020!important;color:#111!important}
+#viewJobsBtn{background:#fff!important;color:#0A1F2E!important;opacity:1!important}
+#refreshBtn{background:#1A3E52!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important;opacity:1!important}
+#logoutBtn{background:#3a1a1a!important;color:#ff9a9a!important;border:1px solid #a04444!important;opacity:1!important}
 .container{max-width:1000px;margin:auto;padding:18px}
 .page-title{font-family:'Space Grotesk';font-size:21px;margin:12px 0 5px}
 .sub-title{font-size:12px;color:#8DB0BF;margin-bottom:18px}
@@ -85,10 +91,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <header class="header">
  <div class="logo" id="homeBtn">JobWay • Employer</div>
  <div class="header-actions">
-  <button class="btn btn-dark" id="postJobBtn">+ Post Job</button>
-  <button class="btn btn-dark" id="viewJobsBtn">View Jobs</button>
-  <button class="btn btn-dark" id="refreshBtn">↻ Refresh</button>
-  <button class="btn btn-dark" id="logoutBtn">Log Out</button>
+  <button class="btn" id="postJobBtn">🔒 Pay to Post Job</button>
+  <button class="btn" id="viewJobsBtn">View Jobs</button>
+  <button class="btn" id="refreshBtn">↻ Refresh</button>
+  <button class="btn" id="logoutBtn">Log Out</button>
  </div>
 </header>
 <main class="container">
@@ -108,7 +114,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="search-wrap"><input class="search" id="searchInput" type="search" placeholder="Search applicant, job, qualification... e.g. PSIRA"></div>
   <div class="filter-wrap"><select class="filter" id="statusFilter"><option value="">All statuses</option><option>Application Received</option><option>Under Review</option><option>Shortlisted</option><option>Interview Scheduled</option><option>Hired</option><option>Not Selected</option></select></div>
  </div>
- <!-- EXPANDED: Same 23 categories as profile.html - Other last -->
  <div class="controls">
   <div class="filter-wrap"><select class="filter" id="categoryFilter"><option value="">All job categories</option><option>Security</option><option>Cleaning</option><option>General Worker</option><option>Call Centre</option><option>Sales</option><option>Construction</option><option>Engineering</option><option>IT and Technology</option><option>Finance and Accounting</option><option>Mining</option><option>Banking</option><option>Insurance</option><option>Hospitality and Tourism</option><option>Automotive Industry</option><option>Telecommunications</option><option>Manufacturing</option><option>Cashier</option><option>Driver</option><option>Warehouse</option><option>Retail</option><option>Admin</option><option>General</option><option>Other</option></select></div>
   <div class="filter-wrap"><select class="filter" id="expFilter"><option value="">All experience</option><option>No experience</option><option>1-2 years</option><option>3-5 years</option><option>5+ years</option></select></div>
@@ -145,6 +150,7 @@ let currentInterviewId = null;
 let loadingDashboard = false;
 let realtimeChannel = null;
 let currentWallet = null;
+let HAS_PAID = false;
 function normalizeCategory(v){
   if(!v) return '';
   if(v === 'Hospitality') return 'Hospitality and Tourism';
@@ -154,17 +160,108 @@ function normalizeCategory(v){
   return v;
 }
 function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null'); }catch(e){ return null; } }
+// FIX: Read employer from jobway_employer FIRST, not only jobway_user
+function getCurrentUser(){
+  try{
+    var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
+    if(emp && emp.id) return emp;
+    var u = JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null');
+    if(u && u.id) return u;
+  }catch(e){ return null; }
+  return null;
+}
+// FIX: Same person can be 081..., 27..., +27... in different tables - check all variants
+function idVariants(){
+  var base = String(currentUser?.id || currentUser?.phone || currentUser?.whatsapp_number || '');
+  if(!base) return [];
+  var digits = base.replace(/\D/g,'');
+  var v = new Set();
+  v.add(base); v.add(digits);
+  if(digits.startsWith('27')) v.add('0'+digits.slice(2));
+  if(digits.startsWith('0')) v.add('27'+digits.slice(1));
+  v.add('+'+digits);
+  if(digits.startsWith('27')) v.add('+'+digits);
+  return Array.from(v).filter(Boolean);
+}
 function fmt(date){ if(!date) return 'Not available'; const d = new Date(date); if(isNaN(d.getTime())) return 'Not available'; return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }
 function formatPhone(phone){ if(!phone) return ''; let number = String(phone).replace(/\D/g,''); if(number.startsWith('0')) number = '27' + number.slice(1); if(number.startsWith('27')) return number; return number; }
 function showMessage(message,type=''){ const el = document.getElementById('dashboardMessage'); el.innerHTML = message ? `<div class="message ${type}">${esc(message)}</div>` : ''; }
 function setLoading(button,text){ if(button){ button.disabled = true; button.dataset.originalText = button.innerText; button.innerText = text; } }
 function resetButton(button){ if(button){ button.disabled = false; button.innerText = button.dataset.originalText || 'Submit'; } }
+// FIX: Payment gate - Post Job ONLY after payment
+function updatePostJobButton(){
+  var btn = document.getElementById('postJobBtn'); if(!btn) return;
+  if(HAS_PAID){ btn.classList.remove('locked'); btn.textContent = '+ Post Job'; }
+  else { btn.classList.add('locked'); btn.textContent = '🔒 Pay to Post Job'; }
+}
+function handlePostJob(){
+  if(!HAS_PAID){
+    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post, then come back here - Post Job will unlock automatically.');
+    location.href = 'pricing.html';
+    return;
+  }
+  location.href = 'post-job.html';
+}
+async function checkPayment(){
+  // Check: payments COMPLETE OR employer_credits > 0 OR plan != free OR subscriptions active
+  HAS_PAID = false;
+  var ids = idVariants();
+  if(!ids.length) { updatePostJobButton(); return false; }
+  try{
+    var q = await supabaseClient.from('payments').select('status,product_code').in('employer_id', ids).eq('status','COMPLETE').order('created_at',{ascending:false}).limit(1);
+    if(q.data && q.data.length) HAS_PAID = true;
+  }catch(e){}
+  if(!HAS_PAID){
+    try{
+      var c = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
+      if(c.data && ((c.data.credits||0) > 0 || (c.data.job_credits||0) > 0 || (c.data.cv_credits||0) > 0 || (c.data.plan && c.data.plan !== 'free'))) HAS_PAID = true;
+      if(c.data) currentWallet = c.data;
+    }catch(e){}
+  }
+  if(!HAS_PAID){
+    try{
+      var s = await supabaseClient.from('subscriptions').select('status').in('employer_id', ids).eq('status','active').limit(1);
+      if(s.data && s.data.length) HAS_PAID = true;
+    }catch(e){}
+  }
+  updatePostJobButton();
+  return HAS_PAID;
+}
 document.getElementById('homeBtn').onclick = () => { location.href = 'index.html'; };
-document.getElementById('postJobBtn').onclick = () => { location.href = 'post-job.html'; };
+document.getElementById('postJobBtn').onclick = handlePostJob;
+// FIX: View Jobs ALWAYS works - employer checks if job is LIVE, even before paying
 document.getElementById('viewJobsBtn').onclick = () => { location.href = 'jobs.html'; };
-document.getElementById('refreshBtn').onclick = loadDashboard;
-document.getElementById('logoutBtn').onclick = async () => { try{ await supabaseClient.auth.signOut(); }catch(e){ console.warn('Sign out:',e); } localStorage.removeItem('jobway_logged_in'); localStorage.removeItem('user_role'); localStorage.removeItem('jobway_user'); localStorage.removeItem('user'); location.href = 'index.html'; };
+// FIX: Refresh must reset loading flag + re-check payment + reload
+document.getElementById('refreshBtn').onclick = async () => {
+  loadingDashboard = false;
+  document.getElementById('refreshBtn').textContent = '↻ Refreshing...';
+  await checkPayment();
+  await loadDashboard();
+  document.getElementById('refreshBtn').textContent = '↻ Refresh';
+  // Hard reload as final fallback so cache cannot keep old grey state
+  // Comment out next line if you don't want full reload:
+  // location.reload();
+};
+// FIX: Log Out must clear ALL employer keys, not just jobway_user
+document.getElementById('logoutBtn').onclick = async () => {
+  try{ await Promise.race([supabaseClient.auth.signOut(), new Promise(r=>setTimeout(r,1000))]); }catch(e){}
+  try{
+    localStorage.removeItem('jobway_employer');
+    localStorage.removeItem('employer_whatsapp');
+    localStorage.removeItem('employer_email');
+    localStorage.removeItem('jobway_jobseeker');
+    localStorage.removeItem('jobseeker_whatsapp');
+    localStorage.removeItem('jobway_logged_in');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('jobway_user');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userPhone');
+    localStorage.removeItem('phone');
+    localStorage.removeItem('whatsapp_number');
+    sessionStorage.clear();
+  }catch(e){}
+  location.href = 'login.html';
+};
 function cleanCvPath(raw){
  if(!raw) return null; raw = String(raw).trim(); if(!raw) return null;
  try{
@@ -185,21 +282,13 @@ async function enrichApplications(applications){
  let cvMap = {};
  if(ids.length){
   const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('user_id',ids).order('created_at',{ascending:false});
-  if(!error && data){
-    data.forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; });
-  }
+  if(!error && data){ data.forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; }); }
  }
  for(const app of applications){
   app.profiles = profileMap[app.applicant_id] || null;
   const cvRow = cvMap[app.applicant_id] || null;
-  if(cvRow){
-    app._job_category = normalizeCategory(cvRow.job_category || cvRow.category || '');
-    app._qualifications = cvRow.qualifications || '';
-    app._experience_years = cvRow.experience_years || '';
-    app._area = cvRow.area || cvRow.location || '';
-  } else {
-    app._job_category = ''; app._qualifications = ''; app._experience_years = ''; app._area = '';
-  }
+  if(cvRow){ app._job_category = normalizeCategory(cvRow.job_category || cvRow.category || ''); app._qualifications = cvRow.qualifications || ''; app._experience_years = cvRow.experience_years || ''; app._area = cvRow.area || cvRow.location || ''; }
+  else { app._job_category = ''; app._qualifications = ''; app._experience_years = ''; app._area = ''; }
   if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); app._cv_name = app.cv_name || null; continue; }
   if(app.profiles?.cv_url){ app._cv_path = cleanCvPath(app.profiles.cv_url); app._cv_name = app.profiles.cv_name || null; continue; }
   if(!app.applicant_id) continue;
@@ -213,7 +302,13 @@ async function enrichApplications(applications){
 }
 async function loadCredits(){
   if(!currentUser?.id){ document.getElementById('creditsText').innerText='Please log in'; return null; }
-  const { data } = await supabaseClient.from('employer_credits').select('*').eq('employer_id', currentUser.id).maybeSingle();
+  // FIX: Try all ID variants, not just exact id
+  var ids = idVariants();
+  var data = null;
+  try{
+    var r = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
+    data = r.data || null;
+  }catch(e){}
   currentWallet = data || { credits:0, plan:'free' };
   updateCreditsBanner();
   return currentWallet;
@@ -221,8 +316,12 @@ async function loadCredits(){
 function isUnlimitedWallet(w){ if(!w) return false; if(w.plan !== 'unlimited') return false; if(w.expires_at && new Date(w.expires_at) < new Date()) return false; return true; }
 function updateCreditsBanner(){
   if(!currentWallet){ document.getElementById('creditsText').innerText='0 CV credits left'; return; }
+  if(HAS_PAID && (currentWallet.credits||0)===0 && (currentWallet.plan||'free')==='free'){
+    document.getElementById('creditsText').innerText = '✅ Paid — Post Job unlocked • 0 CV credits left';
+    return;
+  }
   if(isUnlimitedWallet(currentWallet)) document.getElementById('creditsText').innerText = '♾️ Unlimited CVs — expires ' + (currentWallet.expires_at ? fmt(currentWallet.expires_at) : 'never');
-  else document.getElementById('creditsText').innerText = (currentWallet.credits || 0) + ' CV credits left • Plan: ' + (currentWallet.plan || 'free');
+  else document.getElementById('creditsText').innerText = (currentWallet.credits || 0) + ' CV credits left • Plan: ' + (currentWallet.plan || 'free') + (HAS_PAID ? ' • ✅ Paid' : ' • 🔒 Not paid');
 }
 async function openSecureCV(path,appId,button){
  const app = currentApps.find(a => String(a.id) === String(appId));
@@ -259,9 +358,7 @@ async function openSecureCV(path,appId,button){
     currentWallet.credits = newCredits;
     updateCreditsBanner();
     button.innerText = '✓ CV opened — 1 credit used';
-  } else {
-    button.innerText = '✓ CV opened';
-  }
+  } else { button.innerText = '✓ CV opened'; }
  }catch(e){
   console.error('CV error:',e);
   alert('Unable to open this CV: ' + e.message + '\n\nPlease check the private cvs bucket and its Storage permissions.');
@@ -362,8 +459,8 @@ function renderApplicant(app){
 }
 function renderJobs(){
  const el = document.getElementById('jobsList');
- if(!currentJobs.length){ el.innerHTML = `<div class="card empty">You haven't posted any jobs yet.<br><br><a href="post-job.html">Post your first job →</a></div>`; return; }
- el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small></div>`; }).join('');
+ if(!currentJobs.length){ el.innerHTML = `<div class="card empty">You haven't posted any jobs yet.<br><br><a href="pricing.html">Pay R299 to post your first job →</a></div>`; return; }
+ el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; const live = job.is_active !== false && job.status !== 'closed'; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b> <span class="badge ${live?'b-green':'b-grey'}">${live?'● LIVE':'Paused'}</span><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small><div class="btn-row"><button class="btn btn-green" onclick="location.href='jobs.html'">Check if LIVE →</button></div></div>`; }).join('');
 }
 function filterApplicants(){
  const search = document.getElementById('searchInput').value.trim().toLowerCase(); const status = document.getElementById('statusFilter').value; const cat = document.getElementById('categoryFilter').value; const exp = document.getElementById('expFilter').value; const area = document.getElementById('areaFilter').value; let visible = 0;
@@ -381,17 +478,19 @@ async function loadDashboard(){
  if(loadingDashboard) return; loadingDashboard = true; const list = document.getElementById('list'); list.innerHTML = '<div class="loading">Loading your dashboard...</div>';
  try{
   currentUser = getCurrentUser();
-  if(!currentUser || !currentUser.id){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="employer-login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
-  const {data:sessionData,[STRIPPED] = await supabaseClient.auth.getSession(); if(sessionError) console.warn('Session check:',sessionError.message); const session = sessionData?.session; if(session && session.user.id !== currentUser.id){ throw new Error('Your login session does not match this account. Please log in again.'); }
+  if(!currentUser || !currentUser.id){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
+  // FIX: Removed Supabase Auth session check - WhatsApp login has no Auth session, it always threw
+  await checkPayment();
   await loadCredits();
-  const {data:jobs,[STRIPPED] = await supabaseClient.from('jobs').select('*').eq('employer_id',currentUser.id).order('created_at',{ascending:false}); if(jobsError) throw jobsError;
+  var ids = idVariants();
+  const {data:jobs,error:jobsError} = await supabaseClient.from('jobs').select('*').in('employer_id', ids).order('created_at',{ascending:false}); if(jobsError) throw jobsError;
   currentJobs = jobs || [];
   currentApps = []; const jobIds = currentJobs.map(j=>j.id);
-  if(jobIds.length){ const {data:apps,[STRIPPED] = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
+  if(jobIds.length){ const {data:apps,error:appsError} = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
   document.getElementById('jobCount').innerText = currentJobs.length; document.getElementById('appCount').innerText = currentApps.length;
   if(currentApps.length){ list.innerHTML = currentApps.map(renderApplicant).join(''); document.getElementById('empty').style.display = 'none'; filterApplicants(); }else{ list.innerHTML = ''; document.getElementById('empty').style.display = 'block'; document.getElementById('filterCount').innerText = ''; }
   renderJobs(); showMessage('');
- }catch(e){ console.error('Dashboard loading error:',e); showMessage('Dashboard error: ' + (e.message || 'Unable to load your information.'),'error'); list.innerHTML = `<div class="card">Unable to load your dashboard.<br><br><button class="btn btn-green" id="retryBtn">Try Again</button></div>`; document.getElementById('retryBtn').addEventListener('click',loadDashboard); }finally{ loadingDashboard = false; }
+ }catch(e){ console.error('Dashboard loading error:',e); showMessage('Dashboard error: ' + (e.message || 'Unable to load your information.'),'error'); list.innerHTML = `<div class="card">Unable to load your dashboard.<br><br><button class="btn btn-green" id="retryBtn">Try Again</button></div>`; document.getElementById('retryBtn').addEventListener('click',()=>{ loadingDashboard=false; loadDashboard(); }); }finally{ loadingDashboard = false; }
 }
 document.getElementById('list').addEventListener('click',function(e){
  const button = e.target.closest('[data-action]'); if(!button) return; const action = button.dataset.action; const id = button.dataset.id;
@@ -403,7 +502,7 @@ document.getElementById('list').addEventListener('click',function(e){
 document.getElementById('list').addEventListener('change',function(e){ const element = e.target; if(element.dataset.action === 'select-status'){ changeStatusOnly(element.dataset.id,element.value); } });
 function startRealtime(){
  if(!currentUser?.id) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
- realtimeChannel = supabaseClient.channel('jobway-employer-'+currentUser.id).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); });
+ realtimeChannel = supabaseClient.channel('jobway-employer-'+currentUser.id).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); });
 }
 async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser?.id){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
 startDashboard();
