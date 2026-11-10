@@ -87,11 +87,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script>
 // FIX: Header buttons must work even if Supabase / dashboard script fails later.
 // Define them EARLY, on window, and use inline onclick in HTML.
+// BUTTONS NOT TOUCHED - same id, same onclick, same text.
 window.goHome = function(){ location.href='index.html'; };
 window.handlePostJob = function(){
   try{
     if(!window.__HAS_PAID__){
-      alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
+      alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za if you entered an invoice email.');
       location.href='pricing.html';
       return;
     }
@@ -247,8 +248,9 @@ function idVariants(){
   if(isUuid(base)) return [base];
   return [];
 }
+// FIX B: Claim by WhatsApp ONLY. Email is NEVER used to claim / login. Never blocks.
 function phoneVariants(){
-  var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || currentUser?.id || '';
+  var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || '';
   var norm = normalizeWhatsapp(raw);
   var v = new Set();
   if(norm){ v.add(norm); if(norm.startsWith('27')) v.add('0'+norm.slice(2)); v.add('+'+norm); v.add(norm.slice(2)); }
@@ -284,6 +286,7 @@ function updatePostJobButton(){
   btn.textContent = '+ Post Job';
   btn.classList.remove('locked');
 }
+// FIX B: Claim guest payments by WhatsApp ONLY. Email never used. If no email was given, invoice was skipped in notify - do NOT block claim for missing email.
 async function claimGuestPayments(){
   if(claimDone) return 0;
   claimDone = true;
@@ -311,9 +314,15 @@ async function claimGuestPayments(){
   for(var pay of claimed){
     try{
       var code = String(pay.product_code || '').trim();
+      // FIX: Use product_code first. Fallback must check item_name for CV vs Job - 999 could be cv_20 OR starter.
       if(!PRODUCT_CREDITS[code]){
+        var hay = String(pay.item_name || pay.plan || '').toLowerCase();
         var amt = Number(pay.amount || pay.amount_gross || 0);
-        if(amt===299) code='payg_job'; else if(amt===999) code='starter_monthly'; else if(amt===2500) code='growth_monthly'; else if(amt===3500) code='pro_monthly'; else if(amt===5999) code='business_monthly'; else if(amt===7500) code='job_50'; else if(amt===14000) code='job_100'; else if(amt===31250) code='job_250'; else if(amt===55000) code='job_500'; else if(amt===2499) code='cv_100'; else if(amt===9999) code='cv_unlimited';
+        if(hay.includes('unlimited') && hay.includes('cv')) code='cv_unlimited';
+        else if(hay.includes('250') && hay.includes('cv')) code='cv_250';
+        else if(hay.includes('100') && hay.includes('cv')) code='cv_100';
+        else if(hay.includes('20') && hay.includes('cv')) code='cv_20';
+        else if(amt===299) code='payg_job'; else if(amt===999) code='starter_monthly'; else if(amt===2500) code='growth_monthly'; else if(amt===3500) code='pro_monthly'; else if(amt===5999) code='business_monthly'; else if(amt===7500) code='job_50'; else if(amt===14000) code='job_100'; else if(amt===31250) code='job_250'; else if(amt===55000) code='job_500'; else if(amt===2499) code='cv_100'; else if(amt===9999) code='cv_unlimited';
       }
       var prod = PRODUCT_CREDITS[code];
       if(!prod) continue;
@@ -348,7 +357,7 @@ async function claimGuestPayments(){
       claimedCount++;
     }catch(e){ console.log('claim one failed', e); }
   }
-  if(claimedCount>0) showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za.','success');
+  if(claimedCount>0) showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za if you entered an invoice email.','success');
   return claimedCount;
 }
 async function checkPayment(){
@@ -384,10 +393,10 @@ async function checkPayment(){
   updatePostJobButton();
   return HAS_PAID;
 }
-// Keep old names working, but they now just call the window versions
+// Keep old names working, but they now just call the window versions - BUTTONS NOT TOUCHED
 window.handlePostJob = function(){
   if(!window.__HAS_PAID__){
-    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za.');
+    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za if you entered an invoice email.');
     location.href='pricing.html'; return;
   }
   location.href='post-job.html';
@@ -655,7 +664,7 @@ async function loadDashboard(){
   if(jobsError && !jobs.length) throw jobsError;
   currentJobs = jobs || [];
   currentApps = []; const jobIds = currentJobs.map(j=>j.id);
-  if(jobIds.length){ const {data:apps,[STRIPPED] = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
+  if(jobIds.length){ const {data:apps,error:appsError} = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
   document.getElementById('jobCount').innerText = currentJobs.length; document.getElementById('appCount').innerText = currentApps.length;
   if(currentApps.length){ list.innerHTML = currentApps.map(renderApplicant).join(''); document.getElementById('empty').style.display = 'none'; filterApplicants(); }else{ list.innerHTML = ''; document.getElementById('empty').style.display = 'block'; document.getElementById('filterCount').innerText = ''; }
   renderJobs();
