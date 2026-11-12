@@ -46,14 +46,10 @@ select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding
 <button class="btn btn-green" onclick="location.href='track-applications.html'">Track</button>
 </div>
 </div>
-
 <div class="container">
 <div class="trust">All jobs verified • <b>Never pay to apply</b> • WhatsApp <b>079 060 8952</b></div>
-
 <div class="intro"><b>Looking for jobs in Retail, General Work, Call Centres, Driving, Administration, Sales, Cleaning, Security, Hospitality, Construction, Engineering and many more industries?</b> JobWay connects you with opportunities across South Africa. Upload your CV once and apply in 60 seconds.</div>
-
 <div id="cvAlert" style="display:none" class="need-cv">⚠️ Upload CV in Profile to Apply — 1 click apply everywhere</div>
-
 <div class="filters">
 <input id="qTitle" class="search-input" placeholder="Job title: Cashier, General Worker">
 <input id="qLocText" class="search-input" placeholder="Where: Pretoria, Thohoyandou">
@@ -64,36 +60,26 @@ select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding
 <button class="btn-filter btn-wa" onclick="location.href='join.html'">Get jobs on WhatsApp</button>
 <button class="btn-filter btn-track" onclick="location.href='track-applications.html'">Track my applications</button>
 </div>
-
 <div id="count" style="font-size:12px;color:#8DB0BF;margin:12px 2px">Loading jobs across South Africa...</div>
 <div id="list"></div>
 <div id="netMsg" style="text-align:center;font-size:12px;color:#FFD166;padding:15px;display:none">Slow network - showing saved jobs.</div>
 </div>
-
 <script>
 var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 var allJobs = [];
 var cached = [];
 try{ cached = JSON.parse(localStorage.getItem('jobway_cached_jobs') || '[]'); }catch(e){}
-
 (function(){
   var logged = localStorage.getItem('jobway_logged_in');
   if(logged){
     document.getElementById('profileBtn').style.display='inline-block';
-    try{
-      var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
-      if(!p.cv_url) document.getElementById('cvAlert').style.display='block';
-    }catch(e){}
+    try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); if(!p.cv_url) document.getElementById('cvAlert').style.display='block'; }catch(e){}
   } else {
     document.getElementById('headerBtns').innerHTML = '<button class="btn btn-dark" onclick="location.href=\'index.html\'">Home</button><button class="btn btn-green" onclick="location.href=\'login.html\'">Login</button><button class="btn btn-dark" onclick="location.href=\'track-applications.html\'">Track</button>';
   }
 })();
-
-function getParam(name){
-  var m = window.location.search.match(new RegExp('[?&]'+name+'=([^&]+)'));
-  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
-}
+function getParam(name){ var m = window.location.search.match(new RegExp('[?&]'+name+'=([^&]+)')); return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : ''; }
 function doSearchFromJobs(){
   var t = document.getElementById('qTitle').value.trim();
   var l = document.getElementById('qLocText').value.trim();
@@ -101,77 +87,55 @@ function doSearchFromJobs(){
   if(t) p.push('q=' + encodeURIComponent(t));
   if(l) p.push('loc=' + encodeURIComponent(l));
   var qs = p.length ? '?' + p.join('&') : '';
-  window.location.search = qs;
+  window.location.href = 'jobs.html' + qs;
 }
-function timeAgo(ts){
-  var h=Math.floor((Date.now()-ts)/3600000);
-  if(h<1) return 'Posted today';
-  if(h<24) return 'Posted '+h+'h ago';
-  return 'Posted '+Math.floor(h/24)+' days ago';
-}
-function initials(n){
-  var parts=(n||'J').split(' '); var s=''; for(var i=0;i<parts.length&&s.length<2;i++){ if(parts[i].length>0) s+=parts[i][0]; } return s.toUpperCase();
-}
-function extractUrl(text, url){
-  if(url && url.indexOf('http')===0) return url;
-  if(!text) return 'https://www.careers24.com';
-  var m=text.match(/https?:\/\/[^\s\)]+/); if(m) return m[0].replace(/[.,]$/,'');
-  return 'https://www.careers24.com';
-}
-function hasCV(){
-  try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); return !!p.cv_url; }catch(e){ return false; }
-}
+function timeAgo(ts){ var h=Math.floor((Date.now()-ts)/3600000); if(h<1) return 'Posted today'; if(h<24) return 'Posted '+h+'h ago'; return 'Posted '+Math.floor(h/24)+' days ago'; }
+function initials(n){ var parts=(n||'J').split(' '); var s=''; for(var i=0;i<parts.length&&s.length<2;i++){ if(parts[i].length>0) s+=parts[i][0]; } return s.toUpperCase(); }
+function extractUrl(text, url){ if(url && url.indexOf('http')===0) return url; if(!text) return 'https://www.careers24.com'; var m=text.match(/https?:\/\/[^\s\)]+/); if(m) return m[0].replace(/[.,]$/,''); return 'https://www.careers24.com'; }
+function hasCV(){ try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); return !!p.cv_url; }catch(e){ return false; } }
 function handleApply(jobId, applyUrl, title){
   var logged = localStorage.getItem('jobway_logged_in');
   if(!logged){ localStorage.setItem('jobway_wanted_job', jobId); window.location.href='login.html'; return; }
   if(!hasCV()){ if(confirm('⚠️ You need to upload CV first. Go to Profile now?')) window.location.href='profile.html'; return; }
-  try{
-    var apps=JSON.parse(localStorage.getItem('jobway_applications')||'[]');
-    apps.unshift({jobId:jobId, title:title, url:applyUrl, date:new Date().toISOString(), cv_url: JSON.parse(localStorage.getItem('jobway_profile')||'{}').cv_url||''});
-    localStorage.setItem('jobway_applications', JSON.stringify(apps));
-  }catch(e){}
-  try{
-    var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
-    var xhr=new XMLHttpRequest(); xhr.open('POST', SUPABASE_URL+'/rest/v1/applications', true);
-    xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.setRequestHeader('Content-Type','application/json');
-    xhr.send(JSON.stringify({job_id:jobId, phone:p.phoneClean||p.whatsapp||'', full_name:p.fullName||'', cv_url:p.cv_url||''}));
-  }catch(e){}
+  try{ var apps=JSON.parse(localStorage.getItem('jobway_applications')||'[]'); apps.unshift({jobId:jobId, title:title, url:applyUrl, date:new Date().toISOString(), cv_url: JSON.parse(localStorage.getItem('jobway_profile')||'{}').cv_url||''}); localStorage.setItem('jobway_applications', JSON.stringify(apps)); }catch(e){}
+  try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); var xhr=new XMLHttpRequest(); xhr.open('POST', SUPABASE_URL+'/rest/v1/applications', true); xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.setRequestHeader('Content-Type','application/json'); xhr.send(JSON.stringify({job_id:jobId, phone:p.phoneClean||p.whatsapp||'', full_name:p.fullName||'', cv_url:p.cv_url||''})); }catch(e){}
   window.open(applyUrl, '_blank');
 }
 function cleanJobs(jobs){
-  var seen = {};
-  var out = [];
+  var seen = {}; var out = [];
   for(var i=0;i<jobs.length;i++){
     var j = jobs[i];
-    var title = (j.title||'').toString();
-    var comp = (j.company||'').toString();
-    if(/test/i.test(title) || /C Company/i.test(comp)) continue;
+    var title = (j.title||'').toString().trim().toLowerCase();
+    var comp = (j.company||'').toString().trim().toLowerCase();
+    if(title === 'test cleaner' || title === 'test' || comp === 'c company') continue;
     var key = (title+'|'+comp+'|'+(j.location||'')).toLowerCase();
     if(seen[key]) continue;
-    seen[key]=1;
-    out.push(j);
+    seen[key]=1; out.push(j);
   }
   return out;
 }
+// START OF JOBWAY: Do NOT auto-delete / auto-hide any jobs.
+// closing_date is shown only as info, it never hides a job.
+function isExpired(j){ return false; }
 function fetchJobs(cb){
   var xhr=new XMLHttpRequest();
-  xhr.open('GET', SUPABASE_URL+'/rest/v1/jobs?select=*&order=created_at.desc&limit=100', true);
+  xhr.open('GET', SUPABASE_URL+'/rest/v1/jobs?select=*&order=created_at.desc&limit=200', true);
   xhr.setRequestHeader('apikey', SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
   xhr.timeout=8000;
   xhr.onreadystatechange=function(){
     if(xhr.readyState===4){
       if(xhr.status===200){
         try{
-          var rows=JSON.parse(xhr.responseText); var mapped=[]; var today=new Date(); today.setHours(0,0,0,0);
+          var rows=JSON.parse(xhr.responseText); var mapped=[];
           for(var i=0;i<rows.length;i++){
             var j=rows[i];
-            var closing=j.closing_date ? new Date(j.closing_date) : new Date(new Date(j.created_at).getTime()+14*24*3600*1000);
-            if(closing < today) continue;
+            // NEVER hide for closing_date at start of JobWay
+            if(isExpired(j)) continue;
             var salaryText='Salary: Employer to disclose';
             if(j.salary_min && j.salary_max) salaryText='R'+j.salary_min+' - R'+j.salary_max;
             else if(j.salary_min) salaryText='R'+j.salary_min+'+';
             else if(j.salary) salaryText=j.salary;
-            mapped.push({title:j.title, company:j.company_name||j.company||'Company', location:j.location||j.province||'South Africa', province:j.province||j.location||'', type:j.type||j.job_type||'Full-time', salaryText:salaryText, desc:j.description||'', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, applyUrl:extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'')});
+            mapped.push({title:j.title, company:j.company_name||j.company||'Company', location:j.location||j.province||'South Africa', province:j.province||j.location||'', type:j.type||j.job_type||'Full-time', salaryText:salaryText, desc:j.description||'', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, closing_date:j.closing_date||'', applyUrl:extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'')});
           }
           mapped = cleanJobs(mapped);
           if(mapped.length>0){ try{ localStorage.setItem('jobway_cached_jobs', JSON.stringify(mapped)); }catch(e){} cb(mapped); return; }
@@ -194,21 +158,9 @@ function render(){
     var filtered=[];
     for(var i=0;i<jobs.length;i++){
       var j=jobs[i];
-      if(qTitle){
-        var hay = ((j.title||'')+' '+(j.company||'')).toLowerCase();
-        var words = qTitle.split(/\s+/);
-        var ok = true;
-        for(var w=0;w<words.length;w++){ if(hay.indexOf(words[w])===-1){ ok=false; break; } }
-        if(!ok) continue;
-      }
-      if(qLocText){
-        var locHay = ((j.location||'')+' '+(j.province||'')).toLowerCase();
-        if(locHay.indexOf(qLocText)===-1) continue;
-      }
-      if(qLoc){
-        var locLow=(j.location||'').toLowerCase(); var provLow=(j.province||'').toLowerCase();
-        if(locLow.indexOf(qLoc.toLowerCase())===-1 && provLow.indexOf(qLoc.toLowerCase())===-1){ if(!(qLoc==='KZN' && provLow.indexOf('kwazulu')!==-1)) continue; }
-      }
+      if(qTitle){ var hay = ((j.title||'')+' '+(j.company||'')).toLowerCase(); var words = qTitle.split(/\s+/); var ok = true; for(var w=0;w<words.length;w++){ if(hay.indexOf(words[w])===-1){ ok=false; break; } } if(!ok) continue; }
+      if(qLocText){ var locHay = ((j.location||'')+' '+(j.province||'')).toLowerCase(); if(locHay.indexOf(qLocText)===-1) continue; }
+      if(qLoc){ var locLow=(j.location||'').toLowerCase(); var provLow=(j.province||'').toLowerCase(); if(locLow.indexOf(qLoc.toLowerCase())===-1 && provLow.indexOf(qLoc.toLowerCase())===-1){ if(!(qLoc==='KZN' && provLow.indexOf('kwazulu')!==-1)) continue; } }
       if(qType && (j.type||'')!==qType) continue;
       if(qExp==='No experience' && (j.desc||'').toLowerCase().indexOf('no experience')===-1) continue;
       if(qExp==='Matric only' && (j.desc||'').toLowerCase().indexOf('matric')===-1) continue;
@@ -216,35 +168,23 @@ function render(){
     }
     var label = filtered.length+' jobs found';
     if(qTitle) label += ' for "'+qTitle+'"';
-    if(qLocText) label += ' in '+qLocText;
-    else if(qLoc) label += ' in '+qLoc;
+    if(qLocText) label += ' in '+qLocText; else if(qLoc) label += ' in '+qLoc;
     label += ' across SA — Updated today';
     document.getElementById('count').innerHTML=label;
     var listEl=document.getElementById('list');
     if(filtered.length===0){ listEl.innerHTML='<div class="card" style="text-align:center;color:#8DB0BF">No jobs found for your search.<br>Try a different title or city.<br><button class="btn btn-green" style="margin-top:10px" onclick="clearF()">Clear filters</button></div>'; return; }
     var html='';
     for(var k=0;k<filtered.length;k++){
-      var job=filtered[k]; var safeTitle=job.title.replace(/'/g,'').replace(/"/g,'');
-      var needCV = !hasCV();
-      html+='<div class="card"><div class="company">'+initials(job.company)+' '+job.company+'</div><div class="meta">'+job.location+' • '+job.type+'</div><div class="job-title">'+job.title+'</div><div><span class="badge badge-green">'+timeAgo(job.postedAt)+'</span><span class="badge">'+job.salaryText+'</span></div><div class="desc">'+(job.desc||'').substring(0,200)+'</div>'+(needCV?'<div class="need-cv">Upload CV in Profile to Apply</div>':'')+'<button class="btn-apply" onclick="handleApply(\''+job.id+'\', \''+job.applyUrl+'\', \''+safeTitle+'\')">'+(needCV?'Upload CV to Apply':'Apply now ↗')+'</button><button class="btn-detail" onclick="alert(\''+safeTitle+'\\n'+job.company+'\\n'+job.location+'\')">View details</button></div>';
+      var job=filtered[k]; var safeTitle=job.title.replace(/'/g,'').replace(/"/g,''); var needCV = !hasCV();
+      html+='<div class="card"><div class="company">'+initials(job.company)+' '+job.company+'</div><div class="meta">'+job.location+' • '+job.type+'</div><div class="job-title">'+job.title+'</div><div><span class="badge badge-green">'+timeAgo(job.postedAt)+'</span><span class="badge">'+job.salaryText+'</span>'+(job.closing_date ? '<span class="badge">Closes: '+job.closing_date+'</span>' : '')+'</div><div class="desc">'+(job.desc||'').substring(0,200)+'</div>'+(needCV?'<div class="need-cv">Upload CV in Profile to Apply</div>':'')+'<button class="btn-apply" onclick="handleApply(\''+job.id+'\', \''+job.applyUrl+'\', \''+safeTitle+'\')">'+(needCV?'Upload CV to Apply':'Apply now ↗')+'</button><button class="btn-detail" onclick="alert(\''+safeTitle+'\\n'+job.company+'\\n'+job.location+'\')">View details</button></div>';
     }
     listEl.innerHTML=html;
   };
   if(allJobs.length>0){ doFilter(allJobs); return; }
   fetchJobs(function(jobs){ allJobs = jobs; doFilter(jobs); });
 }
-function clearF(){
-  document.getElementById('qTitle').value='';
-  document.getElementById('qLocText').value='';
-  document.getElementById('loc').value=''; document.getElementById('type').value=''; document.getElementById('exp').value='';
-  window.location.search = '';
-}
-// Prefill search boxes from URL on load
-(function(){
-  var q = getParam('q'); var l = getParam('loc');
-  if(q) document.getElementById('qTitle').value = q;
-  if(l) document.getElementById('qLocText').value = l;
-})();
+function clearF(){ document.getElementById('qTitle').value=''; document.getElementById('qLocText').value=''; document.getElementById('loc').value=''; document.getElementById('type').value=''; document.getElementById('exp').value=''; window.location.href='jobs.html'; }
+(function(){ var q = getParam('q'); var l = getParam('loc'); if(q) document.getElementById('qTitle').value = q; if(l) document.getElementById('qLocText').value = l; })();
 render();
 </script>
 </body>
