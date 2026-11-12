@@ -22,13 +22,13 @@
 .h1 .m{color:#30BA8F}.h1 .b{color:#01F9C6}
 .sub{color:#A8C8D0;font-size:14px;line-height:1.65;margin:14px 0;max-width:600px}
 .search-box{background:#12344A;border:1px solid #1e5a4a;border-radius:16px;padding:12px;display:flex;gap:8px;flex-wrap:wrap}
-.search-box input{flex:1;min-width:140px;background:#0A1F2E;border:1px solid #2a4a5c;border-radius:20px;padding:0 14px;height:44px;color:#fff;font-size:14px}
+.search-box input{flex:1;min-width:140px;background:#0A1F2E;border:1px solid #2a4a5c;border-radius:20px;padding:0 14px;height:44px;color:#fff;font-size:14px;outline:none}
+.search-box input:focus{border-color:#01F9C6}.search-box input::placeholder{color:#8FB3C1}
 .btn-search{background:#01F9C6;color:#0A1F2E;font-weight:900;height:44px;padding:0 22px;border-radius:20px;border:0;cursor:pointer}
-.trust{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.trust span{background:rgba(255,255,255,.06);padding:5px 10px;border-radius:20px;font-size:11px;color:#A8C8D0}
+.btn-search:hover{background:#30BA8F}
+.trust{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.trust span{background:rgba(255,255,255,.06);padding:5px 10px;border-radius:20px;font-size:11px;color:#A8C8D0}
 .hero-visual{border-radius:20px;background:#20576E;border:1px solid #1e5a4a;padding:18px}
-.hero-job{background:#fff;color:#0A1F2E;border-radius:12px;padding:12px;margin-bottom:10px}
-.hero-job b{font-size:14px;display:block}.hero-job span{font-size:11px;color:#666}
+.hero-job{background:#fff;color:#0A1F2E;border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer}.hero-job b{font-size:14px;display:block}.hero-job span{font-size:11px;color:#666}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 24px}
 .s-card{border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,.08)}
 .s-navy{background:#20576E}.s-teal{background:#1A7A5D}.s-dark{background:#0F2835}.s-bright{background:#01F9C6;color:#0A2A3A}
@@ -37,12 +37,11 @@
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .card{border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,.08);background:#1A3E52}
 .card h4{font-size:14px;color:#01F9C6;margin-bottom:6px}.card p{font-size:12px;line-height:1.6;color:#A8C8D0}
-.testi{background:#1A3E52;border-radius:12px;padding:14px}
-.testi p{font-size:13px;line-height:1.6;color:#cfe6eb}.testi b{font-size:12px;color:#01F9C6;margin-top:8px;display:block}
+.testi{background:#1A3E52;border-radius:12px;padding:14px}.testi p{font-size:13px;line-height:1.6;color:#cfe6eb}.testi b{font-size:12px;color:#01F9C6;margin-top:8px;display:block}
 .cta{background:#01F9C6;border-radius:18px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:28px 0;color:#0A2A3A}
 .cta h3{font-size:20px;font-weight:900}.cta p{font-size:13px;margin-top:4px}
-.btn-dark{background:#0A1F2E;color:#fff;height:42px;padding:0 22px;border-radius:20px;border:0;font-weight:800}
-.btn-light{background:#fff;color:#20576E;height:42px;padding:0 22px;border-radius:20px;border:0;font-weight:800}
+.btn-dark{background:#0A1F2E;color:#fff;height:42px;padding:0 22px;border-radius:20px;border:0;font-weight:800;cursor:pointer}
+.btn-light{background:#fff;color:#20576E;height:42px;padding:0 22px;border-radius:20px;border:0;font-weight:800;cursor:pointer}
 .footer{background:#081824;border-top:1px solid #1e3a4a;padding:22px 0 14px;margin-top:16px}
 .footer-grid{max-width:1280px;margin:0 auto;padding:0 15px;display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr;gap:16px}
 .foot h5{font-size:12px;color:#01F9C6;margin-bottom:10px}.foot a,.foot p{font-size:12px;color:#8FB3C1;line-height:1.8;text-decoration:none;display:block}
@@ -55,23 +54,24 @@
 .job-card a{display:inline-block;margin-top:6px;background:#01F9C6;color:#0A1F2E;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:800;text-decoration:none}
 .filter-bar{background:rgba(1,249,198,.12);border:1px solid rgba(1,249,198,.3);padding:10px 12px;border-radius:10px;font-size:13px;font-weight:700;margin-bottom:12px}
 @media(max-width:900px){.hero{grid-template-columns:1fr}.h1{font-size:36px}.stats{grid-template-columns:repeat(2,1fr)}.grid3,.job-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.cta{flex-direction:column;align-items:flex-start}}
+@media(max-width:480px){.header-main{height:56px}.logo{font-size:20px}.nav-cta .btn{padding:0 12px;font-size:12px}.header-nav{gap:14px}.search-box{flex-direction:column}.search-box input,.btn-search{width:100%;min-height:44px}.h1{font-size:34px}.footer-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="top"><div class="top-inner">
-<div class="header-main">
-<a href="index.html" class="logo">JobWay</a>
-<div class="nav-cta"><button class="btn btn-login" onclick="location.href='login.html'">Log In</button><button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up Free</button></div>
-</div>
+<div class="header-main"><a href="index.html" class="logo">JobWay</a><div class="nav-cta"><button class="btn btn-login" onclick="location.href='login.html'">Log In</button><button class="btn btn-signup" onclick="location.href='signup.html'">Sign Up Free</button></div></div>
 <div class="header-nav"><a href="index.html" class="active">Find Jobs</a><a href="jobs.html">Browse Jobs</a><a href="pricing.html">For Employers</a><a href="profile.html">My CV</a><a href="track-applications.html">Track my applications</a></div>
 </div></div>
 <div class="wrap">
-<div class="hero">
-<div>
+<div class="hero"><div>
 <div class="kicker">REAL JOBS IN SOUTH AFRICA — UPDATED TODAY</div>
 <div class="h1"><div>Find work</div><div class="m">that pays.</div><div class="b">Fast.</div></div>
 <div class="sub">Looking for jobs in Retail, General Work, Call Centres, Driving, Administration, Sales, Cleaning, Security, Hospitality, Construction, Engineering and many more industries? JobWay connects job seekers with opportunities across South Africa. Upload your CV once and apply for jobs in as little as 60 seconds with one-click applications. Receive the latest job opportunities directly through WhatsApp job alerts. Track your applications, check application statuses and stay updated on interview invitations — all in one convenient platform.</div>
-<div class="search-box"><input id="qTitle" placeholder="Job title: Cashier, General Worker"><input id="qLoc" placeholder="Where: Pretoria, Thohoyandou"><button class="btn-search" onclick="doSearch()">Search</button></div>
+<form class="search-box" id="homepageSearch" action="jobs.html" method="GET">
+<input type="search" id="qTitle" name="q" placeholder="Job title: Cashier, General Worker" autocomplete="off">
+<input type="search" id="qLoc" name="loc" placeholder="Where: Pretoria, Thohoyandou" autocomplete="off">
+<button type="submit" class="btn-search">Search</button>
+</form>
 <div class="trust"><span>✓ POPIA compliant</span><span>✓ PayFast secured</span><span>✓ WhatsApp support</span><span>Pretoria, SA</span></div>
 </div>
 <div class="hero-visual">
@@ -79,64 +79,28 @@
 <div class="hero-job" onclick="location.href='jobs.html'"><b>General Worker — Boxer, Pretoria</b><span>R4,800 • No experience needed • Gauteng</span></div>
 <div class="hero-job" onclick="location.href='jobs.html'" style="opacity:.9"><b>General Worker — PNet, Polokwane</b><span>R4,800 • No Matric • Limpopo • 23 applied</span></div>
 <div style="margin-top:8px;font-size:11px;color:#A8C8D0">Live jobs — new posts added hourly.</div>
-</div>
-</div>
-<div class="stats">
-<div class="s-card s-navy"><b>580+</b><span style="color:#01F9C6">SA EMPLOYERS</span></div>
-<div class="s-card s-teal"><b>Daily</b><span>NEW JOBS ADDED</span></div>
-<div class="s-card s-dark"><b>Free</b><span style="color:#01F9C6">FOR JOBSEEKERS</span></div>
-<div class="s-card s-bright"><b>R299</b><span>PER JOB POST</span></div>
-</div>
-<div class="section">
-<div class="section-title">Latest Jobs For You</div>
-<div id="filter-info" class="filter-bar">Loading jobs matched to you...</div>
-<div id="jobsGrid" class="job-grid"><p style="color:#A8C8D0">Loading jobs...</p></div>
-<div style="text-align:center;margin-top:14px"><button class="btn btn-signup" onclick="location.href='jobs.html'">View All Jobs →</button></div>
-</div>
-<div class="section">
-<div class="section-title">How it works</div>
-<div class="grid3">
-<div class="card"><h4>1. Find a job you can do</h4><p>Search Cashier, Retail, Cleaner, Driver jobs near you. Filter by city and salary.</p></div>
-<div class="card"><h4>2. Apply in 60 seconds</h4><p>Upload your CV once. One click to apply. Track your application status on WhatsApp.</p></div>
-<div class="card"><h4>3. Get hired</h4><p>Employers contact you directly. No middleman fees. Your CV is protected under POPIA.</p></div>
-</div>
-</div>
-<div class="section">
-<div class="section-title">What people say</div>
-<div class="grid3">
-<div class="testi"><p>"I applied for 3 cashier jobs on Tuesday, got a call Thursday. Started Monday at Boxer. JobWay is legit."</p><b>— Thandi M., Pretoria • Cashier</b></div>
-<div class="testi"><p>"We posted a general worker job for R299 and got 40 CVs in one day. Much cheaper than other sites."</p><b>— Ahmed, Warehouse Owner, JHB</b></div>
-<div class="testi"><p>"No scam jobs asking for money. Real jobs, real employers. I tell my cousins to use it."</p><b>— Sipho K., Thohoyandou • Driver</b></div>
-</div>
-</div>
+</div></div>
+<div class="stats"><div class="s-card s-navy"><b>580+</b><span style="color:#01F9C6">SA EMPLOYERS</span></div><div class="s-card s-teal"><b>Daily</b><span>NEW JOBS ADDED</span></div><div class="s-card s-dark"><b>Free</b><span style="color:#01F9C6">FOR JOBSEEKERS</span></div><div class="s-card s-bright"><b>R299</b><span>PER JOB POST</span></div></div>
+<div class="section"><div class="section-title">Latest Jobs For You</div><div id="filter-info" class="filter-bar">Loading jobs matched to you...</div><div id="jobsGrid" class="job-grid"><p style="color:#A8C8D0">Loading jobs...</p></div><div style="text-align:center;margin-top:14px"><button class="btn btn-signup" onclick="location.href='jobs.html'">View All Jobs →</button></div></div>
+<div class="section"><div class="section-title">How it works</div><div class="grid3"><div class="card"><h4>1. Find a job you can do</h4><p>Search Cashier, Retail, Cleaner, Driver jobs near you. Filter by city and salary.</p></div><div class="card"><h4>2. Apply in 60 seconds</h4><p>Upload your CV once. One click to apply. Track your application status on WhatsApp.</p></div><div class="card"><h4>3. Get hired</h4><p>Employers contact you directly. No middleman fees. Your CV is protected under POPIA.</p></div></div></div>
+<div class="section"><div class="section-title">What people say</div><div class="grid3"><div class="testi"><p>"I applied for 3 cashier jobs on Tuesday, got a call Thursday. Started Monday at Boxer. JobWay is legit."</p><b>— Thandi M., Pretoria • Cashier</b></div><div class="testi"><p>"We posted a general worker job for R299 and got 40 CVs in one day. Much cheaper than other sites."</p><b>— Ahmed, Warehouse Owner, JHB</b></div><div class="testi"><p>"No scam jobs asking for money. Real jobs, real employers. I tell my cousins to use it."</p><b>— Sipho K., Thohoyandou • Driver</b></div></div></div>
 <div class="cta"><div><h3>Employers: Post a job in 2 minutes</h3><p>R299 for 1 job for 30 days. No monthly fees. Pay with PayFast. CVs included free.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-dark" onclick="location.href='pricing.html'">See pricing</button><button class="btn-light" onclick="location.href='employer-dashboard.html'">Post a job</button></div></div>
 </div>
-<footer class="footer">
-<div class="footer-grid">
-<div class="foot"><h5>JobWay.co.za</h5><div style="font-size:13px;color:#fff;font-weight:800">Your Job, Your Way</div><p>Real jobs for South Africans. No fees for jobseekers. Based in Pretoria.</p><div style="margin-top:10px"><a class="contact-btn bright" href="mailto:hello@jobway.co.za">hello@jobway.co.za</a><br><a class="contact-btn" href="mailto:support@jobway.co.za">support@jobway.co.za</a></div></div>
-<div class="foot"><h5>Jobs</h5><a href="jobs.html">Browse all jobs</a><a href="jobs.html">Retail & Cashier</a><a href="jobs.html">General Worker</a><a href="pricing.html">For Employers</a></div>
-<div class="foot"><h5>Legal</h5><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a><a href="paia.html">PAIA Manual</a><a href="refund.html">Refund Policy</a></div>
-<div class="foot"><h5>Support</h5><p>Mon-Fri 8am-6pm SAST<br>Reply within 1 hour on WhatsApp</p></div>
-</div>
-<div class="copy"><span>© 2026 JobWay.co.za • Made for Mzansi • POPIA Compliant</span><span>hello@jobway.co.za</span></div>
-</footer>
+<footer class="footer"><div class="footer-grid"><div class="foot"><h5>JobWay.co.za</h5><div style="font-size:13px;color:#fff;font-weight:800">Your Job, Your Way</div><p>Real jobs for South Africans. No fees for jobseekers. Based in Pretoria.</p><div style="margin-top:10px"><a class="contact-btn bright" href="mailto:hello@jobway.co.za">hello@jobway.co.za</a><br><a class="contact-btn" href="mailto:support@jobway.co.za">support@jobway.co.za</a></div></div><div class="foot"><h5>Jobs</h5><a href="jobs.html">Browse all jobs</a><a href="jobs.html">Retail & Cashier</a><a href="jobs.html">General Worker</a><a href="pricing.html">For Employers</a></div><div class="foot"><h5>Legal</h5><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a><a href="paia.html">PAIA Manual</a><a href="refund.html">Refund Policy</a></div><div class="foot"><h5>Support</h5><p>Mon-Fri 8am-6pm SAST<br>Reply within 1 hour on WhatsApp</p></div></div><div class="copy"><span>© 2026 JobWay.co.za • Made for Mzansi • POPIA Compliant</span><span>hello@jobway.co.za</span></div></footer>
 <script>
 var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-function getParam(name){
-  var m = window.location.search.match(new RegExp('[?&]'+name+'=([^&]+)'));
-  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
-}
+function getParam(name){ var p = new URLSearchParams(window.location.search); return p.get(name) || ''; }
 function doSearch(){
-  var t = document.getElementById('qTitle').value.trim();
-  var l = document.getElementById('qLoc').value.trim();
-  var p = [];
-  if(t) p.push('q=' + encodeURIComponent(t));
-  if(l) p.push('loc=' + encodeURIComponent(l));
-  // FIXED: Always go to jobs.html - never stay on index.html
-  var url = 'jobs.html';
-  if(p.length) url += '?' + p.join('&');
-  window.location.href = url;
+  var title = document.getElementById('qTitle').value.trim();
+  var location = document.getElementById('qLoc').value.trim();
+  var params = new URLSearchParams();
+  if(title) params.set('q', title);
+  if(location) params.set('loc', location);
+  var dest = 'jobs.html';
+  var qs = params.toString();
+  if(qs) dest += '?' + qs;
+  window.location.assign(dest);
 }
 function xhrGet(url, cb){
   try{
@@ -145,89 +109,66 @@ function xhrGet(url, cb){
     xhr.setRequestHeader('apikey', SUPABASE_KEY);
     xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
     xhr.timeout = 8000;
-    xhr.onreadystatechange = function(){ if(xhr.readyState === 4){ if(xhr.status === 200){ try{ cb(JSON.parse(xhr.responseText)); }catch(e){ cb([]); } } else cb([]); } };
-    xhr.onerror = function(){ cb([]); };
-    xhr.ontimeout = function(){ cb([]); };
+    xhr.onreadystatechange = function(){ if(xhr.readyState===4){ if(xhr.status>=200 && xhr.status<300){ try{ cb(JSON.parse(xhr.responseText)); }catch(e){ cb([]); } } else cb([]); } };
+    xhr.onerror = function(){ cb([]); }; xhr.ontimeout = function(){ cb([]); };
     xhr.send();
   }catch(e){ cb([]); }
 }
 function cleanJobs(jobs){
-  var seen = {};
-  var out = [];
+  var seen = {}; var out = [];
   for(var i=0;i<jobs.length;i++){
     var j = jobs[i];
-    var title = (j.title||'').toString();
-    var comp = (j.company_name||j.company||'').toString();
-    if(/test/i.test(title) || /C Company/i.test(comp)) continue;
+    var title = (j.title||'').toString().trim().toLowerCase();
+    var comp = (j.company_name||j.company||'').toString().trim().toLowerCase();
+    // FIXED: Only hide exact fake jobs, not real jobs with "test" in title like Test Analyst
+    if(title === 'test cleaner' || title === 'test' || comp === 'c company') continue;
     var key = (title+'|'+comp+'|'+(j.location||'')).toLowerCase();
     if(seen[key]) continue;
-    seen[key]=1;
-    out.push(j);
+    seen[key]=1; out.push(j);
   }
   return out;
 }
-function filterJobs(jobs, q, loc){
-  q = (q||'').toLowerCase().trim();
-  loc = (loc||'').toLowerCase().trim();
+function filterJobs(jobs,q,loc){
+  q=(q||'').toLowerCase().trim(); loc=(loc||'').toLowerCase().trim();
   if(!q && !loc) return jobs;
   return jobs.filter(function(j){
     var titleHay = ((j.title||'')+' '+(j.company_name||j.company||'')).toLowerCase();
     var locHay = ((j.location||'')+' '+(j.province||'')+' '+(j.city||'')).toLowerCase();
-    var qOk = true, locOk = true;
-    if(q){
-      var words = q.split(/\s+/);
-      qOk = words.every(function(w){ return titleHay.indexOf(w)>-1 || locHay.indexOf(w)>-1; });
-    }
-    if(loc){
-      locOk = locHay.indexOf(loc)>-1;
-    }
+    var qOk=true, locOk=true;
+    if(q){ var words=q.split(/\s+/); qOk = words.every(function(w){ return titleHay.indexOf(w)>-1 || locHay.indexOf(w)>-1; }); }
+    if(loc){ locOk = locHay.indexOf(loc)>-1; }
     return qOk && locOk;
   });
 }
-function getJobType(j){
-  // Show ALL job_type values - do NOT filter out any type
-  var t = j.job_type || j.type || '';
-  if(!t) return 'Full-time';
-  return t;
-}
+function getJobType(j){ var t = j.job_type || j.type || ''; if(!t) return 'Full-time'; return t; }
+function escapeHTML(v){ return String(v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function displayJobs(jobs){
-  var grid = document.getElementById('jobsGrid');
-  if(!jobs || jobs.length === 0){ grid.innerHTML = '<p style="color:#A8C8D0">No jobs found for your search. Try a different title or city.</p>'; return; }
-  var html = '';
+  var grid=document.getElementById('jobsGrid');
+  if(!jobs || jobs.length===0){ grid.innerHTML='<p style="color:#A8C8D0">No jobs found. Visit Browse Jobs to explore available opportunities.</p>'; return; }
+  var html='';
   for(var i=0;i<jobs.length;i++){
-    var j = jobs[i];
-    var title = j.title || 'Job';
-    var comp = j.company_name || j.company || '';
-    var loc = j.location || j.province || '';
-    var jobType = getJobType(j);
-    var prov = j.province || '';
-    var apply = j.apply_url || j.source_url || 'jobs.html';
-    html += '<div class="job-card"><h3>' + title + '</h3><p>' + comp + ' • ' + loc + '</p><div class="meta">' + jobType + ' • ' + prov + '</div><a href="' + apply + '" target="_blank">Apply Now →</a></div>';
+    var j=jobs[i]; var title=j.title||'Job'; var comp=j.company_name||j.company||''; var loc=j.location||j.province||''; var jobType=getJobType(j); var prov=j.province||''; var apply=j.apply_url||j.source_url||'jobs.html';
+    html += '<div class="job-card"><h3>'+escapeHTML(title)+'</h3><p>'+escapeHTML(comp)+' • '+escapeHTML(loc)+'</p><div class="meta">'+escapeHTML(jobType)+' • '+escapeHTML(prov)+'</div><a href="'+escapeHTML(apply)+'" target="_blank" rel="noopener">Apply Now →</a></div>';
   }
-  grid.innerHTML = html;
+  grid.innerHTML=html;
 }
 function loadJobs(){
-  var infoEl = document.getElementById('filter-info');
-  var q = getParam('q');
-  var loc = getParam('loc');
-  if(q) document.getElementById('qTitle').value = q;
-  if(loc) document.getElementById('qLoc').value = loc;
-  xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&order=created_at.desc&limit=100', function(jobs){
-    if(!jobs) jobs = [];
-    var cleaned = cleanJobs(jobs);
-    // Filter by title + location, but NEVER filter by job_type - show all types
-    var filtered = filterJobs(cleaned, q, loc);
-    if(q || loc){
-      infoEl.innerHTML = 'Showing ' + filtered.length + ' jobs for "' + (q||'') + ' ' + (loc||'') + '" — All types: Full-time, Part-time, Contract, Temporary — <a href="jobs.html" style="color:#01F9C6">View in Jobs →</a>';
-    } else {
-      infoEl.innerHTML = 'Showing ' + filtered.length + ' latest jobs in South Africa — All types: Full-time, Part-time, Contract, Temporary';
-    }
+  var infoEl=document.getElementById('filter-info');
+  var q=getParam('q'); var loc=getParam('loc');
+  if(q) document.getElementById('qTitle').value=q;
+  if(loc) document.getElementById('qLoc').value=loc;
+  xhrGet(SUPABASE_URL+'/rest/v1/jobs?select=*&order=created_at.desc&limit=100', function(jobs){
+    if(!Array.isArray(jobs)) jobs=[];
+    var cleaned=cleanJobs(jobs);
+    var filtered=filterJobs(cleaned,q,loc);
+    if(q||loc){ infoEl.textContent='Showing '+filtered.length+' jobs matching your search.'; } else { infoEl.textContent='Showing '+filtered.length+' latest jobs in South Africa.'; }
     displayJobs(filtered.slice(0,9));
   });
 }
-loadJobs();
-document.getElementById('qTitle').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
-document.getElementById('qLoc').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('homepageSearch').addEventListener('submit', function(e){ e.preventDefault(); doSearch(); });
+  loadJobs();
+});
 </script>
 </body>
 </html>
