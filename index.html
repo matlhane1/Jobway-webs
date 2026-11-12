@@ -81,7 +81,6 @@
 <div style="margin-top:8px;font-size:11px;color:#A8C8D0">Live jobs — new posts added hourly.</div>
 </div>
 </div>
-<!-- rest same -->
 <div class="stats">
 <div class="s-card s-navy"><b>580+</b><span style="color:#01F9C6">SA EMPLOYERS</span></div>
 <div class="s-card s-teal"><b>Daily</b><span>NEW JOBS ADDED</span></div>
@@ -124,15 +123,19 @@
 <script>
 var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
+function getParam(name){
+  var m = window.location.search.match(new RegExp('[?&]'+name+'=([^&]+)'));
+  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
+}
 function doSearch(){
-  var t = document.getElementById('qTitle').value.replace(/^\s+|\s+$/g, '');
-  var l = document.getElementById('qLoc').value.replace(/^\s+|\s+$/g, '');
-  var url = 'jobs.html';
+  var t = document.getElementById('qTitle').value.trim();
+  var l = document.getElementById('qLoc').value.trim();
   var p = [];
   if(t) p.push('q=' + encodeURIComponent(t));
   if(l) p.push('loc=' + encodeURIComponent(l));
-  if(p.length) url += '?' + p.join('&');
-  location.href = url;
+  var qs = p.length ? '?' + p.join('&') : '';
+  // If we are on homepage, filter instantly without losing the page. If you prefer jobs.html, change to jobs.html + qs
+  window.location.search = qs;
 }
 function xhrGet(url, cb){
   try{
@@ -147,9 +150,44 @@ function xhrGet(url, cb){
     xhr.send();
   }catch(e){ cb([]); }
 }
+function cleanJobs(jobs){
+  var seen = {};
+  var out = [];
+  for(var i=0;i<jobs.length;i++){
+    var j = jobs[i];
+    var title = (j.title||'').toString();
+    var comp = (j.company_name||j.company||'').toString();
+    // 1. Hide test jobs
+    if(/test/i.test(title) || /C Company/i.test(comp)) continue;
+    var key = (title+'|'+comp+'|'+(j.location||'')).toLowerCase();
+    if(seen[key]) continue;
+    seen[key]=1;
+    out.push(j);
+  }
+  return out;
+}
+function filterJobs(jobs, q, loc){
+  q = (q||'').toLowerCase().trim();
+  loc = (loc||'').toLowerCase().trim();
+  if(!q && !loc) return jobs;
+  return jobs.filter(function(j){
+    var title = ((j.title||'')+' '+(j.company_name||j.company||'')).toLowerCase();
+    var location = ((j.location||'')+' '+(j.province||'')+' '+(j.city||'')).toLowerCase();
+    var qOk = true, locOk = true;
+    if(q){
+      // split "cashier pretoria" into words, every word must be in title OR location
+      var words = q.split(/\s+/);
+      qOk = words.every(function(w){ return title.indexOf(w)>-1 || location.indexOf(w)>-1; });
+    }
+    if(loc){
+      locOk = location.indexOf(loc)>-1;
+    }
+    return qOk && locOk;
+  });
+}
 function displayJobs(jobs){
   var grid = document.getElementById('jobsGrid');
-  if(!jobs || jobs.length === 0){ grid.innerHTML = '<p style="color:#A8C8D0">No jobs found. Browse all jobs.</p>'; return; }
+  if(!jobs || jobs.length === 0){ grid.innerHTML = '<p style="color:#A8C8D0">No jobs found for your search. Try a different title or city.</p>'; return; }
   var html = '';
   for(var i=0;i<jobs.length;i++){
     var j = jobs[i];
@@ -163,10 +201,21 @@ function displayJobs(jobs){
 }
 function loadJobs(){
   var infoEl = document.getElementById('filter-info');
-  xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&order=created_at.desc&limit=9', function(jobs){
+  var q = getParam('q');
+  var loc = getParam('loc');
+  // Prefill search boxes from URL so user sees what they searched
+  if(q) document.getElementById('qTitle').value = q;
+  if(loc) document.getElementById('qLoc').value = loc;
+  xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&order=created_at.desc&limit=100', function(jobs){
     if(!jobs) jobs = [];
-    infoEl.innerHTML = 'Showing ' + jobs.length + ' latest jobs in South Africa — Sign up to filter by Province';
-    displayJobs(jobs);
+    var cleaned = cleanJobs(jobs);
+    var filtered = filterJobs(cleaned, q, loc);
+    if(q || loc){
+      infoEl.innerHTML = 'Showing ' + filtered.length + ' jobs for "' + (q||'') + ' ' + (loc||'') + '" — <a href="index.html" style="color:#01F9C6">Clear search</a>';
+    } else {
+      infoEl.innerHTML = 'Showing ' + filtered.length + ' latest jobs in South Africa — Sign up to filter by Province';
+    }
+    displayJobs(filtered);
   });
 }
 loadJobs();
