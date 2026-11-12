@@ -20,6 +20,7 @@ body{font-family:Arial,sans-serif;background:#0F2835;color:#fff}
 .intro b{color:#fff}
 .filters{background:#11283A;border:1px solid #1e3a4a;border-radius:12px;padding:10px}
 select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:11px;border-radius:8px;margin:4px 0;font-size:13px}
+.search-input{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding:11px;border-radius:8px;margin:4px 0;font-size:13px}
 .btn-filter{width:100%;padding:11px;border-radius:20px;font-weight:800;margin:4px 0;font-size:13px;border:0;cursor:pointer}
 .btn-wa{background:#1A3E52;color:#fff}
 .btn-track{background:#01F9C6;color:#0A1F2E}
@@ -54,6 +55,9 @@ select{width:100%;background:#0F2230;border:1px solid #25475A;color:#fff;padding
 <div id="cvAlert" style="display:none" class="need-cv">⚠️ Upload CV in Profile to Apply — 1 click apply everywhere</div>
 
 <div class="filters">
+<input id="qTitle" class="search-input" placeholder="Job title: Cashier, General Worker">
+<input id="qLocText" class="search-input" placeholder="Where: Pretoria, Thohoyandou">
+<button class="btn-filter btn-track" onclick="doSearchFromJobs()">Search</button>
 <select id="loc" onchange="render()"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>KZN</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select>
 <select id="type" onchange="render()"><option value="">All Types</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Temporary</option></select>
 <select id="exp" onchange="render()"><option value="">Any Experience</option><option>No experience</option><option>Matric only</option></select>
@@ -86,6 +90,19 @@ try{ cached = JSON.parse(localStorage.getItem('jobway_cached_jobs') || '[]'); }c
   }
 })();
 
+function getParam(name){
+  var m = window.location.search.match(new RegExp('[?&]'+name+'=([^&]+)'));
+  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
+}
+function doSearchFromJobs(){
+  var t = document.getElementById('qTitle').value.trim();
+  var l = document.getElementById('qLocText').value.trim();
+  var p = [];
+  if(t) p.push('q=' + encodeURIComponent(t));
+  if(l) p.push('loc=' + encodeURIComponent(l));
+  var qs = p.length ? '?' + p.join('&') : '';
+  window.location.search = qs;
+}
 function timeAgo(ts){
   var h=Math.floor((Date.now()-ts)/3600000);
   if(h<1) return 'Posted today';
@@ -121,6 +138,21 @@ function handleApply(jobId, applyUrl, title){
   }catch(e){}
   window.open(applyUrl, '_blank');
 }
+function cleanJobs(jobs){
+  var seen = {};
+  var out = [];
+  for(var i=0;i<jobs.length;i++){
+    var j = jobs[i];
+    var title = (j.title||'').toString();
+    var comp = (j.company||'').toString();
+    if(/test/i.test(title) || /C Company/i.test(comp)) continue;
+    var key = (title+'|'+comp+'|'+(j.location||'')).toLowerCase();
+    if(seen[key]) continue;
+    seen[key]=1;
+    out.push(j);
+  }
+  return out;
+}
 function fetchJobs(cb){
   var xhr=new XMLHttpRequest();
   xhr.open('GET', SUPABASE_URL+'/rest/v1/jobs?select=*&order=created_at.desc&limit=100', true);
@@ -141,24 +173,38 @@ function fetchJobs(cb){
             else if(j.salary) salaryText=j.salary;
             mapped.push({title:j.title, company:j.company_name||j.company||'Company', location:j.location||j.province||'South Africa', province:j.province||j.location||'', type:j.type||j.job_type||'Full-time', salaryText:salaryText, desc:j.description||'', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, applyUrl:extractUrl(j.description||'', j.apply_url||j.application_url||j.url||'')});
           }
+          mapped = cleanJobs(mapped);
           if(mapped.length>0){ try{ localStorage.setItem('jobway_cached_jobs', JSON.stringify(mapped)); }catch(e){} cb(mapped); return; }
         }catch(e){}
       }
-      document.getElementById('netMsg').style.display='block'; cb(cached);
+      document.getElementById('netMsg').style.display='block'; cb(cleanJobs(cached));
     }
   };
-  xhr.onerror=function(){ document.getElementById('netMsg').style.display='block'; cb(cached); };
-  xhr.ontimeout=function(){ document.getElementById('netMsg').style.display='block'; cb(cached); };
-  try{ xhr.send(); }catch(e){ cb(cached); }
+  xhr.onerror=function(){ document.getElementById('netMsg').style.display='block'; cb(cleanJobs(cached)); };
+  xhr.ontimeout=function(){ document.getElementById('netMsg').style.display='block'; cb(cleanJobs(cached)); };
+  try{ xhr.send(); }catch(e){ cb(cleanJobs(cached)); }
 }
 function render(){
+  var qTitle = (document.getElementById('qTitle').value || getParam('q') || '').toLowerCase().trim();
+  var qLocText = (document.getElementById('qLocText').value || getParam('loc') || '').toLowerCase().trim();
   var qLoc=document.getElementById('loc').value;
   var qType=document.getElementById('type').value;
   var qExp=document.getElementById('exp').value;
-  fetchJobs(function(jobs){
+  var doFilter = function(jobs){
     var filtered=[];
     for(var i=0;i<jobs.length;i++){
       var j=jobs[i];
+      if(qTitle){
+        var hay = ((j.title||'')+' '+(j.company||'')).toLowerCase();
+        var words = qTitle.split(/\s+/);
+        var ok = true;
+        for(var w=0;w<words.length;w++){ if(hay.indexOf(words[w])===-1){ ok=false; break; } }
+        if(!ok) continue;
+      }
+      if(qLocText){
+        var locHay = ((j.location||'')+' '+(j.province||'')).toLowerCase();
+        if(locHay.indexOf(qLocText)===-1) continue;
+      }
       if(qLoc){
         var locLow=(j.location||'').toLowerCase(); var provLow=(j.province||'').toLowerCase();
         if(locLow.indexOf(qLoc.toLowerCase())===-1 && provLow.indexOf(qLoc.toLowerCase())===-1){ if(!(qLoc==='KZN' && provLow.indexOf('kwazulu')!==-1)) continue; }
@@ -168,9 +214,14 @@ function render(){
       if(qExp==='Matric only' && (j.desc||'').toLowerCase().indexOf('matric')===-1) continue;
       filtered.push(j);
     }
-    document.getElementById('count').innerHTML=filtered.length+' jobs found'+(qLoc?' in '+qLoc:'')+' across SA — Updated today';
+    var label = filtered.length+' jobs found';
+    if(qTitle) label += ' for "'+qTitle+'"';
+    if(qLocText) label += ' in '+qLocText;
+    else if(qLoc) label += ' in '+qLoc;
+    label += ' across SA — Updated today';
+    document.getElementById('count').innerHTML=label;
     var listEl=document.getElementById('list');
-    if(filtered.length===0){ listEl.innerHTML='<div class="card" style="text-align:center;color:#8DB0BF">No active jobs found.<br>New jobs added daily - check WhatsApp.<br><button class="btn btn-green" style="margin-top:10px" onclick="clearF()">Clear filters</button></div>'; return; }
+    if(filtered.length===0){ listEl.innerHTML='<div class="card" style="text-align:center;color:#8DB0BF">No jobs found for your search.<br>Try a different title or city.<br><button class="btn btn-green" style="margin-top:10px" onclick="clearF()">Clear filters</button></div>'; return; }
     var html='';
     for(var k=0;k<filtered.length;k++){
       var job=filtered[k]; var safeTitle=job.title.replace(/'/g,'').replace(/"/g,'');
@@ -178,9 +229,22 @@ function render(){
       html+='<div class="card"><div class="company">'+initials(job.company)+' '+job.company+'</div><div class="meta">'+job.location+' • '+job.type+'</div><div class="job-title">'+job.title+'</div><div><span class="badge badge-green">'+timeAgo(job.postedAt)+'</span><span class="badge">'+job.salaryText+'</span></div><div class="desc">'+(job.desc||'').substring(0,200)+'</div>'+(needCV?'<div class="need-cv">Upload CV in Profile to Apply</div>':'')+'<button class="btn-apply" onclick="handleApply(\''+job.id+'\', \''+job.applyUrl+'\', \''+safeTitle+'\')">'+(needCV?'Upload CV to Apply':'Apply now ↗')+'</button><button class="btn-detail" onclick="alert(\''+safeTitle+'\\n'+job.company+'\\n'+job.location+'\')">View details</button></div>';
     }
     listEl.innerHTML=html;
-  });
+  };
+  if(allJobs.length>0){ doFilter(allJobs); return; }
+  fetchJobs(function(jobs){ allJobs = jobs; doFilter(jobs); });
 }
-function clearF(){ document.getElementById('loc').value=''; document.getElementById('type').value=''; document.getElementById('exp').value=''; render(); }
+function clearF(){
+  document.getElementById('qTitle').value='';
+  document.getElementById('qLocText').value='';
+  document.getElementById('loc').value=''; document.getElementById('type').value=''; document.getElementById('exp').value='';
+  window.location.search = '';
+}
+// Prefill search boxes from URL on load
+(function(){
+  var q = getParam('q'); var l = getParam('loc');
+  if(q) document.getElementById('qTitle').value = q;
+  if(l) document.getElementById('qLocText').value = l;
+})();
 render();
 </script>
 </body>
