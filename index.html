@@ -133,9 +133,10 @@ function doSearch(){
   var p = [];
   if(t) p.push('q=' + encodeURIComponent(t));
   if(l) p.push('loc=' + encodeURIComponent(l));
-  var qs = p.length ? '?' + p.join('&') : '';
-  // If we are on homepage, filter instantly without losing the page. If you prefer jobs.html, change to jobs.html + qs
-  window.location.search = qs;
+  // FIXED: Always go to jobs.html - never stay on index.html
+  var url = 'jobs.html';
+  if(p.length) url += '?' + p.join('&');
+  window.location.href = url;
 }
 function xhrGet(url, cb){
   try{
@@ -157,7 +158,6 @@ function cleanJobs(jobs){
     var j = jobs[i];
     var title = (j.title||'').toString();
     var comp = (j.company_name||j.company||'').toString();
-    // 1. Hide test jobs
     if(/test/i.test(title) || /C Company/i.test(comp)) continue;
     var key = (title+'|'+comp+'|'+(j.location||'')).toLowerCase();
     if(seen[key]) continue;
@@ -171,19 +171,24 @@ function filterJobs(jobs, q, loc){
   loc = (loc||'').toLowerCase().trim();
   if(!q && !loc) return jobs;
   return jobs.filter(function(j){
-    var title = ((j.title||'')+' '+(j.company_name||j.company||'')).toLowerCase();
-    var location = ((j.location||'')+' '+(j.province||'')+' '+(j.city||'')).toLowerCase();
+    var titleHay = ((j.title||'')+' '+(j.company_name||j.company||'')).toLowerCase();
+    var locHay = ((j.location||'')+' '+(j.province||'')+' '+(j.city||'')).toLowerCase();
     var qOk = true, locOk = true;
     if(q){
-      // split "cashier pretoria" into words, every word must be in title OR location
       var words = q.split(/\s+/);
-      qOk = words.every(function(w){ return title.indexOf(w)>-1 || location.indexOf(w)>-1; });
+      qOk = words.every(function(w){ return titleHay.indexOf(w)>-1 || locHay.indexOf(w)>-1; });
     }
     if(loc){
-      locOk = location.indexOf(loc)>-1;
+      locOk = locHay.indexOf(loc)>-1;
     }
     return qOk && locOk;
   });
+}
+function getJobType(j){
+  // Show ALL job_type values - do NOT filter out any type
+  var t = j.job_type || j.type || '';
+  if(!t) return 'Full-time';
+  return t;
 }
 function displayJobs(jobs){
   var grid = document.getElementById('jobsGrid');
@@ -194,8 +199,10 @@ function displayJobs(jobs){
     var title = j.title || 'Job';
     var comp = j.company_name || j.company || '';
     var loc = j.location || j.province || '';
+    var jobType = getJobType(j);
+    var prov = j.province || '';
     var apply = j.apply_url || j.source_url || 'jobs.html';
-    html += '<div class="job-card"><h3>' + title + '</h3><p>' + comp + ' • ' + loc + '</p><div class="meta">' + (j.job_type || 'Full-time') + ' • ' + (j.province || '') + '</div><a href="' + apply + '" target="_blank">Apply Now →</a></div>';
+    html += '<div class="job-card"><h3>' + title + '</h3><p>' + comp + ' • ' + loc + '</p><div class="meta">' + jobType + ' • ' + prov + '</div><a href="' + apply + '" target="_blank">Apply Now →</a></div>';
   }
   grid.innerHTML = html;
 }
@@ -203,22 +210,24 @@ function loadJobs(){
   var infoEl = document.getElementById('filter-info');
   var q = getParam('q');
   var loc = getParam('loc');
-  // Prefill search boxes from URL so user sees what they searched
   if(q) document.getElementById('qTitle').value = q;
   if(loc) document.getElementById('qLoc').value = loc;
   xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&order=created_at.desc&limit=100', function(jobs){
     if(!jobs) jobs = [];
     var cleaned = cleanJobs(jobs);
+    // Filter by title + location, but NEVER filter by job_type - show all types
     var filtered = filterJobs(cleaned, q, loc);
     if(q || loc){
-      infoEl.innerHTML = 'Showing ' + filtered.length + ' jobs for "' + (q||'') + ' ' + (loc||'') + '" — <a href="index.html" style="color:#01F9C6">Clear search</a>';
+      infoEl.innerHTML = 'Showing ' + filtered.length + ' jobs for "' + (q||'') + ' ' + (loc||'') + '" — All types: Full-time, Part-time, Contract, Temporary — <a href="jobs.html" style="color:#01F9C6">View in Jobs →</a>';
     } else {
-      infoEl.innerHTML = 'Showing ' + filtered.length + ' latest jobs in South Africa — Sign up to filter by Province';
+      infoEl.innerHTML = 'Showing ' + filtered.length + ' latest jobs in South Africa — All types: Full-time, Part-time, Contract, Temporary';
     }
-    displayJobs(filtered);
+    displayJobs(filtered.slice(0,9));
   });
 }
 loadJobs();
+document.getElementById('qTitle').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
+document.getElementById('qLoc').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
 </script>
 </body>
 </html>
