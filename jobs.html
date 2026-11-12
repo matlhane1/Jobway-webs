@@ -114,9 +114,62 @@ function cleanJobs(jobs){
   }
   return out;
 }
-// START OF JOBWAY: Do NOT auto-delete / auto-hide any jobs.
-// closing_date is shown only as info, it never hides a job.
+// START OF JOBWAY: Never auto-delete / auto-hide. closing_date is info only.
 function isExpired(j){ return false; }
+// --- SMART MATCHING: Fixes Cleaning vs Cleaner, Gauteng vs Pretoria ---
+function stem(w){
+  w = w.toLowerCase();
+  if(w.length > 5 && w.slice(-3) === 'ing') return w.slice(0,-3);
+  if(w.length > 4 && w.slice(-2) === 'er') return w.slice(0,-2);
+  if(w.length > 4 && w.slice(-1) === 's') return w.slice(0,-1);
+  return w;
+}
+function titleMatches(hay, word){
+  hay = hay.toLowerCase();
+  word = word.toLowerCase();
+  if(hay.indexOf(word) !== -1) return true;
+  var s = stem(word);
+  if(s.length >= 4 && hay.indexOf(s) !== -1) return true;
+  // Synonyms
+  if(word.indexOf('clean') !== -1 && hay.indexOf('clean') !== -1) return true;
+  if(word.indexOf('secur') !== -1 && (hay.indexOf('secur') !== -1 || hay.indexOf('guard') !== -1)) return true;
+  if(word.indexOf('guard') !== -1 && (hay.indexOf('guard') !== -1 || hay.indexOf('secur') !== -1)) return true;
+  if(word === 'driver' && hay.indexOf('driv') !== -1) return true;
+  if(word === 'cashier' && hay.indexOf('cashier') !== -1) return true;
+  if(word === 'general' && hay.indexOf('general') !== -1) return true;
+  return false;
+}
+var PROVINCE_CITIES = {
+  'gauteng': ['gauteng','pretoria','johannesburg','joburg','jhb','centurion','sandton','soweto','midrand','kempton','benoni','boksburg','tembisa','alberton','randburg','roodepoort','krugersdorp','vereeniging','vanderbijlpark'],
+  'limpopo': ['limpopo','thohoyandou','polokwane','tzaneen','phokeng','mokopane','thohoyandou'],
+  'western cape': ['western cape','cape town','stellenbosch','paarl','george','knysna'],
+  'kwazulu-natal': ['kwazulu','kzn','durban','pietermaritzburg','newcastle','richards bay'],
+  'kzn': ['kwazulu','kzn','durban','pietermaritzburg'],
+  'eastern cape': ['eastern cape','gqeberha','port elizabeth','east london','mthatha'],
+  'free state': ['free state','bloemfontein','welkom','sasolburg'],
+  'mpumalanga': ['mpumalanga','nelspruit','mbombela','witbank','emalahleni','secunda'],
+  'north west': ['north west','rustenburg','mahikeng','potchefstroom','klerksdorp'],
+  'northern cape': ['northern cape','kimberley','upington']
+};
+function locationMatches(locHay, query){
+  locHay = locHay.toLowerCase();
+  query = query.toLowerCase().trim();
+  if(locHay.indexOf(query) !== -1) return true;
+  // If user searched a province, match any city in that province
+  if(PROVINCE_CITIES[query]){
+    var cities = PROVINCE_CITIES[query];
+    for(var i=0;i<cities.length;i++){ if(locHay.indexOf(cities[i]) !== -1) return true; }
+  }
+  // If user searched a city, check if that city belongs to a province in locHay
+  for(var prov in PROVINCE_CITIES){
+    if(PROVINCE_CITIES[prov].indexOf(query) !== -1){
+      if(locHay.indexOf(prov) !== -1) return true;
+      var list = PROVINCE_CITIES[prov];
+      for(var j=0;j<list.length;j++){ if(locHay.indexOf(list[j]) !== -1) return true; }
+    }
+  }
+  return false;
+}
 function fetchJobs(cb){
   var xhr=new XMLHttpRequest();
   xhr.open('GET', SUPABASE_URL+'/rest/v1/jobs?select=*&order=created_at.desc&limit=200', true);
@@ -129,7 +182,6 @@ function fetchJobs(cb){
           var rows=JSON.parse(xhr.responseText); var mapped=[];
           for(var i=0;i<rows.length;i++){
             var j=rows[i];
-            // NEVER hide for closing_date at start of JobWay
             if(isExpired(j)) continue;
             var salaryText='Salary: Employer to disclose';
             if(j.salary_min && j.salary_max) salaryText='R'+j.salary_min+' - R'+j.salary_max;
@@ -158,9 +210,21 @@ function render(){
     var filtered=[];
     for(var i=0;i<jobs.length;i++){
       var j=jobs[i];
-      if(qTitle){ var hay = ((j.title||'')+' '+(j.company||'')).toLowerCase(); var words = qTitle.split(/\s+/); var ok = true; for(var w=0;w<words.length;w++){ if(hay.indexOf(words[w])===-1){ ok=false; break; } } if(!ok) continue; }
-      if(qLocText){ var locHay = ((j.location||'')+' '+(j.province||'')).toLowerCase(); if(locHay.indexOf(qLocText)===-1) continue; }
-      if(qLoc){ var locLow=(j.location||'').toLowerCase(); var provLow=(j.province||'').toLowerCase(); if(locLow.indexOf(qLoc.toLowerCase())===-1 && provLow.indexOf(qLoc.toLowerCase())===-1){ if(!(qLoc==='KZN' && provLow.indexOf('kwazulu')!==-1)) continue; } }
+      if(qTitle){
+        var hay = ((j.title||'')+' '+(j.company||'')).toLowerCase();
+        var words = qTitle.split(/\s+/);
+        var ok = true;
+        for(var w=0;w<words.length;w++){ if(!titleMatches(hay, words[w])){ ok=false; break; } }
+        if(!ok) continue;
+      }
+      if(qLocText){
+        var locHay = ((j.location||'')+' '+(j.province||'')).toLowerCase();
+        if(!locationMatches(locHay, qLocText)) continue;
+      }
+      if(qLoc){
+        var locHay2 = ((j.location||'')+' '+(j.province||'')).toLowerCase();
+        if(!locationMatches(locHay2, qLoc.toLowerCase())) continue;
+      }
       if(qType && (j.type||'')!==qType) continue;
       if(qExp==='No experience' && (j.desc||'').toLowerCase().indexOf('no experience')===-1) continue;
       if(qExp==='Matric only' && (j.desc||'').toLowerCase().indexOf('matric')===-1) continue;
