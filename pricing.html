@@ -129,13 +129,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
  <p class="section-sub">Separate from job posting subscriptions. Unlock candidate profiles who have opted in to recruitment access.</p>
  <div class="pool-box">
   <b style="font-size:14px">CV Database — Category selection</b>
-  <p class="pool-help">Choose the category you need. The payment server checks available stock before allowing payment. We do not display candidate records on this public pricing page.</p>
+  <p class="pool-help">Choose the category you need. We check how many CVs we have before you pay. We do not display candidate records on this public pricing page.</p>
   <label class="field-label" for="cvCategory">I WANT CVS FOR:</label>
   <select id="cvCategory" class="select-input" style="max-width:360px">
    <option value="">Select category...</option>
    <option>Security</option><option>Cleaning</option><option>General Worker</option><option>Call Centre</option><option>Sales</option><option>Construction</option><option>Engineering</option><option>IT and Technology</option><option>Finance and Accounting</option><option>Mining</option><option>Banking</option><option>Insurance</option><option>Hospitality and Tourism</option><option>Automotive Industry</option><option>Telecommunications</option><option>Manufacturing</option><option>Cashier</option><option>Driver</option><option>Warehouse</option><option>Retail</option><option>Admin</option><option>General</option><option>Other</option>
   </select>
-  <div id="stockMsg" class="stock-msg info">Select a category. The available CV quantity will be verified securely when you proceed to checkout.</div>
+  <div id="stockMsg" class="stock-msg info">Select a category. We will verify how many CVs are available when you proceed to checkout.</div>
  </div>
  <div class="grid">
   <div class="card" id="card-cv20"><div class="plan-name">20 CV UNLOCKS</div><div class="price">R999 <small>/ one-time</small></div><ul class="features"><li>20 CV unlock credits</li><li>Recruitment database access</li></ul><button class="btn-card btn-white" data-item="JobWay 20 CV Unlocks" data-cv="true" data-cv-count="20" disabled>Select category first ↑</button></div>
@@ -143,7 +143,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   <div class="card" id="card-cv250"><div class="plan-name">250 CV UNLOCKS</div><div class="price">R5,999 <small>/ one-time</small></div><ul class="features"><li>250 CV unlock credits</li><li>Recruitment database access</li></ul><button class="btn-card btn-white" data-item="JobWay 250 CV Unlocks" data-cv="true" data-cv-count="250" disabled>Select category first ↑</button></div>
   <div class="card" id="card-cv-unlimited"><div class="plan-name">UNLIMITED CV ACCESS</div><div class="price">R9,999 <small>/ month</small></div><ul class="features"><li>Unlimited CV database access</li><li>Subject to candidate consent</li><li>Monthly subscription</li></ul><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks" data-cv="true" data-cv-unlimited="true" disabled>Select category first ↑</button></div>
  </div>
- <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry and CV access conditions are subject to the applicable JobWay terms and conditions. CV information must only be accessed for authorised recruitment purposes.<br><br><b style="color:white">CV Stock Guarantee:</b> CV packages are sold for a selected category. The payment server checks the available stock before checkout. If there are not enough CVs in your selected category, payment will be blocked and you can choose a smaller package or post a job for R299 instead.</div>
+ <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry and CV access conditions are subject to the JobWay terms and conditions. CV information must only be used to hire people. Do not share or sell CVs.<br><br><b style="color:white">CV Stock Guarantee:</b> CV packages are sold for a selected category. We check how many CVs we have before you pay. If there are not enough CVs in your selected category, payment will be blocked and you can choose a smaller package or post a job for R299 instead.</div>
 </main>
 <footer class="footer">© <span id="year"></span> JobWay.co.za. All rights reserved.<br>Your job, your way.</footer>
 <div class="modal" id="payModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -151,23 +151,18 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   <div class="modal-header"><b id="modalTitle">Complete your purchase</b><button class="close-btn" onclick="closePay()" aria-label="Close payment window">×</button></div>
   <div class="order-box"><span id="mItem">JobWay</span><b class="order-price" id="mAmount">R0</b></div>
   <div id="mCategoryBox" class="category-box" style="display:none">CV Category: <b id="mCategory" style="color:#01F9C6"></b><br><span id="mStock" style="color:#A8C8D0"></span></div>
-
-  <!-- FIX: 1 = WhatsApp FIRST, green border, CANNOT be confused with Email -->
   <label class="field-label" for="whatsappField" style="color:#01F9C6">1. WhatsApp Number * — to identify your purchase</label>
   <input id="whatsappField" class="email-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="0790608952" maxlength="20" required>
   <p style="font-size:11px;color:#7FA5B0;margin-top:4px">Numbers only, e.g. 0790608952 or 0639811680. NOT an email. JobWay uses this to link your credits to you. No account needed to pay.</p>
-
-  <!-- FIX: 2 = Email SECOND, normal border -->
   <label class="field-label" for="emailField">2. Company Email to Receive Invoice (optional)</label>
   <input id="emailField" class="email-input" type="email" autocomplete="email" placeholder="hr@company.co.za">
   <p style="font-size:11px;color:#7FA5B0;margin-top:4px">Optional. If you enter it, invoice will be sent from invoices@jobway.co.za. This email is for invoicing only, NOT for login. Payment will NOT be blocked if you leave it empty.</p>
-
   <label class="field-label" for="companyField">3. Company Name (for invoice)</label>
   <input id="companyField" class="email-input" type="text" autocomplete="organization" placeholder="Your Company (Pty) Ltd" maxlength="150">
   <button class="payment-btn" id="payBtn" onclick="doPay()">Pay with Card or Bank App →</button>
   <p class="pay-error" id="payErr" role="alert"></p>
   <p class="pay-warn" id="payWarn" role="status"></p>
-  <div id="stockFallback"><b style="color:#FFB020" id="stockFallbackTitle">Not enough CVs in this category</b><p id="stockFallbackText" style="margin:6px 0"></p><button id="stockFallbackBtn" onclick="switchToSingleJobPost()">Post a job — R299 instead →</button></div>
+  <div id="stockFallback"><b style="color:#FFB020" id="stockFallbackTitle">CV stock is not sufficient</b><p id="stockFallbackText" style="margin:6px 0"></p><button id="stockFallbackBtn" onclick="switchToSingleJobPost()">Post a job — R299 instead →</button></div>
   <div class="fallback-box" id="fallbackBox"><b style="color:#FFB020">Need to pay by EFT?</b><p>Contact JobWay to request official banking details and payment instructions.</p><p style="margin-top:8px">Your credits or subscription will only be activated after payment has been verified.</p><button class="whatsapp-btn" onclick="sendWhatsAppProof()">Request EFT Details on WhatsApp →</button></div>
   <p class="small-text">Do not share your banking password, card PIN or OTP with anyone.</p>
  </div>
@@ -230,13 +225,10 @@ function getAuthenticatedSession(){
 function fillModalFields(){
  const params = new URLSearchParams(location.search);
  const pending = getPendingJob();
- // FIX: Do NOT mix fields. Email goes to emailField ONLY, WhatsApp goes to whatsappField ONLY.
- // Old live site was putting email into WhatsApp field via ?email=... or pending_job.
  if($("emailField")) $("emailField").value = params.get("email") || pending.invoice_email || localStorage.getItem("invoice_email") || localStorage.getItem("jobway_user_email") || "";
  if($("companyField")) $("companyField").value = params.get("company") || getStoredCompany();
  if($("whatsappField")){
    const wa = params.get("whatsapp") || pending.whatsapp_number || localStorage.getItem("jobway_whatsapp") || localStorage.getItem("whatsapp_number") || "";
-   // If stored WhatsApp looks like an email, do NOT put it in WhatsApp box - that's the screenshot bug
    $("whatsappField").value = (wa && wa.includes("@")) ? "" : wa;
  }
 }
@@ -251,7 +243,7 @@ function updateCvButtons(){
   return;
  }
  message.className = "stock-msg info";
- message.textContent = "Selected category: " + category + ". The server will verify stock before creating your PayFast checkout.";
+ message.textContent = "Selected category: " + category + ". We will verify how many CVs are available before you pay.";
  buttons.forEach(button=>{
   button.disabled = false;
   if(button.dataset.cvCount){ button.textContent = "Unlock " + button.dataset.cvCount + " — " + formatRand(PRODUCTS[button.dataset.item].amount); }
@@ -270,13 +262,14 @@ function openPay(item){
  if(curCategory){
   $("mCategoryBox").style.display = "block";
   $("mCategory").textContent = curCategory;
-  $("mStock").textContent = product.cvCount ? "You are requesting " + product.cvCount + " CV unlocks. Stock will be checked before payment." : "Unlimited monthly access, subject to available candidate records and consent.";
+  $("mStock").textContent = product.cvCount ? "You are requesting " + product.cvCount + " CV unlocks. We will check stock before payment." : "Unlimited monthly access, subject to available candidate records and consent.";
  }else{ $("mCategoryBox").style.display = "none"; }
  fillModalFields();
  $("payErr").style.display = "none";
  $("payWarn").style.display = "none";
  $("fallbackBox").style.display = "none";
  $("stockFallback").style.display = "none";
+ $("payBtn").style.display = "block";
  $("payBtn").disabled = false;
  $("payBtn").textContent = "Pay with Card or Bank App →";
  $("payModal").classList.add("show");
@@ -288,8 +281,16 @@ document.addEventListener("keydown",function(event){ if(event.key === "Escape") 
 document.querySelectorAll("[data-item]").forEach(button=>{ button.addEventListener("click",function(){ openPay(this.dataset.item); }); });
 function showError(message){ $("payErr").textContent = message; $("payErr").style.display = "block"; }
 function showWarn(message){ $("payWarn").textContent = message; $("payWarn").style.display = "block"; }
-function resetPayButton(){ $("payBtn").disabled = false; $("payBtn").textContent = "Pay with Card or Bank App →"; }
-function showStockFallback(message){ $("stockFallbackTitle").textContent = "CV stock is not sufficient"; $("stockFallbackText").textContent = message; $("stockFallback").style.display = "block"; }
+function resetPayButton(){ $("payBtn").style.display = "block"; $("payBtn").disabled = false; $("payBtn").textContent = "Pay with Card or Bank App →"; }
+function showStockFallback(message){
+  // FIX 3 & 4: Single message only, Pay button is hidden, no duplicate error box
+  $("stockFallbackTitle").textContent = "CV stock is not sufficient";
+  $("stockFallbackText").textContent = message;
+  $("stockFallback").style.display = "block";
+  $("payBtn").style.display = "none";
+  $("payBtn").disabled = true;
+  $("payErr").style.display = "none";
+}
 function switchToSingleJobPost(){
  curItem = "JobWay Single Job Post";
  curCategory = "";
@@ -298,6 +299,7 @@ function switchToSingleJobPost(){
  $("mCategoryBox").style.display = "none";
  $("stockFallback").style.display = "none";
  $("payErr").style.display = "none";
+ $("payBtn").style.display = "block";
  $("payBtn").disabled = false;
  $("payBtn").textContent = "Pay with Card or Bank App →";
 }
@@ -306,7 +308,6 @@ async function doPay(){
  const waEl = $("whatsappField");
  if(!waEl){ showError("Page error: WhatsApp field is missing. Hard-refresh the page and try again."); return; }
  const waRaw = waEl.value.trim();
- // FIX FOR SCREENSHOT: If user typed hr@company.co.za into WhatsApp box, tell them clearly, don't show generic error
  if(waRaw.includes("@")){
    waEl.focus();
    showError("That looks like an email (" + waRaw + "), not a WhatsApp number. Please enter your WhatsApp number in Box 1 (e.g. 0790608952), and your email in Box 2 if you want an invoice.");
@@ -350,11 +351,15 @@ async function doPay(){
   const data = await response.json().catch(()=>({}));
   if(!response.ok){
    const errorMessage = data.error || "We could not create your payment. Please try again.";
-   if(data.suggestion === "single_job_post" || /only .* CVs available|not enough CVs|cannot sell/i.test(errorMessage)){ showError(errorMessage); showStockFallback(errorMessage + " You can choose a smaller package or post a job for R299."); resetPayButton(); return; }
+   if(data.suggestion === "single_job_post" || /only .* CVs available|not enough CVs|cannot sell/i.test(errorMessage)){
+     // FIX: Only show the fallback once, do NOT also show the red error box
+     showStockFallback(errorMessage);
+     return;
+   }
    if(response.status === 401 || response.status === 403){ throw new Error("The payment request was not authorised. Please check the Supabase Edge Function settings and try again."); }
    throw new Error(errorMessage);
   }
-  if(!data.url){ throw new Error("The payment server did not return a PayFast checkout link."); }
+  if(!data.url){ throw new Error("We could not start PayFast checkout. Please try again."); }
   button.textContent = "Redirecting to PayFast...";
   window.location.assign(data.url);
  }catch(error){
