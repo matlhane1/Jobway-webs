@@ -41,8 +41,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .features{list-style:none;margin:14px 0}
 .features li{font-size:12px;color:#C8DDE3;margin:9px 0;padding-left:18px;position:relative}
 .features li:before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:900}
-.btn-card{width:100%;margin-top:13px;padding:13px 10px;border:0;border-radius:999px;font-size:12px;font-weight:900}
-.btn-white{background:white;color:#0A1F2E}
+.btn-card{width:100%;margin-top:13px;padding:13px 10px;border:0;border-radius:999px;font-size:12px;font-weight:900;background:var(--green);color:#0A1F2E}
+.btn-white{background:var(--green);color:#0A1F2E}
 .btn-green-pop{background:var(--green);color:#0A1F2E}
 .btn-card:hover,.btn:hover{opacity:.87}
 .btn-card:disabled{background:#2A3F4E!important;color:#8DB0BF!important;cursor:not-allowed;opacity:1}
@@ -283,7 +283,6 @@ function showError(message){ $("payErr").textContent = message; $("payErr").styl
 function showWarn(message){ $("payWarn").textContent = message; $("payWarn").style.display = "block"; }
 function resetPayButton(){ $("payBtn").style.display = "block"; $("payBtn").disabled = false; $("payBtn").textContent = "Pay with Card or Bank App →"; }
 function showStockFallback(message){
-  // FIX 3 & 4: Single message only, Pay button is hidden, no duplicate error box
   $("stockFallbackTitle").textContent = "CV stock is not sufficient";
   $("stockFallbackText").textContent = message;
   $("stockFallback").style.display = "block";
@@ -352,7 +351,6 @@ async function doPay(){
   if(!response.ok){
    const errorMessage = data.error || "We could not create your payment. Please try again.";
    if(data.suggestion === "single_job_post" || /only .* CVs available|not enough CVs|cannot sell/i.test(errorMessage)){
-     // FIX: Only show the fallback once, do NOT also show the red error box
      showStockFallback(errorMessage);
      return;
    }
