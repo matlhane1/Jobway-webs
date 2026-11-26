@@ -1,0 +1,21 @@
+<!DOCTYPE html><html><body style="background:#0F2835;color:#fff;font-family:sans-serif;padding:20px">
+<h2>Debug Credits</h2><div id="out">Loading...</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+(async()=>{
+  let user = null;
+  try{ user = JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){}
+  let out = "localStorage user: " + JSON.stringify(user) + "<br><br>";
+  if(!user || !user.id){ document.getElementById('out').innerHTML = out + "❌ NO USER IN LOCALSTORAGE - You are not logged in in this browser"; return; }
+  out += "My ID: " + user.id + "<br><br>";
+  const { data, error } = await sb.from('job_credits').select('*').eq('employer_id', user.id);
+  out += "Query error: " + JSON.stringify(error) + "<br><br>";
+  out += "Rows found: " + (data ? data.length : 0) + "<br>";
+  out += "Data: " + JSON.stringify(data) + "<br><br>";
+  // Also check by whatsapp if profile exists
+  const { data: prof } = await sb.from('profiles').select('id,full_name,whatsapp_number').eq('id', user.id);
+  out += "Profile for my ID: " + JSON.stringify(prof);
+  document.getElementById('out').innerHTML = out;
+})();
+</script></body></html>
