@@ -1,237 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex,nofollow">
-<meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Employer Dashboard | JobWay.co.za</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post a Job - JobWay</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0F2835;color:#fff;min-height:100vh}
-button,input,select{font-family:inherit}
-button{cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}
-.header{background:#0A1F2E;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;gap:12px}
-.logo{font-family:'Space Grotesk';font-weight:800;color:#01F9C6;font-size:19px;white-space:nowrap;cursor:pointer}
-.header-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{border:0;border-radius:999px;padding:10px 15px;font-size:12px;font-weight:800}
-.btn-dark{background:#1A3E52;color:#A8C8D0}
-.btn-green{background:#01F9C6;color:#0A1F2E}
-.btn-whats{background:#25D366;color:white}
-.btn-orange{background:#FFB020;color:#111}
-.btn-red{background:#3a1a1a;color:#ff9a9a}
-#postJobBtn{background:#01F9C6!important;color:#0A1F2E!important;opacity:1!important}
-#viewJobsBtn{background:#fff!important;color:#0A1F2E!important;opacity:1!important}
-#refreshBtn{background:#1A3E52!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important;opacity:1!important}
-#logoutBtn{background:#3a1a1a!important;color:#ff9a9a!important;border:1px solid #a04444!important;opacity:1!important}
-.container{max-width:1000px;margin:auto;padding:18px}
-.page-title{font-family:'Space Grotesk';font-size:21px;margin:12px 0 5px}
-.sub-title{font-size:12px;color:#8DB0BF;margin-bottom:18px}
-.card{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:17px;padding:17px;margin-bottom:13px;overflow-wrap:anywhere}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
-.stat{background:#11283A;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:17px;text-align:center}
-.stat b{font-family:'Space Grotesk';font-size:25px;display:block;color:#01F9C6}
-.stat span{font-size:11px;color:#8DB0BF}
-.section-title{font-size:14px;margin:22px 0 11px}
-.meta{color:#A8C8D0;font-size:12px;margin:9px 0;line-height:1.9}
-.badge{padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;display:inline-block}
-.b-green{background:#01F9C6;color:#0A1F2E}
-.b-grey{background:#263E4D;color:#C2D6DD}
-.b-orange{background:#FFB020;color:#111}
-.b-red{background:#3a1a1a;color:#ff9a9a}
-.tag{display:inline-block;background:#143E4A;color:#01F9C6;padding:5px 9px;border-radius:20px;font-size:11px;margin:3px 3px 0 0;font-weight:700}
-.progress{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}
-.p-badge{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:700}
-.p-done{background:rgba(1,249,198,.15);color:#01F9C6}
-.p-active{background:#01F9C6;color:#0A1F2E}
-.p-pending{background:#1D3545;color:#8DB0BF}
-.interview-box{background:#0F2230;border:1px solid rgba(1,249,198,.25);border-radius:12px;padding:13px;margin-top:12px;font-size:12px;line-height:1.9}
-.controls{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
-.search,.filter,.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:10px;font-size:13px;outline:none}
-.search:focus,.filter:focus,.input:focus{border-color:#01F9C6}
-.search-wrap{flex:2;min-width:180px}
-.filter-wrap{flex:1;min-width:150px}
-.label{font-size:10px;color:#8DB0BF;font-weight:800;margin-top:12px;display:block}
-.message{padding:13px;border-radius:11px;background:#11283A;color:#A8C8D0;font-size:12px;margin:12px 0}
-.message.error{border:1px solid #a04444;color:#ff9a9a}
-.message.success{border:1px solid #01F9C6;color:#01F9C6}
-.loading,.empty{text-align:center;padding:30px;color:#8DB0BF;font-size:13px}
-.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-.btn-cv{background:#01F9C6;color:#0A1F2E;border:0;border-radius:999px;padding:10px 13px;font-size:11px;font-weight:800}
-.btn-cv-locked{background:#2a2a1a!important;color:#FFB020!important;border:1px solid #FFB020!important}
-.job-card{background:#11283A;border:1px solid rgba(255,255,255,.08);padding:15px;border-radius:13px;margin-bottom:10px}
-.job-card b{font-size:13px}
-.job-card small{display:block;color:#8DB0BF;margin-top:7px;line-height:1.7}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:flex-end;justify-content:center;z-index:50}
-.modal.open{display:flex}
-.modal-card{background:#11283A;width:100%;max-width:500px;padding:21px;border-radius:20px 20px 0 0;max-height:90vh;overflow:auto}
-.modal-head{display:flex;justify-content:space-between;align-items:center}
-.modal-head h3{font-size:17px}
-.empty a{color:#01F9C6}
-.footer{text-align:center;color:#668595;font-size:10px;padding:25px}
-.credits-banner{background:#11283A;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-@media(min-width:650px){.modal{align-items:center}.modal-card{border-radius:18px}}
-@media(max-width:600px){
- .header{align-items:flex-start;flex-direction:column}
- .header-actions{width:100%}
- .header-actions .btn{padding:9px 12px;font-size:11px}
- .container{padding:12px}
- .card{padding:14px}
- .page-title{font-size:19px}
- .btn-row .btn{flex:1}
-}
-</style>
-<script>
-window.goHome = function(){ location.href='index.html'; };
-window.handlePostJob = function(){
-  try{
-    if(!window.__HAS_PAID__){
-      alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za if you entered an invoice email.');
-      location.href='pricing.html';
-      return;
-    }
-  }catch(e){}
-  location.href='post-job.html';
-};
-window.goViewJobs = function(){ location.href='employer-jobs.html'; };
-window.doRefresh = function(){
-  try{
-    window.__FORCE_REFRESH__ = true;
-    var b = document.getElementById('refreshBtn');
-    if(b) b.textContent='↻ Refreshing...';
-  }catch(e){}
-  location.reload();
-};
-window.doLogout = function(){
-  try{
-    ['jobway_employer','employer_whatsapp','employer_email','jobway_jobseeker','jobseeker_whatsapp','jobway_logged_in','user_role','jobway_user','user','userPhone','phone','whatsapp_number','jobway_whatsapp'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
-    try{ sessionStorage.clear(); }catch(e){}
-  }catch(e){}
-  location.href='login.html';
-};
-</script>
-</head>
-<body>
-<header class="header">
- <div class="logo" id="homeBtn" onclick="goHome()">JobWay • Employer</div>
- <div class="header-actions">
-  <button class="btn" id="postJobBtn" type="button" onclick="handlePostJob()">+ Post Job</button>
-  <button class="btn" id="viewJobsBtn" type="button" onclick="goViewJobs()">View Jobs</button>
-  <button class="btn" id="refreshBtn" type="button" onclick="doRefresh()">↻ Refresh</button>
-  <button class="btn" id="logoutBtn" type="button" onclick="doLogout()">Log Out</button>
- </div>
-</header>
-<main class="container">
- <h2 class="page-title">Employer Dashboard</h2>
- <p class="sub-title">Manage your vacancies, applicants and interviews in one place.</p>
- <div id="dashboardMessage"></div>
- <div class="credits-banner">
-  <div>
-    <div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#8DB0BF;text-transform:uppercase">Employer CV Access</div>
-    <div id="creditsText" style="font-size:13px;font-weight:500;color:#8DB0BF;margin-top:8px">Checking your credits…</div>
-    <div id="planText" style="font-size:13px;color:#C2D6DD;margin-top:4px">Current plan: Free</div>
-    <div id="paymentText" style="font-size:13px;color:#C2D6DD;margin-top:2px">Payment status: Unpaid</div>
-    <div style="font-size:12px;color:#8DB0BF;margin-top:8px;line-height:1.5">1 CV view = 1 credit. Previously unlocked CVs can be viewed again at no additional cost.</div>
+body{margin:0;background:#11283a;color:white;font-family:'Plus Jakarta Sans',sans-serif;padding:16px;display:flex;justify-content:center;min-height:100vh}
+.card{background:#1e3a4f;border-radius:18px;padding:20px;width:100%;max-width:460px;margin-top:70px;border:1px solid rgba(45,212,191,0.15)}
+label{color:#9cc2d0;font-size:12px;font-weight:700;margin:12px 0 6px;display:block;letter-spacing:0.3px;text-transform:uppercase}
+input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:#0f2332;color:white;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:#2dd4bf}
+.btn{width:100%;margin-top:16px;background:#01F9C6;color:#11283a;border:none;padding:14px;border-radius:999px;font-weight:900;font-size:15px;cursor:pointer}
+.btn:disabled{opacity:0.6}
+.btn-outline{width:100%;margin-top:10px;background:transparent;color:#01F9C6;border:1px solid #01F9C6;padding:12px;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:460px;width:100%;position:absolute;top:12px}
+a{color:white;text-decoration:none;font-weight:700;font-size:14px}
+.logo-box{width:100%;background:#0f2332;border:1px dashed rgba(1,249,198,0.4);border-radius:14px;padding:14px;text-align:center;cursor:pointer;margin-top:6px}
+.logo-box:hover{border-color:#01F9C6;background:rgba(1,249,198,0.05)}
+.logo-preview img{max-width:110px;max-height:80px;border-radius:10px;background:white;padding:6px;object-fit:contain}
+.hint{font-size:11px;color:#7fb0be;margin-top:6px}
+.invoice-box{background:#0f2332;border:1px solid rgba(1,249,198,0.25);border-radius:14px;padding:14px;margin-top:16px}
+.invoice-title{font-size:12px;font-weight:800;color:#01F9C6;letter-spacing:0.05em;margin-bottom:8px}
+.credit-banner{background:linear-gradient(135deg,#01F9C6,#2dd4bf);color:#11283a;padding:10px 14px;border-radius:12px;font-weight:900;font-size:13px;text-align:center;margin-bottom:12px;display:none}
+</style></head><body>
+<div class="top"><a href="employer-dashboard.html">← Dashboard</a><h3 style="margin:0;font-family:'Space Grotesk',sans-serif;color:#01F9C6">JobWay</h3></div>
+<div class="card">
+<div id="creditBanner" class="credit-banner"></div>
+<h2 style="margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-weight:800">Post a New Job</h2>
+<p style="margin:0 0 14px;color:#8db0bf;font-size:12px">Company logo upload is <b style="color:#01F9C6">FREE</b> — jobs with logos get 3x more applications</p>
+<label>Company Logo — Free</label>
+<input type="file" id="logoFile" accept="image/*" style="display:none">
+<div class="logo-box" id="logoBox" onclick="document.getElementById('logoFile').click()">
+  <div id="logoPlaceholder">
+    <div style="font-size:28px">🏢</div>
+    <div style="font-weight:800;font-size:13px;margin-top:4px">Tap to upload logo</div>
+    <div class="hint">PNG, JPG — Free • Auto-compressed • Max 5MB</div>
   </div>
-  <button class="btn btn-green" type="button" onclick="location.href='pricing.html'">Buy More Credits →</button>
- </div>
- <div class="stats">
-  <div class="stat"><b id="jobCount">0</b><span>My Posted Jobs</span></div>
-  <div class="stat"><b id="appCount">0</b><span>Total Applications</span></div>
- </div>
- <h3 class="section-title">Applicants</h3>
- <div class="controls">
-  <div class="search-wrap"><input class="search" id="searchInput" type="search" placeholder="Search applicant, job, qualification... e.g. PSIRA"></div>
-  <div class="filter-wrap"><select class="filter" id="statusFilter"><option value="">All statuses</option><option>Application Received</option><option>Under Review</option><option>Shortlisted</option><option>Interview Scheduled</option><option>Hired</option><option>Not Selected</option></select></div>
- </div>
- <div class="controls">
-  <div class="filter-wrap"><select class="filter" id="categoryFilter"><option value="">All job categories</option><option>Security</option><option>Cleaning</option><option>General Worker</option><option>Call Centre</option><option>Sales</option><option>Construction</option><option>Engineering</option><option>IT and Technology</option><option>Finance and Accounting</option><option>Mining</option><option>Banking</option><option>Insurance</option><option>Hospitality and Tourism</option><option>Automotive Industry</option><option>Telecommunications</option><option>Manufacturing</option><option>Cashier</option><option>Driver</option><option>Warehouse</option><option>Retail</option><option>Admin</option><option>General</option><option>Other</option></select></div>
-  <div class="filter-wrap"><select class="filter" id="expFilter"><option value="">All experience</option><option>No experience</option><option>1-2 years</option><option>3-5 years</option><option>5+ years</option></select></div>
-  <div class="filter-wrap"><select class="filter" id="areaFilter"><option value="">All areas</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Eastern Cape</option><option>North West</option><option>Mpumalanga</option><option>Free State</option><option>Northern Cape</option><option>Remote</option><option>Soweto</option><option>Johannesburg CBD</option><option>Sandton</option><option>Roodepoort</option><option>Pretoria</option><option>Other Gauteng</option></select></div>
- </div>
- <div id="filterCount" style="font-size:12px;color:#8DB0BF;margin-bottom:10px"></div>
- <div id="list"><div class="loading">Loading applications...</div></div>
- <div id="empty" class="empty" style="display:none">No applications found. When candidates apply for your jobs, they will appear here.</div>
- <h3 class="section-title">My Posted Jobs</h3>
- <div id="jobsList"><div class="loading">Loading jobs...</div></div>
-</main>
-<div class="footer">JobWay.co.za • Your Job, Your Way</div>
-<div class="modal" id="interviewModal">
- <div class="modal-card">
-  <div class="modal-head"><h3>📅 Schedule Interview</h3><button class="btn btn-dark" id="closeInterviewBtn" type="button">✕</button></div>
-  <p id="interviewFor" class="meta"></p>
-  <label class="label">INTERVIEW DATE</label><input type="date" id="intDate" class="input">
-  <label class="label">INTERVIEW TIME</label><input type="time" id="intTime" class="input" value="09:00">
-  <label class="label">LOCATION / MEETING LINK</label><input id="intLoc" class="input" placeholder="Office address or online meeting link">
-  <label class="label">MESSAGE TO CANDIDATE</label><input id="intMsg" class="input" placeholder="Bring your ID and CV...">
-  <button class="btn btn-green" id="confirmInterviewBtn" type="button" style="width:100%;padding:14px;margin-top:17px">Confirm Interview & Send WhatsApp →</button>
- </div>
+  <div id="logoPreview" class="logo-preview" style="display:none">
+    <img id="logoImg" src="">
+    <div style="margin-top:8px;color:#01F9C6;font-weight:800;font-size:12px">✅ Logo ready — tap to change</div>
+    <div id="logoName" class="hint"></div>
+  </div>
+</div>
+<label>Job Title *</label><input id="title" placeholder="e.g. Cashier">
+<label>Company Name *</label><input id="company" placeholder="e.g. Shoprite">
+<div class="invoice-box">
+<div class="invoice-title">📧 INVOICE DETAILS - Sent from invoices@jobway.co.za</div>
+<label style="margin-top:6px">Company Email for Invoices (optional)</label>
+<input id="invoiceEmail" type="email" placeholder="accounts@company.co.za">
+<div class="hint">Optional. If you enter it, invoice will be sent here after payment from invoices@jobway.co.za. This email is NOT for login. Payment will NOT be blocked if you leave it empty.</div>
+</div>
+<label>Location</label><input id="location" placeholder="e.g. Thohoyandou">
+<label>Salary</label><input id="salary" placeholder="e.g. R4500">
+<label>WhatsApp Number for Applicants *</label><input id="whatsapp" placeholder="e.g. 0790608952">
+<label>Type</label><select id="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select>
+<label>Closing Date</label><input id="closing" type="date">
+<label>Description</label><textarea id="desc" rows="4" placeholder="Job requirements..."></textarea>
+<button class="btn" id="post">Post Job</button>
+<button class="btn-outline" id="saveDraft">Save Draft (Free - Post Later)</button>
+<div id="msg" style="margin-top:12px;text-align:center;font-size:12px;color:#7fb0be"></div>
 </div>
 <script>
-'use strict';
-const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const STATUSES = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired','Not Selected'];
-const PRODUCT_CREDITS = {
-  payg_job: { job: 1, cv: 0, plan: 'Pay As You Go Job Posting' },
-  starter_monthly: { job: 5, cv: 0, plan: 'Starter Monthly' },
-  growth_monthly: { job: 20, cv: 0, plan: 'Growth Monthly' },
-  pro_monthly: { job: 50, cv: 0, plan: 'Pro Monthly' },
-  business_monthly: { job: 999999, cv: 0, plan: 'Business Monthly' },
-  job_50: { job: 50, cv: 0, plan: '50 Job Credits' },
-  job_100: { job: 100, cv: 0, plan: '100 Job Credits' },
-  job_250: { job: 250, cv: 0, plan: '250 Job Credits' },
-  job_500: { job: 500, cv: 0, plan: '500 Job Credits' },
-  cv_20: { job: 0, cv: 20, plan: '20 CV Unlocks' },
-  cv_100: { job: 0, cv: 100, plan: '100 CV Unlocks' },
-  cv_250: { job: 0, cv: 250, plan: '250 CV Unlocks' },
-  cv_unlimited: { job: 0, cv: 0, plan: 'unlimited', unlimited: true },
-};
-let currentUser = null;
-let currentJobs = [];
-let currentApps = [];
-let currentInterviewId = null;
-let loadingDashboard = false;
-let realtimeChannel = null;
-let currentWallet = null;
-let HAS_PAID = false;
-let EMPLOYER_UUID = null;
-let claimDone = false;
-function normalizeCategory(v){
-  if(!v) return '';
-  if(v === 'Hospitality') return 'Hospitality and Tourism';
-  if(v === 'Finance') return 'Finance and Accounting';
-  if(v === 'IT') return 'IT and Technology';
-  if(v === 'Automotive') return 'Automotive Industry';
-  return v;
-}
-function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
+const supabaseClient=window.supabase.createClient("https://dmxumcjeetphwzvgzzuk.supabase.co","sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-");
+let logoData = null;
+let logoFileObj = null;
+let compressedBlob = null;
+let userCredits = { job_credits: 0, cv_credits: 0 };
+let resolvedEmployerId = null;
 function normalizeWhatsapp(v){
   let d = String(v||'').replace(/\D/g,'');
-  if(!d) return '';
+  if(!d) return "";
   if(d.startsWith('27') && d.length===11) return d;
   if(d.startsWith('0') && d.length===10) return '27'+d.slice(1);
   if(d.length===9) return '27'+d;
-  return d;
+  return "";
 }
-function setCreditsLoading(){
-  var el = document.getElementById('creditsText');
-  if(!el) return;
-  el.style.color = '#8DB0BF'; el.style.fontWeight = '500'; el.style.fontSize = '13px';
-  el.textContent = 'Checking your credits…';
+function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
+function formatPlanLabel(plan){
+  if(!plan) return '';
+  if(plan==='free') return 'Free';
+  return String(plan).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 }
-function setCreditsLoaded(){
-  var el = document.getElementById('creditsText');
-  if(!el) return;
-  el.style.color = '#fff'; el.style.fontWeight = '700'; el.style.fontSize = '15px';
-}
-// FIXED: Return user even if no id - login only saves WhatsApp. ID is resolved later via profiles.
-function getCurrentUser(){
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim().toLowerCase()); }
+// EXACT SAME AS DASHBOARD: jobway_employer FIRST
+function getUser(){
   try{
     var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
     if(emp && (emp.id || emp.whatsapp_number || emp.phone || emp.whatsapp)) return emp;
@@ -240,467 +91,216 @@ function getCurrentUser(){
   }catch(e){ return null; }
   return null;
 }
-function idVariants(){
-  if(EMPLOYER_UUID && isUuid(EMPLOYER_UUID)) return [EMPLOYER_UUID];
-  var base = String(currentUser?.id || '');
-  if(isUuid(base)) return [base];
-  return [];
-}
-function phoneVariants(){
-  var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || '';
+// EXACT SAME AS DASHBOARD: phoneVariants + resolve via profiles .or()
+function phoneVariants(user){
+  var raw = (user && (user.phone || user.whatsapp_number || user.whatsapp)) || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || document.getElementById('whatsapp')?.value || '';
   var norm = normalizeWhatsapp(raw);
   var v = new Set();
   if(norm){ v.add(norm); if(norm.startsWith('27')) v.add('0'+norm.slice(2)); v.add('+'+norm); v.add(norm.slice(2)); }
   if(raw) v.add(String(raw));
   return Array.from(v).filter(Boolean);
 }
-async function resolveEmployerUuid(){
-  if(EMPLOYER_UUID) return EMPLOYER_UUID;
-  if(currentUser && isUuid(currentUser.id)){ EMPLOYER_UUID = currentUser.id; return EMPLOYER_UUID; }
-  var phones = phoneVariants();
+async function resolveEmployerId(user, fallbackWaRaw){
+  if(resolvedEmployerId) return resolvedEmployerId;
+  if(user && isUuid(user.id)){ resolvedEmployerId = user.id; return resolvedEmployerId; }
+  var phones = phoneVariants(user);
+  if(fallbackWaRaw){
+    var fw = normalizeWhatsapp(fallbackWaRaw);
+    if(fw && !phones.includes(fw)) phones.unshift(fw);
+  }
   var norm = normalizeWhatsapp(phones[0] || '');
   if(norm){
     try{
       var r = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(norm)+',whatsapp_number.eq.'+encodeURIComponent(norm)).limit(1).maybeSingle();
-      if(r.data && isUuid(r.data.id)){ EMPLOYER_UUID = r.data.id; return EMPLOYER_UUID; }
+      if(r.data && isUuid(r.data.id)){ resolvedEmployerId = r.data.id; return resolvedEmployerId; }
     }catch(e){}
     for(var p of phones){
       try{
         var r2 = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(p)+',whatsapp_number.eq.'+encodeURIComponent(p)).limit(1).maybeSingle();
-        if(r2.data && isUuid(r2.data.id)){ EMPLOYER_UUID = r2.data.id; return EMPLOYER_UUID; }
+        if(r2.data && isUuid(r2.data.id)){ resolvedEmployerId = r2.data.id; return resolvedEmployerId; }
       }catch(e){}
     }
   }
   return null;
 }
-function fmt(date){ if(!date) return 'Not available'; const d = new Date(date); if(isNaN(d.getTime())) return 'Not available'; return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}); }
-function formatPhone(phone){ const n = normalizeWhatsapp(phone); return n || ''; }
-function showMessage(message,type=''){ const el = document.getElementById('dashboardMessage'); if(el) el.innerHTML = message ? `<div class="message ${type}">${esc(message)}</div>` : ''; }
-function setLoading(button,text){ if(button){ button.disabled = true; button.dataset.originalText = button.innerText; button.innerText = text; } }
-function resetButton(button){ if(button){ button.disabled = false; button.innerText = button.dataset.originalText || 'Submit'; } }
-function updatePostJobButton(){
-  var btn = document.getElementById('postJobBtn'); if(!btn) return;
-  btn.textContent = '+ Post Job';
-  btn.classList.remove('locked');
+function compressImage(file, cb){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      const max = 400;
+      if(w>max){ h = h*max/w; w = max; }
+      if(h>max){ w = w*max/h; h = max; }
+      canvas.width=w; canvas.height=h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle='white'; ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      canvas.toBlob((blob)=>{
+        compressedBlob = blob;
+        cb(canvas.toDataURL('image/png',0.85));
+      }, 'image/png', 0.85);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
-async function claimGuestPayments(){
-  if(claimDone) return 0;
-  claimDone = true;
-  await resolveEmployerUuid();
-  var ids = idVariants();
-  if(!ids.length) return 0;
-  var employerId = ids[0];
-  var phones = phoneVariants();
-  if(!phones.length) return 0;
-  var claimed = [];
+document.getElementById('logoFile').addEventListener('change', function(){
+  const file = this.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){ alert('Logo too big — use under 5MB'); return; }
+  logoFileObj = file;
+  compressImage(file, (compressed)=>{
+    logoData = compressed;
+    document.getElementById('logoImg').src = compressed;
+    document.getElementById('logoPreview').style.display='block';
+    document.getElementById('logoPlaceholder').style.display='none';
+    document.getElementById('logoName').innerText = file.name + ' • compressed • will upload to company-logos';
+  });
+});
+async function loadCredits(){
   try{
-    var q = await supabaseClient.from('payments').select('*').in('whatsapp_number', phones).eq('status','COMPLETE').is('employer_id', null);
-    if(q.error){ console.log('claim query:', q.error.message); return 0; }
-    claimed = q.data || [];
-    if(!claimed.length){
-      var norm = normalizeWhatsapp(phones[0]);
-      if(norm){
-        var q2 = await supabaseClient.from('payments').select('*').eq('whatsapp_number', norm).eq('status','COMPLETE').is('employer_id', null);
-        if(!q2.error) claimed = q2.data || [];
-      }
+    let user = getUser();
+    if(!user) return;
+    const employerId = await resolveEmployerId(user);
+    if(!employerId){
+      const banner = document.getElementById('creditBanner');
+      banner.style.display='block';
+      banner.innerHTML = '💼 0 jobs left • Buy credits to post';
+      banner.style.background='#ff6b6b'; banner.style.color='white';
+      return;
     }
-  }catch(e){ console.log('claimGuestPayments error', e); return 0; }
-  if(!claimed.length) return 0;
-  var claimedCount = 0;
-  for(var pay of claimed){
-    try{
-      var code = String(pay.product_code || '').trim();
-      if(!PRODUCT_CREDITS[code]){
-        var hay = String(pay.item_name || pay.plan || '').toLowerCase();
-        var amt = Number(pay.amount || pay.amount_gross || 0);
-        if(hay.includes('unlimited') && hay.includes('cv')) code='cv_unlimited';
-        else if(hay.includes('250') && hay.includes('cv')) code='cv_250';
-        else if(hay.includes('100') && hay.includes('cv')) code='cv_100';
-        else if(hay.includes('20') && hay.includes('cv')) code='cv_20';
-        else if(amt===299) code='payg_job'; else if(amt===999) code='starter_monthly'; else if(amt===2500) code='growth_monthly'; else if(amt===3500) code='pro_monthly'; else if(amt===5999) code='business_monthly'; else if(amt===7500) code='job_50'; else if(amt===14000) code='job_100'; else if(amt===31250) code='job_250'; else if(amt===55000) code='job_500'; else if(amt===2499) code='cv_100'; else if(amt===9999) code='cv_unlimited';
-      }
-      var prod = PRODUCT_CREDITS[code];
-      if(!prod) continue;
-      var upd = await supabaseClient.from('payments').update({ employer_id: employerId, note: (pay.note||'') + ' | Claimed by whatsapp_number: ' + normalizeWhatsapp(pay.whatsapp_number||'') + ' -> employer_id ' + employerId }).eq('m_payment_id', pay.m_payment_id).is('employer_id', null);
-      if(upd.error) continue;
-      var nowIso = new Date().toISOString();
-      var expires30 = new Date(Date.now() + 30*24*60*60*1000).toISOString();
-      // FIXED: Write to job_credits / employer_credits ONLY - employer_limits is a VIEW, cannot insert into it.
-      if(prod.unlimited){
-        try{ var ex = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
-          if(ex.data) await supabaseClient.from('employer_credits').update({ plan: 'unlimited', status: 'active', cv_category: pay.cv_category || ex.data.cv_category || null, expires_at: expires30, updated_at: nowIso }).eq('employer_id', employerId);
-          else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: 0, credits: 0, plan: 'unlimited', status: 'active', cv_category: pay.cv_category || null, expires_at: expires30 });
-        }catch(e){}
-      } else if(prod.cv){
-        try{ var exC = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
-          if(exC.data){ var newCv = (exC.data.cv_credits||0)+prod.cv; await supabaseClient.from('employer_credits').update({ cv_credits: newCv, credits: newCv, cv_category: pay.cv_category || exC.data.cv_category || null, plan: 'cv', status: 'active', updated_at: nowIso }).eq('employer_id', employerId); }
-          else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, credits: prod.cv, cv_category: pay.cv_category || null, plan: 'cv', status: 'active' });
-        }catch(e){}
-      } else if(prod.job){
-        // Write job credits to job_credits - same table admin-eft uses
-        try{
-          var exJ = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).eq('plan_name', prod.plan).maybeSingle();
-          if(exJ.data) await supabaseClient.from('job_credits').update({ credits: (exJ.data.credits||0)+prod.job }).eq('employer_id', employerId).eq('plan_name', prod.plan);
-          else await supabaseClient.from('job_credits').insert({ employer_id: employerId, plan_name: prod.plan, credits: prod.job });
-        }catch(e){ console.log('job_credits claim write failed', e); }
-        try{ var exJ2 = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
-          if(exJ2.data) await supabaseClient.from('employer_credits').update({ job_credits: (exJ2.data.job_credits||0)+prod.job, plan: prod.plan, status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
-          else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: prod.job, cv_credits: 0, credits: 0, plan: prod.plan, status: 'active' });
-        }catch(e){}
-        try{ await supabaseClient.from('employer_subscriptions').upsert({ employer_id: employerId, plan: prod.plan, status: 'active', updated_at: nowIso }, { onConflict: 'employer_id' }); }catch(e){}
-        try{ await supabaseClient.from('subscriptions').upsert({ employer_id: employerId, plan: prod.plan, status: 'active', updated_at: nowIso }, { onConflict: 'employer_id' }); }catch(e){}
-      }
-      claimedCount++;
-    }catch(e){ console.log('claim one failed', e); }
-  }
-  if(claimedCount>0) showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za if you entered an invoice email.','success');
-  return claimedCount;
+    const { data } = await supabaseClient.from('job_credits').select('credits, plan_name').eq('employer_id', employerId);
+    let total = 0;
+    let plan = '';
+    if(data && data.length){
+      data.forEach(r=>{ total += (r.credits||0); if((r.credits||0)>0) plan = r.plan_name; });
+    }
+    userCredits = { job_credits: total, cv_credits: 0 };
+    const banner = document.getElementById('creditBanner');
+    banner.style.display='block';
+    if(total > 0){
+      banner.innerHTML = `💼 ${total>=9999?'Unlimited':total+' jobs'} • Plan: ${formatPlanLabel(plan)}`;
+      banner.style.background = 'linear-gradient(135deg,#01F9C6,#2dd4bf)';
+      banner.style.color = '#11283a';
+      document.getElementById('post').innerText = `Post Job — Uses 1 Credit (${total>=9999?'Unlimited':total+' left'})`;
+    } else {
+      banner.innerHTML = '💼 0 jobs left • Buy credits to post';
+      banner.style.background='#ff6b6b';
+      banner.style.color='white';
+      document.getElementById('post').innerText = 'Continue to Payment — R299 →';
+    }
+  }catch(e){ console.log('credit load', e); }
 }
-async function checkPayment(){
-  HAS_PAID = false;
-  window.__HAS_PAID__ = false;
-  try{ await resolveEmployerUuid(); await claimGuestPayments(); }catch(e){}
-  var ids = idVariants();
-  var phones = phoneVariants();
+window.onload = ()=>{
+  const savedEmail = localStorage.getItem('invoice_email') || localStorage.getItem('jobway_user_email') || '';
+  if(savedEmail && isValidEmail(savedEmail)) document.getElementById('invoiceEmail').value = savedEmail;
+  document.getElementById('company').value = localStorage.getItem('company_name') || '';
+  document.getElementById('whatsapp').value = localStorage.getItem('whatsapp_number') || '';
+  loadCredits();
+};
+async function handlePost(isDraft=false){
+const titleVal=document.getElementById('title').value.trim();
+const companyVal=document.getElementById('company').value.trim();
+let invoiceEmailVal=document.getElementById('invoiceEmail').value.trim().toLowerCase();
+if(invoiceEmailVal && !isValidEmail(invoiceEmailVal)){
+  document.getElementById('msg').innerText = '⚠️ That email looks invalid, so no invoice will be sent. Continuing anyway...';
+  invoiceEmailVal = "";
+}
+if(!titleVal||!companyVal){alert('Fill title & company');return;}
+const b=document.getElementById('post');
+b.textContent=isDraft?'Saving...':'Checking credits...';b.disabled=true;
+document.getElementById('msg').innerText='Uploading logo & checking credits...';
+let logoUrl = logoData;
+if(logoFileObj){
   try{
-    if(ids.length){
-      var q = await supabaseClient.from('payments').select('status').in('employer_id', ids).eq('status','COMPLETE').order('created_at',{ascending:false}).limit(1);
-      if(q.data && q.data.length) HAS_PAID = true;
-    }
-    if(!HAS_PAID && phones.length){
-      var q2 = await supabaseClient.from('payments').select('status').in('whatsapp_number', phones).eq('status','COMPLETE').limit(1);
-      if(q2.data && q2.data.length) HAS_PAID = true;
+    const fileName = Date.now() + '_' + logoFileObj.name.replace(/[^a-zA-Z0-9.-]/g,'_');
+    const uploadFile = compressedBlob || logoFileObj;
+    const { error: upErr } = await supabaseClient.storage.from('company-logos').upload(fileName, uploadFile, { upsert: true, contentType: 'image/png' });
+    if(!upErr){
+      const { data: pub } = supabaseClient.storage.from('company-logos').getPublicUrl(fileName);
+      if(pub?.publicUrl) logoUrl = pub.publicUrl;
     }
   }catch(e){}
-  if(!HAS_PAID && ids.length){
-    try{
-      var c = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
-      if(c.data && ((c.data.credits||0) > 0 || (c.data.job_credits||0) > 0 || (c.data.cv_credits||0) > 0 || (c.data.plan && c.data.plan !== 'free'))) HAS_PAID = true;
-      if(c.data) currentWallet = c.data;
-    }catch(e){}
-  }
-  // FIXED: Also check job_credits - admin-eft writes here, not employer_credits
-  if(!HAS_PAID && ids.length){
-    try{
-      var jc = await supabaseClient.from('job_credits').select('credits').in('employer_id', ids);
-      if(jc.data && jc.data.some(r=>(r.credits||0)>0)) HAS_PAID = true;
-    }catch(e){}
-  }
-  if(!HAS_PAID && ids.length){
-    try{
-      var s = await supabaseClient.from('subscriptions').select('status').in('employer_id', ids).eq('status','active').limit(1);
-      if(s.data && s.data.length) HAS_PAID = true;
-    }catch(e){}
-  }
-  window.__HAS_PAID__ = HAS_PAID;
-  updatePostJobButton();
-  return HAS_PAID;
 }
-window.handlePostJob = function(){
-  if(!window.__HAS_PAID__){
-    alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za if you entered an invoice email.');
-    location.href='pricing.html'; return;
-  }
-  location.href='post-job.html';
-};
-function cleanCvPath(raw){
- if(!raw) return null; raw = String(raw).trim(); if(!raw) return null;
- try{
-  if(/^https?:\/\//i.test(raw)){ const url = new URL(raw); const markers = ['/storage/v1/object/public/cvs/','/storage/v1/object/sign/cvs/','/storage/v1/object/authenticated/cvs/','/cvs/']; for(const marker of markers){ const index = url.pathname.indexOf(marker); if(index !== -1){ return decodeURIComponent(url.pathname.substring(index + marker.length)).replace(/^\/+/,''); } } throw new Error('CV URL does not belong to the JobWay CV bucket.'); }
-  return decodeURIComponent(raw).replace(/^cvs\//,'').replace(/^\/+/,'').split('?')[0].trim();
- }catch(e){ console.warn('Invalid CV path:',e); return null; }
-}
-function getCvPath(app){ return cleanCvPath(app._cv_path || app.cv_path || app.cv_url || app.profiles?.cv_url || ''); }
-function getCvName(app){ if(app._cv_name) return app._cv_name; if(app.cv_name) return app.cv_name; if(app.profiles?.cv_name) return app.profiles.cv_name; const path = getCvPath(app); if(!path) return 'Candidate CV'; try{ return decodeURIComponent(path.split('/').pop()); }catch(e){ return 'Candidate CV'; } }
-async function enrichApplications(applications){
- const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(Boolean))];
- const ids = rawIds.filter(isUuid);
- let profileMap = {};
- if(ids.length){
-  const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,cv_url,cv_name').in('id',ids);
-  if(error){ console.warn('Profile lookup:',error.message); }
-  (data || []).forEach(profile => { profileMap[profile.id] = profile; });
- }
- let cvMap = {};
- if(ids.length){
-  const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('user_id',ids).order('created_at',{ascending:false});
-  if(!error && data){ data.forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; }); }
- }
- for(const app of applications){
-  app.profiles = profileMap[app.applicant_id] || null;
-  const cvRow = cvMap[app.applicant_id] || null;
-  if(cvRow){ app._job_category = normalizeCategory(cvRow.job_category || cvRow.category || ''); app._qualifications = cvRow.qualifications || ''; app._experience_years = cvRow.experience_years || ''; app._area = cvRow.area || cvRow.location || ''; }
-  else { app._job_category = ''; app._qualifications = ''; app._experience_years = ''; app._area = ''; }
-  if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); app._cv_name = app.cv_name || null; continue; }
-  if(app.profiles?.cv_url){ app._cv_path = cleanCvPath(app.profiles.cv_url); app._cv_name = app.profiles.cv_name || null; continue; }
-  if(!app.applicant_id || !isUuid(app.applicant_id)) continue;
+let user = getUser();
+let waRaw = document.getElementById('whatsapp').value.trim();
+let wa = normalizeWhatsapp(waRaw);
+if(!wa && user) wa = normalizeWhatsapp(user.phone || user.whatsapp_number || '');
+if(!wa){ alert('Please enter your WhatsApp number (e.g. 0790608952)'); document.getElementById('whatsapp').focus(); b.textContent='Post Job'; b.disabled=false; return; }
+if(invoiceEmailVal){ localStorage.setItem('invoice_email', invoiceEmailVal); localStorage.setItem('jobway_user_email', invoiceEmailVal); }
+else { localStorage.removeItem('invoice_email'); localStorage.removeItem('jobway_user_email'); }
+localStorage.setItem('company_name', companyVal);
+localStorage.setItem('whatsapp_number', wa);
+localStorage.setItem('pending_job_title', titleVal);
+const employerId = await resolveEmployerId(user, wa);
+if(employerId){
   try{
-   const {data,error} = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone,job_category,category,qualifications,experience_years,area,location').eq('user_id',app.applicant_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
-   if(error){ console.warn('Candidate CV lookup:',error.message); continue; }
-   if(data){ app._cv_path = cleanCvPath(data.cv_url); app._cv_name = data.cv_name || null; app._full_name = data.full_name || app.profiles?.full_name; app._phone = data.phone || app.profiles?.phone; app._job_category = normalizeCategory(data.job_category || data.category || app._job_category); app._qualifications = data.qualifications || app._qualifications; app._experience_years = data.experience_years || app._experience_years; app._area = data.area || data.location || app._area; }
-  }catch(e){ console.warn('CV lookup error:',e); }
- }
- return applications;
+    await supabaseClient.from('companies').upsert({
+      user_id: employerId,
+      company_name: companyVal,
+      contact_email: invoiceEmailVal || null,
+      invoice_email: invoiceEmailVal || null,
+      whatsapp_number: wa,
+      logo_url: logoUrl
+    }, {onConflict: 'user_id'});
+  }catch(e){ console.log('company upsert', e); }
 }
-// FIXED: Load from job_credits (admin source of truth) + employer_credits (CVs)
-async function loadCredits(){
-  if(!currentUser){ var ct = document.getElementById('creditsText'); if(ct){ setCreditsLoading(); ct.textContent='Please log in to view credits'; } return null; }
-  setCreditsLoading();
-  await resolveEmployerUuid();
-  var ids = idVariants();
-  var jobTotal = 0, jobPlan = '', cvTotal = 0, cvPlan = '', isUnlimited = false, expiresAt = null;
-  if(ids.length){
-    try{
-      var r = await supabaseClient.from('job_credits').select('credits, plan_name').in('employer_id', ids);
-      (r.data||[]).forEach(row=>{ jobTotal += (row.credits||0); if((row.credits||0)>0) jobPlan = row.plan_name || jobPlan; });
-    }catch(e){ console.log('job_credits read', e); }
-    try{
-      var r2 = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
-      if(r2.data){ cvTotal = (r2.data.cv_credits||0) || (r2.data.credits||0); if(r2.data.plan) cvPlan = r2.data.plan; if(r2.data.plan==='unlimited') isUnlimited = true; expiresAt = r2.data.expires_at || null; }
-    }catch(e){}
-    // Also check cv_credits table if it exists
-    try{
-      var r3 = await supabaseClient.from('cv_credits').select('credits, plan_name').in('employer_id', ids);
-      if(r3.data && r3.data.length){ r3.data.forEach(row=>{ cvTotal += (row.credits||0); if((row.credits||0)>0) cvPlan = row.plan_name || cvPlan; }); }
-    }catch(e){}
+const job={
+  title:titleVal,
+  company:companyVal,
+  location:document.getElementById('location').value,
+  salary:document.getElementById('salary').value,
+  description:document.getElementById('desc').value,
+  whatsapp_number: wa,
+  type: document.getElementById('type').value,
+  closing_date: document.getElementById('closing').value||null,
+  logo_url: logoUrl,
+  employer_id: employerId || null,
+  employer_email: invoiceEmailVal || null,
+  invoice_email: invoiceEmailVal || null,
+  status: isDraft ? 'draft' : 'active'
+};
+if(isDraft){
+  if(!employerId){
+    localStorage.setItem('pending_job', JSON.stringify(job));
+    alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
   }
-  var plan = jobPlan || cvPlan || 'free';
-  currentWallet = { job_credits: jobTotal, credits: cvTotal, cv_credits: cvTotal, plan: plan, expires_at: expiresAt };
-  if(jobTotal>0 || cvTotal>0 || plan!=='free'){ HAS_PAID = true; window.__HAS_PAID__ = true; }
-  updateCreditsBanner();
-  return currentWallet;
+  const {error}=await supabaseClient.from('jobs').insert([job]);
+  if(error){ alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; }
+  alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
-function isUnlimitedWallet(w){ if(!w) return false; if(w.plan !== 'unlimited') return false; if(w.expires_at && new Date(w.expires_at) < new Date()) return false; return true; }
-// FIXED: Plan + Payment now come from the SAME source (job_credits + employer_credits) - can't be Paid + Free
-function updateCreditsBanner(){
-  var creditsEl = document.getElementById('creditsText');
-  var planEl = document.getElementById('planText');
-  var payEl = document.getElementById('paymentText');
-  if(!creditsEl) return;
-  setCreditsLoaded();
-  if(!currentWallet){
-    creditsEl.textContent = '0 CV credits remaining';
-    if(planEl) planEl.textContent = 'Current plan: Free';
-    if(payEl) payEl.textContent = 'Payment status: Unpaid';
+if(employerId){
+  const { data: rows } = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).gt('credits', 0).order('credits', {ascending:false});
+  if(rows && rows.length > 0){
+    const row = rows[0];
+    const isUnlimited = (row.credits || 0) >= 9999;
+    const newCredits = isUnlimited ? row.credits : (row.credits - 1);
+    let deducted = false;
+    if(!isUnlimited){
+      let upd;
+      if(row.id){ upd = await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('id', row.id); }
+      else { upd = await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('employer_id', employerId).eq('plan_name', row.plan_name).limit(1); }
+      if(!upd.error) deducted = true;
+    }
+    const {error}=await supabaseClient.from('jobs').insert([job]);
+    if(error){
+      if(deducted){
+        if(row.id) await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('id', row.id);
+        else await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('employer_id', employerId).eq('plan_name', row.plan_name).limit(1);
+      }
+      alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return;
+    }
+    alert('✅ Job posted! 1 credit used.');
+    location.href='employer-dashboard.html';
     return;
   }
-  if(isUnlimitedWallet(currentWallet)){
-    creditsEl.textContent = 'Unlimited CV credits remaining • ' + (currentWallet.job_credits>=9999 ? 'Unlimited jobs' : (currentWallet.job_credits||0) + ' job credits');
-    if(planEl) planEl.textContent = 'Current plan: Unlimited';
-    if(payEl) payEl.textContent = 'Payment status: Paid';
-    return;
-  }
-  var cvCredits = currentWallet.credits || 0;
-  var jobCredits = currentWallet.job_credits || 0;
-  var plan = currentWallet.plan || 'free';
-  var isPaid = HAS_PAID || jobCredits>0 || cvCredits>0 || (plan && plan!=='free');
-  var planLabel = plan==='free' ? 'Free' : plan.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-  creditsEl.textContent = cvCredits + ' CV credits remaining • ' + (jobCredits>=9999 ? 'Unlimited jobs' : jobCredits + ' job credits');
-  if(planEl) planEl.textContent = 'Current plan: ' + (isPaid && plan==='free' ? 'Paid' : planLabel);
-  if(payEl) payEl.textContent = 'Payment status: ' + (isPaid ? 'Paid' : 'Unpaid');
 }
-async function openSecureCV(path,appId,button){
- const app = currentApps.find(a => String(a.id) === String(appId));
- if(!app){ alert('Application not found.'); return; }
- const clean = cleanCvPath(path);
- if(!clean){ alert('No CV has been uploaded by this candidate.'); return; }
- const jobBelongsToEmployer = currentJobs.some(j => String(j.id) === String(app.job_id));
- if(!jobBelongsToEmployer){ alert('You are not authorised to access this application.'); return; }
- const original = button.innerText;
- setLoading(button,'Checking credits...');
- try{
-  if(!currentWallet) await loadCredits();
-  const unlimited = isUnlimitedWallet(currentWallet);
-  const credits = currentWallet?.credits || 0;
-  var empIdForUnlock = EMPLOYER_UUID || (isUuid(currentUser.id) ? currentUser.id : null);
-  var already = null;
-  if(empIdForUnlock){
-    var chk = await supabaseClient.from('cv_unlocks').select('id').eq('employer_id', empIdForUnlock).eq('application_id', appId).maybeSingle();
-    already = chk.data;
-  }
-  if(!already && !unlimited && credits <= 0){
-    button.disabled = false; button.innerText = original;
-    alert('🔒 No CV credits left.\n\nBuy more:\n• 20 CVs — R999\n• 100 CVs — R2,499 (POPULAR)\n• 250 CVs — R5,999\n• Unlimited — R9,999 / month');
-    location.href='pricing.html';
-    return;
-  }
-  setLoading(button,'Creating secure CV link...');
-  const {data,error} = await supabaseClient.storage.from('cvs').createSignedUrl(clean,300);
-  if(error) throw error;
-  if(!data?.signedUrl) throw new Error('Secure CV link was not created.');
-  if(empIdForUnlock){
-    const {error:logError} = await supabaseClient.from('cv_access_log').insert([{application_id:appId,cv_path:clean,accessed_by:empIdForUnlock}]);
-    if(logError){ console.warn('CV access logging:',logError.message); }
-  }
-  const opened = window.open(data.signedUrl,'_blank','noopener');
-  if(!opened){ alert('Your browser blocked the CV. Allow popups for JobWay.'); }
-  if(!already && !unlimited && empIdForUnlock){
-    const newCredits = Math.max(0, credits - 1);
-    await supabaseClient.from('employer_credits').update({ credits: newCredits, updated_at: new Date().toISOString() }).eq('employer_id', empIdForUnlock);
-    await supabaseClient.from('cv_unlocks').insert([{ employer_id: empIdForUnlock, application_id: appId, cv_path: clean }]);
-    currentWallet.credits = newCredits;
-    updateCreditsBanner();
-    button.innerText = '✓ CV opened — 1 credit used';
-  } else { button.innerText = '✓ CV opened'; }
- }catch(e){
-  console.error('CV error:',e);
-  alert('Unable to open this CV: ' + e.message + '\n\nPlease check the private cvs bucket and its Storage permissions.');
- }finally{ setTimeout(()=>{ button.disabled = false; button.innerText = original; },2500); }
+localStorage.setItem('pending_job', JSON.stringify(job));
+document.getElementById('msg').innerHTML='No credits — redirecting to payment...';
+location.href=`pricing.html?email=${encodeURIComponent(invoiceEmailVal)}&company=${encodeURIComponent(companyVal)}&job=${encodeURIComponent(titleVal)}&whatsapp=${encodeURIComponent(wa)}`;
 }
-function progressHTML(status){
- const steps = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
- if(status === 'Not Selected'){ return `<div class="progress"><span class="p-badge" style="background:#3a1a1a;color:#ff9a9a">✕ Not Selected</span></div>`; }
- let index = steps.indexOf(status); if(index < 0) index = 0;
- return `<div class="progress">${steps.map((step,i)=>{ const cls = i < index ? 'p-done' : i === index ? 'p-active' : 'p-pending'; const icon = i < index ? '✓ ' : ''; return `<span class="p-badge ${cls}">${icon}${esc(step)}</span>`; }).join('')}</div>`;
-}
-function buildWhatsAppMessage(app,status){
- const phone = formatPhone(app.profiles?.phone || app._phone || app.phone || '');
- const name = app.profiles?.full_name || app._full_name || 'Applicant';
- const title = app.jobs?.title || 'Job'; const company = app.jobs?.company || 'JobWay';
- let message = '';
- if(status === 'Shortlisted'){ message = `Hi ${name}\n\nUpdate on your application for ${title} at ${company}: Status is Shortlisted.\n\nWe will contact you regarding the next steps.\n\nTrack your application:\nhttps://jobway.co.za/track-applications.html\n\n- ${company} via JobWay`; }
- else if(status === 'Interview Scheduled'){ message = `Hi ${name}\n\nYour interview for ${title} at ${company} has been scheduled.\n\nDate: ${app.interview_date || ''}\nTime: ${app.interview_time || ''}\nLocation: ${app.interview_location || ''}\n\nNote: ${app.interview_note || 'Bring your ID and CV.'}\n\nPlease reply YES to confirm.\n\n- ${company} via JobWay`; }
- else if(status === 'Hired'){ message = `Hi ${name}\n\nUpdate on your application for ${title} at ${company}: Status is Hired.\n\nThank you for using JobWay.`; }
- else if(status === 'Under Review'){ message = `Hi ${name},\n\nYour application for ${title} at ${company} is now Under Review.\n\nWe will update you soon.\n\n- JobWay`; }
- else if(status === 'Not Selected'){ message = `Hi ${name},\n\nThank you for applying for ${title} at ${company}.\n\nUnfortunately, you were not selected this time.\n\nWe encourage you to continue applying for opportunities on JobWay.\n\nThank you.`; }
- else { message = `Hi ${name},\n\nYour application for ${title} at ${company} has been updated to ${status}.\n\nTrack your application:\nhttps://jobway.co.za/track-applications.html\n\n- JobWay`; }
- return {phone,message};
-}
-function openWhatsApp(phone,message){ if(!phone){ alert('No WhatsApp number is available for this candidate.'); return false; } const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); const popup = window.open(url,'_blank'); if(!popup){ alert('WhatsApp popup blocked. Please allow popups for JobWay.'); return false; } return true; }
-async function saveCandidateNotification(app,status,message){ if(!app.applicant_id || !isUuid(app.applicant_id)) return; try{ const {error} = await supabaseClient.from('notifications').insert([{user_id:app.applicant_id,title:'Application: ' + status,message:message}]); if(error) console.warn('Notification:',error.message); }catch(e){ console.warn('Notification error:',e); } }
-async function updateStatus(id,newStatus,sendWA=true){
- if(!STATUSES.includes(newStatus)){ alert('Invalid application status.'); return; }
- const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
- if(!currentJobs.some(j=>String(j.id)===String(app.job_id))){ alert('You cannot update this application.'); return; }
- if((app.status || 'Application Received') === newStatus){ return; }
- const {phone,message} = buildWhatsAppMessage(app,newStatus); let popup = null; if(sendWA && phone){ popup = window.open('about:blank','_blank'); }
- try{
-  const {error} = await supabaseClient.from('applications').update({status:newStatus}).eq('id',id); if(error) throw error;
-  app.status = newStatus;
-  if(sendWA){ if(phone){ const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); if(popup){ popup.location.href = url; }else{ alert('Status saved. WhatsApp popup was blocked.'); } await saveCandidateNotification(app,newStatus,message); }else{ alert('Status saved, but the candidate has no WhatsApp number.'); } }
-  showMessage('Application status successfully updated.','success'); await loadDashboard();
- }catch(e){ if(popup) popup.close(); console.error('Status update:',e); alert('Could not update application: ' + e.message); }
-}
-async function changeStatusOnly(id,newStatus){
- const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
- if(!STATUSES.includes(newStatus)){ alert('Invalid status.'); return; }
- const previous = app.status || 'Application Received'; if(newStatus === previous) return;
- const shouldSend = confirm('Update status to ' + newStatus + '?\n\nPress OK to also open WhatsApp, or Cancel to update without WhatsApp.');
- let popup = null; const {phone} = buildWhatsAppMessage(app,newStatus); if(shouldSend && phone){ popup = window.open('about:blank','_blank'); }
- try{
-  const {error} = await supabaseClient.from('applications').update({status:newStatus}).eq('id',id); if(error) throw error;
-  app.status = newStatus;
-  if(shouldSend && phone){ const {message} = buildWhatsAppMessage(app,newStatus); if(popup){ popup.location.href = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); } await saveCandidateNotification(app,newStatus,message); }
-  await loadDashboard();
- }catch(e){ if(popup) popup.close(); alert('Could not update status: ' + e.message); await loadDashboard(); }
-}
-function openInterview(id){
- const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
- currentInterviewId = id;
- document.getElementById('interviewFor').innerText = 'For: ' + (app.profiles?.full_name || app._full_name || 'Applicant') + ' — ' + (app.jobs?.title || 'Job');
- const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
- const localDate = [tomorrow.getFullYear(),String(tomorrow.getMonth()+1).padStart(2,'0'),String(tomorrow.getDate()).padStart(2,'0')].join('-');
- document.getElementById('intDate').value = localDate; document.getElementById('intDate').min = localDate; document.getElementById('intTime').value = '09:00'; document.getElementById('intLoc').value = ''; document.getElementById('intMsg').value = '';
- document.getElementById('interviewModal').classList.add('open');
-}
-function closeInterview(){ document.getElementById('interviewModal').classList.remove('open'); currentInterviewId = null; }
-document.getElementById('closeInterviewBtn').onclick = closeInterview;
-document.getElementById('interviewModal').addEventListener('click',e=>{ if(e.target.id === 'interviewModal') closeInterview(); });
-async function confirmInterview(){
- if(!currentInterviewId) return;
- const date = document.getElementById('intDate').value; const time = document.getElementById('intTime').value; const location = document.getElementById('intLoc').value.trim(); const note = document.getElementById('intMsg').value.trim();
- if(!date || !time){ alert('Please enter the interview date and time.'); return; }
- const app = currentApps.find(a => String(a.id) === String(currentInterviewId)); if(!app) return;
- if(!currentJobs.some(j=>String(j.id)===String(app.job_id))){ alert('You cannot schedule an interview for this application.'); return; }
- const updates = {status:'Interview Scheduled',interview_date:date,interview_time:time,interview_location:location,interview_note:note};
- const updatedApp = {...app,...updates}; const {phone,message} = buildWhatsAppMessage(updatedApp,'Interview Scheduled');
- let popup = null; if(phone){ popup = window.open('about:blank','_blank'); }
- const button = document.getElementById('confirmInterviewBtn'); setLoading(button,'Saving interview...');
- try{
-  const {error} = await supabaseClient.from('applications').update(updates).eq('id',currentInterviewId); if(error) throw error;
-  Object.assign(app,updates);
-  if(phone){ if(popup){ popup.location.href = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); } await saveCandidateNotification(app,'Interview Scheduled',message); }else{ alert('Interview saved, but no WhatsApp number is available.'); }
-  closeInterview(); showMessage('Interview successfully scheduled.','success'); await loadDashboard();
- }catch(e){ if(popup) popup.close(); console.error('Interview error:',e); alert('Could not save interview: ' + e.message); }finally{ resetButton(button); }
-}
-document.getElementById('confirmInterviewBtn').addEventListener('click',confirmInterview);
-function renderApplicant(app){
- const name = app.profiles?.full_name || app._full_name || 'Applicant';
- const email = app.profiles?.email || '';
- const phone = app.profiles?.phone || app._phone || app.phone || '';
- const title = app.jobs?.title || 'Job'; const company = app.jobs?.company || '';
- const status = app.status || 'Application Received';
- const cvPath = getCvPath(app); const cvName = getCvName(app);
- const jobCat = app._job_category || ''; const quals = app._qualifications || ''; const exp = app._experience_years || ''; const area = app._area || '';
- let badgeClass = 'b-grey';
- if(status === 'Shortlisted' || status === 'Interview Scheduled'){ badgeClass = 'b-green'; }else if(status === 'Hired'){ badgeClass = 'b-orange'; }else if(status === 'Not Selected'){ badgeClass = 'b-red'; }
- const hasCredits = isUnlimitedWallet(currentWallet) || (currentWallet?.credits || 0) > 0;
- const cvHTML = cvPath ? (hasCredits ? `<button class="btn-cv" data-action="cv" data-id="${esc(app.id)}">🔒 View CV — ${esc(cvName)} (1 credit)</button>` : `<button class="btn-cv btn-cv-locked" data-action="cv" data-id="${esc(app.id)}">🔒 Unlock CV — ${esc(cvName)} (Buy Credits)</button>`) : `<span style="color:#FF8A9D;font-size:11px">No CV uploaded</span>`;
- const interviewHTML = app.interview_date ? `<div class="interview-box">📅 <b>Interview:</b> ${esc(app.interview_date)} at ${esc(app.interview_time || '')}<br>📍 ${esc(app.interview_location || 'Not specified')}<br>${esc(app.interview_note || '')}</div>` : '';
- const tagsHTML = (jobCat || quals || exp || area) ? `<div style="margin-top:8px">${jobCat?`<span class="tag">💼 ${esc(jobCat)}</span>`:''}${quals?`<span class="tag">🎓 ${esc(quals)}</span>`:''}${exp?`<span class="tag">⏱️ ${esc(exp)}</span>`:''}${area?`<span class="tag">📍 ${esc(area)}</span>`:''}</div>` : `<div style="font-size:11px;color:#8DB0BF;margin-top:6px">No category / qualifications provided — ask candidate to update profile</div>`;
- return `<article class="card applicant-card" data-search="${esc((name+' '+title+' '+company+' '+email+' '+jobCat+' '+quals+' '+exp+' '+area).toLowerCase())}" data-status="${esc(status)}" data-category="${esc(jobCat)}" data-exp="${esc(exp)}" data-area="${esc(area)}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap"><b style="font-size:14px">${esc(name)}</b><span class="badge ${badgeClass}">${esc(status)}</span></div><div class="meta">Applied for: <b style="color:white">${esc(title)} — ${esc(company)}</b><br>Date: ${esc(fmt(app.created_at))}<br>Email: ${esc(email || 'Not provided')}<br>WhatsApp: ${esc(phone || 'No number')}</div>${tagsHTML}${progressHTML(status)}${interviewHTML}<div class="btn-row"><button class="btn btn-green" data-action="status" data-id="${esc(app.id)}" data-status="Shortlisted">✓ Shortlist</button><button class="btn btn-orange" data-action="interview" data-id="${esc(app.id)}">📅 Interview</button><button class="btn btn-dark" data-action="status" data-id="${esc(app.id)}" data-status="Hired">🎉 Hire</button><button class="btn btn-red" data-action="status" data-id="${esc(app.id)}" data-status="Not Selected">Reject</button></div><div class="btn-row">${cvHTML}<button class="btn btn-whats" data-action="whatsapp" data-id="${esc(app.id)}">💬 WhatsApp</button></div><label class="label">CHANGE APPLICATION STATUS</label><select class="filter" data-action="select-status" data-id="${esc(app.id)}">${STATUSES.map(s=>`<option value="${esc(s)}" ${status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></article>`;
-}
-function renderJobs(){
- const el = document.getElementById('jobsList');
- if(!currentJobs.length){ el.innerHTML = `<div class="card empty">You haven't posted any jobs yet.<br><br><a href="pricing.html">Pay R299 to post your first job →</a></div>`; return; }
- el.innerHTML = currentJobs.map(job=>{ const count = currentApps.filter(a => String(a.job_id) === String(job.id)).length; const live = job.is_active !== false && job.status !== 'closed'; return `<div class="job-card"><b>${esc(job.title || 'Untitled Job')} • ${esc(job.company || '')}</b> <span class="badge ${live?'b-green':'b-grey'}">${live?'● LIVE':'Paused'}</span><small>${esc(job.location || 'Location not specified')}<br>${esc(job.salary || 'Salary not specified')}<br>${count} applicants</small><div class="btn-row"><button class="btn btn-green" type="button" onclick="location.href='employer-jobs.html'">Check if LIVE →</button></div></div>`; }).join('');
-}
-function filterApplicants(){
- const search = document.getElementById('searchInput').value.trim().toLowerCase(); const status = document.getElementById('statusFilter').value; const cat = document.getElementById('categoryFilter').value; const exp = document.getElementById('expFilter').value; const area = document.getElementById('areaFilter').value; let visible = 0;
- document.querySelectorAll('.applicant-card').forEach(card=>{ const matchesSearch = card.dataset.search.includes(search); const matchesStatus = !status || card.dataset.status === status; const matchesCat = !cat || card.dataset.category === cat; const matchesExp = !exp || card.dataset.exp === exp; const matchesArea = !area || card.dataset.area === area; const show = matchesSearch && matchesStatus && matchesCat && matchesExp && matchesArea; card.style.display = show ? 'block' : 'none'; if(show) visible++; });
- const empty = document.getElementById('empty'); empty.style.display = visible === 0 ? 'block' : 'none';
- document.getElementById('filterCount').innerText = visible + ' applicant(s) match your filters • ' + currentApps.length + ' total';
- if(visible === 0 && currentApps.length){ empty.innerText = 'No applicants match your search or filter. Try clearing Category / Experience / Area.'; }else{ empty.innerText = 'No applications yet. Share your job link to get applicants.'; }
-}
-document.getElementById('searchInput').addEventListener('input',filterApplicants);
-document.getElementById('statusFilter').addEventListener('change',filterApplicants);
-document.getElementById('categoryFilter').addEventListener('change',filterApplicants);
-document.getElementById('expFilter').addEventListener('change',filterApplicants);
-document.getElementById('areaFilter').addEventListener('change',filterApplicants);
-async function loadDashboard(){
- if(loadingDashboard) return; loadingDashboard = true; const list = document.getElementById('list'); list.innerHTML = '<div class="loading">Loading your dashboard...</div>';
- try{
-  currentUser = getCurrentUser();
-  if(!currentUser){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
-  await resolveEmployerUuid();
-  await checkPayment();
-  await loadCredits();
-  var jobs = [];
-  var jobsError = null;
-  var uuids = idVariants();
-  if(uuids.length){
-    var r1 = await supabaseClient.from('jobs').select('*').in('employer_id', uuids).order('created_at',{ascending:false});
-    jobs = r1.data || []; jobsError = r1.error;
-  }
-  if(!jobs.length){
-    try{ var r2 = await supabaseClient.from('jobs').select('*').in('employer_phone', phoneVariants()).order('created_at',{ascending:false}); if(r2.data && r2.data.length) jobs = r2.data; }catch(e){}
-  }
-  if(!jobs.length){
-    try{ var r3 = await supabaseClient.from('jobs').select('*').in('whatsapp_number', phoneVariants()).order('created_at',{ascending:false}); if(r3.data && r3.data.length) jobs = r3.data; }catch(e){}
-  }
-  if(jobsError && !jobs.length) throw jobsError;
-  currentJobs = jobs || [];
-  currentApps = []; const jobIds = currentJobs.map(j=>j.id);
-  if(jobIds.length){ const {data:apps,error:appsError} = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false}); if(appsError) throw appsError; currentApps = await enrichApplications(apps || []); }
-  document.getElementById('jobCount').innerText = currentJobs.length; document.getElementById('appCount').innerText = currentApps.length;
-  if(currentApps.length){ list.innerHTML = currentApps.map(renderApplicant).join(''); document.getElementById('empty').style.display = 'none'; filterApplicants(); }else{ list.innerHTML = ''; document.getElementById('empty').style.display = 'block'; document.getElementById('filterCount').innerText = ''; }
-  renderJobs();
- }catch(e){ console.error('Dashboard loading error:',e); showMessage('Dashboard error: ' + (e.message || 'Unable to load your information.'),'error'); list.innerHTML = `<div class="card">Unable to load your dashboard.<br><br><button class="btn btn-green" id="retryBtn" type="button">Try Again</button></div>`; var rb=document.getElementById('retryBtn'); if(rb) rb.addEventListener('click',()=>{ loadingDashboard=false; loadDashboard(); }); }finally{ loadingDashboard = false; }
-}
-document.getElementById('list').addEventListener('click',function(e){
- const button = e.target.closest('[data-action]'); if(!button) return; const action = button.dataset.action; const id = button.dataset.id;
- if(action === 'status'){ updateStatus(id,button.dataset.status,true); }
- if(action === 'interview'){ openInterview(id); }
- if(action === 'cv'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ openSecureCV(getCvPath(app),id,button); } }
- if(action === 'whatsapp'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ const {phone,message} = buildWhatsAppMessage(app,app.status || 'Application Received'); openWhatsApp(phone,message); } }
-});
-document.getElementById('list').addEventListener('change',function(e){ const element = e.target; if(element.dataset.action === 'select-status'){ changeStatusOnly(element.dataset.id,element.value); } });
-function startRealtime(){
- if(!currentUser?.id && !EMPLOYER_UUID) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
- try{ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); }); }catch(e){}
-}
-async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
-startDashboard();
-</script>
-</body>
-</html>
+document.getElementById('post').onclick=()=>handlePost(false);
+document.getElementById('saveDraft').onclick=()=>handlePost(true);
+</script></body></html>
