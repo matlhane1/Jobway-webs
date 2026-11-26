@@ -25,7 +25,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .btn-red{background:#3a1a1a;color:#ff9a9a}
 #postJobBtn{background:#01F9C6!important;color:#0A1F2E!important;opacity:1!important}
 #viewJobsBtn{background:#fff!important;color:#0A1F2E!important;opacity:1!important}
-#refreshBtn{background:#1A3E52!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important;opacity:1!important}
 #logoutBtn{background:#3a1a1a!important;color:#ff9a9a!important;border:1px solid #a04444!important;opacity:1!important}
 .container{max-width:1000px;margin:auto;padding:18px}
 .page-title{font-family:'Space Grotesk';font-size:21px;margin:12px 0 5px}
@@ -97,14 +96,6 @@ window.handlePostJob = function(){
   location.href='post-job.html';
 };
 window.goViewJobs = function(){ location.href='employer-jobs.html'; };
-window.doRefresh = function(){
-  try{
-    window.__FORCE_REFRESH__ = true;
-    var b = document.getElementById('refreshBtn');
-    if(b) b.textContent='↻ Refreshing...';
-  }catch(e){}
-  location.reload();
-};
 window.doLogout = function(){
   try{
     ['jobway_employer','employer_whatsapp','employer_email','jobway_jobseeker','jobseeker_whatsapp','jobway_logged_in','user_role','jobway_user','user','userPhone','phone','whatsapp_number','jobway_whatsapp'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
@@ -120,7 +111,6 @@ window.doLogout = function(){
  <div class="header-actions">
   <button class="btn" id="postJobBtn" type="button" onclick="handlePostJob()">+ Post Job</button>
   <button class="btn" id="viewJobsBtn" type="button" onclick="goViewJobs()">View Jobs</button>
-  <button class="btn" id="refreshBtn" type="button" onclick="doRefresh()">↻ Refresh</button>
   <button class="btn" id="logoutBtn" type="button" onclick="doLogout()">Log Out</button>
  </div>
 </header>
@@ -200,7 +190,6 @@ let realtimeChannel = null;
 let currentWallet = null;
 let HAS_PAID = false;
 let EMPLOYER_UUID = null;
-let claimDone = false;
 function normalizeCategory(v){
   if(!v) return '';
   if(v === 'Hospitality') return 'Hospitality and Tourism';
@@ -230,7 +219,6 @@ function setCreditsLoaded(){
   if(!el) return;
   el.style.color = '#fff'; el.style.fontWeight = '700'; el.style.fontSize = '15px';
 }
-// FIXED: Return user even if no id - login only saves WhatsApp. ID is resolved later via profiles.
 function getCurrentUser(){
   try{
     var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
@@ -283,9 +271,8 @@ function updatePostJobButton(){
   btn.textContent = '+ Post Job';
   btn.classList.remove('locked');
 }
+// AUTO-CLAIM: NO claimDone guard. Called repeatedly by polling until PayFast marks COMPLETE.
 async function claimGuestPayments(){
-  if(claimDone) return 0;
-  claimDone = true;
   await resolveEmployerUuid();
   var ids = idVariants();
   if(!ids.length) return 0;
@@ -325,7 +312,6 @@ async function claimGuestPayments(){
       if(upd.error) continue;
       var nowIso = new Date().toISOString();
       var expires30 = new Date(Date.now() + 30*24*60*60*1000).toISOString();
-      // FIXED: Write to job_credits / employer_credits ONLY - employer_limits is a VIEW, cannot insert into it.
       if(prod.unlimited){
         try{ var ex = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
           if(ex.data) await supabaseClient.from('employer_credits').update({ plan: 'unlimited', status: 'active', cv_category: pay.cv_category || ex.data.cv_category || null, expires_at: expires30, updated_at: nowIso }).eq('employer_id', employerId);
@@ -337,7 +323,6 @@ async function claimGuestPayments(){
           else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, credits: prod.cv, cv_category: pay.cv_category || null, plan: 'cv', status: 'active' });
         }catch(e){}
       } else if(prod.job){
-        // Write job credits to job_credits - same table admin-eft uses
         try{
           var exJ = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).eq('plan_name', prod.plan).maybeSingle();
           if(exJ.data) await supabaseClient.from('job_credits').update({ credits: (exJ.data.credits||0)+prod.job }).eq('employer_id', employerId).eq('plan_name', prod.plan);
@@ -353,7 +338,10 @@ async function claimGuestPayments(){
       claimedCount++;
     }catch(e){ console.log('claim one failed', e); }
   }
-  if(claimedCount>0) showMessage('✅ ' + claimedCount + ' guest payment(s) claimed by your WhatsApp number. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za if you entered an invoice email.','success');
+  if(claimedCount>0){
+    showMessage('✅ Payment confirmed! ' + claimedCount + ' payment(s) added. Your credits are now unlocked. Invoice(s) were sent from invoices@jobway.co.za if you entered an invoice email.','success');
+    await loadCredits();
+  }
   return claimedCount;
 }
 async function checkPayment(){
@@ -379,7 +367,6 @@ async function checkPayment(){
       if(c.data) currentWallet = c.data;
     }catch(e){}
   }
-  // FIXED: Also check job_credits - admin-eft writes here, not employer_credits
   if(!HAS_PAID && ids.length){
     try{
       var jc = await supabaseClient.from('job_credits').select('credits').in('employer_id', ids);
@@ -442,7 +429,6 @@ async function enrichApplications(applications){
  }
  return applications;
 }
-// FIXED: Load from job_credits (admin source of truth) + employer_credits (CVs)
 async function loadCredits(){
   if(!currentUser){ var ct = document.getElementById('creditsText'); if(ct){ setCreditsLoading(); ct.textContent='Please log in to view credits'; } return null; }
   setCreditsLoading();
@@ -458,7 +444,6 @@ async function loadCredits(){
       var r2 = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
       if(r2.data){ cvTotal = (r2.data.cv_credits||0) || (r2.data.credits||0); if(r2.data.plan) cvPlan = r2.data.plan; if(r2.data.plan==='unlimited') isUnlimited = true; expiresAt = r2.data.expires_at || null; }
     }catch(e){}
-    // Also check cv_credits table if it exists
     try{
       var r3 = await supabaseClient.from('cv_credits').select('credits, plan_name').in('employer_id', ids);
       if(r3.data && r3.data.length){ r3.data.forEach(row=>{ cvTotal += (row.credits||0); if((row.credits||0)>0) cvPlan = row.plan_name || cvPlan; }); }
@@ -471,7 +456,6 @@ async function loadCredits(){
   return currentWallet;
 }
 function isUnlimitedWallet(w){ if(!w) return false; if(w.plan !== 'unlimited') return false; if(w.expires_at && new Date(w.expires_at) < new Date()) return false; return true; }
-// FIXED: Plan + Payment now come from the SAME source (job_credits + employer_credits) - can't be Paid + Free
 function updateCreditsBanner(){
   var creditsEl = document.getElementById('creditsText');
   var planEl = document.getElementById('planText');
@@ -699,7 +683,28 @@ function startRealtime(){
  if(!currentUser?.id && !EMPLOYER_UUID) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
  try{ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); }); }catch(e){}
 }
-async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
+// AUTO-UPDATE: No Refresh button. Polls every 5s for 2 mins.
+async function startDashboard(){
+  currentUser = getCurrentUser();
+  if(!currentUser){ await loadDashboard(); return; }
+  await loadDashboard();
+  startRealtime();
+  let tries = 0;
+  const params = new URLSearchParams(location.search);
+  const cameFromPayment = params.get('payment') === 'success' || params.get('m_payment_id');
+  if(cameFromPayment) showMessage('💳 Checking your payment... please wait, your credits will appear automatically.','success');
+  const poll = setInterval(async () => {
+    tries++;
+    const beforeJob = currentWallet ? currentWallet.job_credits : 0;
+    const beforeCv = currentWallet ? currentWallet.credits : 0;
+    await claimGuestPayments();
+    await loadCredits();
+    if((currentWallet && (currentWallet.job_credits !== beforeJob || currentWallet.credits !== beforeCv)) || tries >= 24){
+      clearInterval(poll);
+      if(cameFromPayment) history.replaceState({}, '', 'employer-dashboard.html');
+    }
+  }, 5000);
+}
 startDashboard();
 </script>
 </body>
