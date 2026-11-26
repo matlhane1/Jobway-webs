@@ -74,35 +74,52 @@ function normalizeWhatsapp(v){
   if(d.length===9) return '27'+d;
   return "";
 }
-function waVariants(wa27){
-  if(!wa27) return [];
-  const zero = '0'+wa27.slice(2);
-  return [...new Set([wa27, zero])];
-}
+function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
 function formatPlanLabel(plan){
   if(!plan) return '';
   if(plan==='free') return 'Free';
   return String(plan).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 }
 function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim().toLowerCase()); }
+// EXACT SAME AS DASHBOARD: jobway_employer FIRST
 function getUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||localStorage.getItem('jobway_employer')||'null'); }catch(e){ return null; }
+  try{
+    var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
+    if(emp && (emp.id || emp.whatsapp_number || emp.phone || emp.whatsapp)) return emp;
+    var u = JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null');
+    if(u && (u.id || u.whatsapp_number || u.phone || u.whatsapp)) return u;
+  }catch(e){ return null; }
+  return null;
+}
+// EXACT SAME AS DASHBOARD: phoneVariants + resolve via profiles .or()
+function phoneVariants(user){
+  var raw = (user && (user.phone || user.whatsapp_number || user.whatsapp)) || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || document.getElementById('whatsapp')?.value || '';
+  var norm = normalizeWhatsapp(raw);
+  var v = new Set();
+  if(norm){ v.add(norm); if(norm.startsWith('27')) v.add('0'+norm.slice(2)); v.add('+'+norm); v.add(norm.slice(2)); }
+  if(raw) v.add(String(raw));
+  return Array.from(v).filter(Boolean);
 }
 async function resolveEmployerId(user, fallbackWaRaw){
   if(resolvedEmployerId) return resolvedEmployerId;
-  if(user && user.id){ resolvedEmployerId = user.id; return resolvedEmployerId; }
-  const raw = (user && (user.whatsapp_number || user.phone || user.whatsapp)) || fallbackWaRaw || localStorage.getItem('whatsapp_number') || document.getElementById('whatsapp')?.value || '';
-  const wa = normalizeWhatsapp(raw);
-  if(!wa) return null;
-  for(const variant of waVariants(wa)){
+  if(user && isUuid(user.id)){ resolvedEmployerId = user.id; return resolvedEmployerId; }
+  var phones = phoneVariants(user);
+  if(fallbackWaRaw){
+    var fw = normalizeWhatsapp(fallbackWaRaw);
+    if(fw && !phones.includes(fw)) phones.unshift(fw);
+  }
+  var norm = normalizeWhatsapp(phones[0] || '');
+  if(norm){
     try{
-      const { data } = await supabaseClient.from('profiles').select('id').eq('whatsapp_number', variant).maybeSingle();
-      if(data && data.id){ resolvedEmployerId = data.id; return resolvedEmployerId; }
+      var r = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(norm)+',whatsapp_number.eq.'+encodeURIComponent(norm)).limit(1).maybeSingle();
+      if(r.data && isUuid(r.data.id)){ resolvedEmployerId = r.data.id; return resolvedEmployerId; }
     }catch(e){}
-    try{
-      const { data } = await supabaseClient.from('profiles').select('id').eq('phone', variant).maybeSingle();
-      if(data && data.id){ resolvedEmployerId = data.id; return resolvedEmployerId; }
-    }catch(e){}
+    for(var p of phones){
+      try{
+        var r2 = await supabaseClient.from('profiles').select('id,phone,whatsapp_number').or('phone.eq.'+encodeURIComponent(p)+',whatsapp_number.eq.'+encodeURIComponent(p)).limit(1).maybeSingle();
+        if(r2.data && isUuid(r2.data.id)){ resolvedEmployerId = r2.data.id; return resolvedEmployerId; }
+      }catch(e){}
+    }
   }
   return null;
 }
@@ -154,7 +171,6 @@ async function loadCredits(){
       banner.style.background='#ff6b6b'; banner.style.color='white';
       return;
     }
-    // SAME AS DASHBOARD: sum ALL rows in job_credits for this employer
     const { data } = await supabaseClient.from('job_credits').select('credits, plan_name').eq('employer_id', employerId);
     let total = 0;
     let plan = '';
@@ -256,7 +272,6 @@ if(isDraft){
   alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
 if(employerId){
-  // MATCH DASHBOARD: pick ONE row with credits > 0, deduct by its id (not plan_name)
   const { data: rows } = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).gt('credits', 0).order('credits', {ascending:false});
   if(rows && rows.length > 0){
     const row = rows[0];
