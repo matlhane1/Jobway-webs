@@ -66,7 +66,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .payment-btn:disabled{opacity:.55;cursor:not-allowed}
 .pay-error{color:#ff9999;background:rgba(255,80,80,.09);border:1px solid rgba(255,80,80,.2);border-radius:8px;padding:10px;font-size:12px;margin-top:10px;display:none}
 .pay-warn{color:#FFCA70;background:rgba(255,176,32,.10);border:1px solid rgba(255,176,32,.4);border-radius:8px;padding:10px;font-size:12px;margin-top:10px;display:none}
-.fallback-box{background:#0F2230;border:1px solid rgba(255,176,32,.35);border-radius:11px;padding:14px;margin-top:13px;font-size:12px;line-height:1.7;display:none}
+.fallback-box{background:#0F2230;border:1px solid rgba(255,176,32,.35);border-radius:11px;padding:14px;margin-top:13px;font-size:12px;line-height:1.7;display:block}
+.eft-table{width:100%;border-collapse:collapse;margin:10px 0;background:#0A1A26;border-radius:8px;overflow:hidden}
+.eft-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}
+.eft-table td:first-child{color:#A8C8D0;width:105px}
+.eft-table td:last-child{font-weight:700;color:#fff;word-break:break-all}
+.copy-btn{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;margin-top:6px}
 .whatsapp-btn{width:100%;padding:12px;background:#25D366;color:#073B24;border:0;border-radius:999px;font-weight:900;margin-top:12px}
 .small-text{color:#7FA5B0;font-size:10px;text-align:center;margin-top:13px}
 .pool-box{background:#11283A;border:1px solid rgba(1,249,198,.25);border-radius:14px;padding:16px;margin:10px 0 0}
@@ -103,8 +108,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 <main class="wrap">
  <h1 class="h1">Simple pricing. Choose what fits.</h1>
  <p class="sub">Affordable recruitment solutions for South African businesses. Choose job postings, job credits or access to the CV database.</p>
- <div class="trust"><span>PayFast checkout</span><span>Guest checkout available</span><span>Invoice from invoices@jobway.co.za</span><span>Transparent pricing</span></div>
- <div class="pay-logos"><span class="label">PAYMENT OPTIONS</span><span class="logo-card">VISA</span><span class="logo-card">Mastercard</span><span class="logo-card">PayFast</span><span class="logo-card">BANK PAYMENTS</span></div>
+ <div class="trust"><span>PayFast checkout</span><span>Guest checkout available</span><span>Invoice from invoices@jobway.co.za</span><span>Transparent pricing</span><span>EFT backup if PayFast is down</span></div>
+ <div class="pay-logos"><span class="label">PAYMENT OPTIONS</span><span class="logo-card">VISA</span><span class="logo-card">Mastercard</span><span class="logo-card">PayFast</span><span class="logo-card">BANK PAYMENTS</span><span class="logo-card">EFT</span></div>
  <div class="single-featured">
   <div style="flex:1"><div class="plan-name">PAY PER POST</div><div class="price">R299 <small>/ 30 days</small></div><ul class="features"><li>1 job post for 30 days</li><li>Branded company page</li><li>Manage applications</li><li>Access your employer dashboard</li></ul></div>
   <div style="min-width:210px"><button class="btn-card btn-green-pop" data-item="JobWay Single Job Post">Post a job — R299</button></div>
@@ -143,7 +148,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   <div class="card" id="card-cv250"><div class="plan-name">250 CV UNLOCKS</div><div class="price">R5,999 <small>/ one-time</small></div><ul class="features"><li>250 CV unlock credits</li><li>Recruitment database access</li></ul><button class="btn-card btn-white" data-item="JobWay 250 CV Unlocks" data-cv="true" data-cv-count="250" disabled>Select category first ↑</button></div>
   <div class="card" id="card-cv-unlimited"><div class="plan-name">UNLIMITED CV ACCESS</div><div class="price">R9,999 <small>/ month</small></div><ul class="features"><li>Unlimited CV database access</li><li>Subject to candidate consent</li><li>Monthly subscription</li></ul><button class="btn-card btn-white" data-item="JobWay Unlimited CV Unlocks" data-cv="true" data-cv-unlimited="true" disabled>Select category first ↑</button></div>
  </div>
- <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry and CV access conditions are subject to the JobWay terms and conditions. CV information must only be used to hire people. Do not share or sell CVs.<br><br><b style="color:white">CV Stock Guarantee:</b> CV packages are sold for a selected category. We check how many CVs we have before you pay. If there are not enough CVs in your selected category, payment will be blocked and you can choose a smaller package or post a job for R299 instead.</div>
+ <div class="note"><b style="color:white">Important information</b><br>Job posting subscriptions, job credits and CV database packages are separate products. Subscription renewal, credit expiry and CV access conditions are subject to the JobWay terms and conditions. CV information must only be used to hire people. Do not share or sell CVs.<br><br><b style="color:white">CV Stock Guarantee:</b> CV packages are sold for a selected category. We check how many CVs we have before you pay. If there are not enough CVs in your selected category, payment will be blocked and you can choose a smaller package or post a job for R299 instead.<br><br><b style="color:white">PayFast down? Pay via EFT:</b> If PayFast / Yoco is showing a 500 error or is down, you can still pay by EFT to Capitec Business — K2026916589 SOUTH AFRICA (PTY) LTD, Account No: 1056082206, Branch Code: 450105. Use your WhatsApp number as reference and WhatsApp your proof to 081 263 3193. We will activate your credits / subscription after we verify payment.</div>
 </main>
 <footer class="footer">© <span id="year"></span> JobWay.co.za. All rights reserved.<br>Your job, your way.</footer>
 <div class="modal" id="payModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -163,7 +168,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   <p class="pay-error" id="payErr" role="alert"></p>
   <p class="pay-warn" id="payWarn" role="status"></p>
   <div id="stockFallback"><b style="color:#FFB020" id="stockFallbackTitle">CV stock is not sufficient</b><p id="stockFallbackText" style="margin:6px 0"></p><button id="stockFallbackBtn" onclick="switchToSingleJobPost()">Post a job — R299 instead →</button></div>
-  <div class="fallback-box" id="fallbackBox"><b style="color:#FFB020">Need to pay by EFT?</b><p>Contact JobWay to request official banking details and payment instructions.</p><p style="margin-top:8px">Your credits or subscription will only be activated after payment has been verified.</p><button class="whatsapp-btn" onclick="sendWhatsAppProof()">Request EFT Details on WhatsApp →</button></div>
+  <div class="fallback-box" id="fallbackBox"><b style="color:#FFB020">PayFast down? Pay by EFT instead — no need to wait</b><p style="margin-top:6px">Pay the exact amount above to our Capitec Business account, use your WhatsApp number as the reference, then send your proof to <b>081 263 3193</b> on WhatsApp. We will activate your credits / subscription after we verify payment (usually within 10 mins during business hours).</p>
+  <table class="eft-table">
+   <tr><td>Bank</td><td>Capitec Business</td></tr>
+   <tr><td>Account Name</td><td>K2026916589 SOUTH AFRICA (PTY) LTD</td></tr>
+   <tr><td>Account No</td><td id="eftAccountNo">1056082206</td></tr>
+   <tr><td>Branch Code</td><td>450105</td></tr>
+   <tr><td>Account Type</td><td>Current</td></tr>
+   <tr><td>Reference</td><td id="eftReference">Your WhatsApp number</td></tr>
+  </table>
+  <button class="copy-btn" onclick="copyEftDetails()">Copy EFT Details</button>
+  <button class="whatsapp-btn" onclick="sendWhatsAppProof()">I Paid via EFT — Send Proof to 081 263 3193 →</button></div>
   <p class="small-text">Do not share your banking password, card PIN or OTP with anyone.</p>
  </div>
 </div>
@@ -172,6 +187,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 const SUPABASE_URL = "https://dmxumcjeetphwzvgzzuk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-";
 const WHATSAPP_NUMBER = "27790608952";
+const PROOF_WHATSAPP_NUMBER = "27812633193";
 const PRODUCTS = {
  "JobWay Single Job Post": {amount:299,code:"payg_job"},
  "JobWay Starter Monthly": {amount:999,code:"starter_monthly"},
@@ -251,6 +267,18 @@ function updateCvButtons(){
  });
 }
 $("cvCategory").addEventListener("change",updateCvButtons);
+function updateEftReference(){
+  const wa = $("whatsappField") ? $("whatsappField").value.trim() : "";
+  const ref = wa ? wa : "Your WhatsApp number";
+  if($("eftReference")) $("eftReference").textContent = ref;
+}
+function copyEftDetails(){
+  const wa = $("whatsappField") ? $("whatsappField").value.trim() : "";
+  const product = PRODUCTS[curItem];
+  const text = "JobWay EFT Payment\nBank: Capitec Business\nAccount Name: K2026916589 SOUTH AFRICA (PTY) LTD\nAccount No: 1056082206\nBranch Code: 450105\nAccount Type: Current\nAmount: " + (product ? formatRand(product.amount) : "") + "\nProduct: " + (curItem || "") + "\nReference: " + (wa || "Your WhatsApp number") + "\nSend proof to: 081 263 3193 on WhatsApp";
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(()=>alert("EFT details copied. Paste into your banking app.")).catch(()=>{ prompt("Copy these EFT details:", text); }); }
+  else{ prompt("Copy these EFT details:", text); }
+}
 function openPay(item){
  const product = PRODUCTS[item];
  if(!product){ alert("This JobWay product is unavailable."); return; }
@@ -267,18 +295,20 @@ function openPay(item){
  fillModalFields();
  $("payErr").style.display = "none";
  $("payWarn").style.display = "none";
- $("fallbackBox").style.display = "none";
+ $("fallbackBox").style.display = "block";
  $("stockFallback").style.display = "none";
  $("payBtn").style.display = "block";
  $("payBtn").disabled = false;
  $("payBtn").textContent = "Pay with Card or Bank App →";
  $("payModal").classList.add("show");
  document.body.style.overflow = "hidden";
+ updateEftReference();
 }
 function closePay(){ $("payModal").classList.remove("show"); document.body.style.overflow = ""; }
 $("payModal").addEventListener("click",function(event){ if(event.target === $("payModal")) closePay(); });
 document.addEventListener("keydown",function(event){ if(event.key === "Escape") closePay(); });
 document.querySelectorAll("[data-item]").forEach(button=>{ button.addEventListener("click",function(){ openPay(this.dataset.item); }); });
+if($("whatsappField")) $("whatsappField").addEventListener("input", updateEftReference);
 function showError(message){ $("payErr").textContent = message; $("payErr").style.display = "block"; }
 function showWarn(message){ $("payWarn").textContent = message; $("payWarn").style.display = "block"; }
 function resetPayButton(){ $("payBtn").style.display = "block"; $("payBtn").disabled = false; $("payBtn").textContent = "Pay with Card or Bank App →"; }
@@ -318,7 +348,6 @@ async function doPay(){
  const product = PRODUCTS[curItem];
  $("payErr").style.display = "none";
  $("payWarn").style.display = "none";
- $("fallbackBox").style.display = "none";
  $("stockFallback").style.display = "none";
  if(!product){ showError("Please select a valid JobWay product."); return; }
  if(!isValidWhatsapp(waRaw)){
@@ -364,7 +393,7 @@ async function doPay(){
   clearTimeout(timeoutId);
   console.error("JobWay checkout error:",error);
   if(error && error.name === "AbortError"){ showError("The payment request timed out. Please try again. If the problem continues, check the Supabase function logs."); }
-  else{ showError(error.message || "Payment could not be started. Please try again."); }
+  else{ showError(error.message || "Payment could not be started. Please try again. You can also pay by EFT below — no need to wait for PayFast."); }
   $("fallbackBox").style.display = "block";
   resetPayButton();
  }
@@ -376,8 +405,8 @@ function sendWhatsAppProof(){
  if(!curItem || !PRODUCTS[curItem]){ alert("Please select a product first."); return; }
  if(!isValidWhatsapp($("whatsappField").value)){ alert("Please enter your WhatsApp number in Box 1 first."); if($("whatsappField")) $("whatsappField").focus(); return; }
  const product = PRODUCTS[curItem];
- const message = "Hello JobWay,\n\n" + "I would like to enquire about paying by EFT.\n\n" + "Product: " + curItem + (curCategory ? " (" + curCategory + ")" : "") + "\n" + "Amount: " + formatRand(product.amount) + "\n" + "WhatsApp: " + whatsapp + "\n" + "Invoice email: " + (email || "- (not provided)") + "\n" + "Company: " + (company || "-") + "\n\n" + "Please send me your official banking details and payment instructions.\n\n" + "Thank you.";
- const url = "https://api.whatsapp.com/send?phone=" + WHATSAPP_NUMBER + "&text=" + encodeURIComponent(message);
+ const message = "Hello JobWay,\n\nI paid via EFT.\n\nProduct: " + curItem + (curCategory ? " (" + curCategory + ")" : "") + "\nAmount: " + formatRand(product.amount) + "\nMy WhatsApp (Reference): " + whatsapp + "\nInvoice email: " + (email || "- (not provided)") + "\nCompany: " + (company || "-") + "\nBank: Capitec Business\nAccount Name: K2026916589 SOUTH AFRICA (PTY) LTD\nAccount No: 1056082206\n\nI am sending my proof of payment now. Please activate my purchase.\n\nThank you.";
+ const url = "https://api.whatsapp.com/send?phone=" + PROOF_WHATSAPP_NUMBER + "&text=" + encodeURIComponent(message);
  window.open(url,"_blank","noopener,noreferrer");
 }
 $("year").textContent = new Date().getFullYear();
