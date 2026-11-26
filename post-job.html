@@ -65,6 +65,7 @@ let logoData = null;
 let logoFileObj = null;
 let compressedBlob = null;
 let userCredits = { job_credits: 0, cv_credits: 0 };
+let resolvedEmployerId = null;
 function normalizeWhatsapp(v){
   let d = String(v||'').replace(/\D/g,'');
   if(!d) return "";
@@ -73,9 +74,33 @@ function normalizeWhatsapp(v){
   if(d.length===9) return '27'+d;
   return "";
 }
+function waVariants(wa27){
+  if(!wa27) return [];
+  const zero = '0'+wa27.slice(2);
+  return [...new Set([wa27, zero])];
+}
 function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim().toLowerCase()); }
 function getUser(){
   try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
+}
+// FIX: Your login has NO id - only whatsapp_number. Resolve id from profiles by WhatsApp.
+async function resolveEmployerId(user, fallbackWaRaw){
+  if(resolvedEmployerId) return resolvedEmployerId;
+  if(user && user.id){ resolvedEmployerId = user.id; return resolvedEmployerId; }
+  const raw = (user && (user.whatsapp_number || user.phone || user.whatsapp)) || fallbackWaRaw || localStorage.getItem('whatsapp_number') || document.getElementById('whatsapp')?.value || '';
+  const wa = normalizeWhatsapp(raw);
+  if(!wa) return null;
+  for(const variant of waVariants(wa)){
+    try{
+      const { data } = await supabaseClient.from('profiles').select('id').eq('whatsapp_number', variant).maybeSingle();
+      if(data && data.id){ resolvedEmployerId = data.id; return resolvedEmployerId; }
+    }catch(e){}
+    try{
+      const { data } = await supabaseClient.from('profiles').select('id').eq('phone', variant).maybeSingle();
+      if(data && data.id){ resolvedEmployerId = data.id; return resolvedEmployerId; }
+    }catch(e){}
+  }
+  return null;
 }
 function compressImage(file, cb){
   const reader = new FileReader();
@@ -116,9 +141,16 @@ document.getElementById('logoFile').addEventListener('change', function(){
 async function loadCredits(){
   try{
     let user = getUser();
-    if(!user || !user.id) return;
-    // FIXED: Read directly from job_credits (same table admin writes to)
-    const { data } = await supabaseClient.from('job_credits').select('credits, plan_name').eq('employer_id', user.id);
+    if(!user) return;
+    const employerId = await resolveEmployerId(user);
+    if(!employerId){
+      const banner = document.getElementById('creditBanner');
+      banner.style.display='block';
+      banner.innerHTML = '💼 0 jobs left • Buy credits to post';
+      banner.style.background='#ff6b6b'; banner.style.color='white';
+      return;
+    }
+    const { data } = await supabaseClient.from('job_credits').select('credits, plan_name').eq('employer_id', employerId);
     let total = 0;
     let plan = '';
     if(data && data.length){
@@ -181,10 +213,11 @@ else { localStorage.removeItem('invoice_email'); localStorage.removeItem('jobway
 localStorage.setItem('company_name', companyVal);
 localStorage.setItem('whatsapp_number', wa);
 localStorage.setItem('pending_job_title', titleVal);
-if(user && user.id){
+const employerId = await resolveEmployerId(user, wa);
+if(employerId){
   try{
     await supabaseClient.from('companies').upsert({
-      user_id: user.id,
+      user_id: employerId,
       company_name: companyVal,
       contact_email: invoiceEmailVal || null,
       invoice_email: invoiceEmailVal || null,
@@ -203,13 +236,13 @@ const job={
   type: document.getElementById('type').value,
   closing_date: document.getElementById('closing').value||null,
   logo_url: logoUrl,
-  employer_id: (user && user.id) ? user.id : null,
+  employer_id: employerId || null,
   employer_email: invoiceEmailVal || null,
   invoice_email: invoiceEmailVal || null,
   status: isDraft ? 'draft' : 'active'
 };
 if(isDraft){
-  if(!user || !user.id){
+  if(!employerId){
     localStorage.setItem('pending_job', JSON.stringify(job));
     alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
   }
@@ -217,21 +250,19 @@ if(isDraft){
   if(error){ alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; }
   alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
-// --- CREDIT CHECK - FIXED: direct from job_credits ---
-if(user && user.id){
-  const { data: rows } = await supabaseClient.from('job_credits').select('*').eq('employer_id', user.id).gt('credits', 0).order('credits', {ascending:false});
+if(employerId){
+  const { data: rows } = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).gt('credits', 0).order('credits', {ascending:false});
   if(rows && rows.length > 0){
     const row = rows[0];
     const isUnlimited = (row.credits || 0) >= 9999;
     const newCredits = isUnlimited ? row.credits : (row.credits - 1);
-    // Use 1 credit (skip decrement if Unlimited)
     if(!isUnlimited){
-      await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('employer_id', user.id).eq('plan_name', row.plan_name);
+      await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('employer_id', employerId).eq('plan_name', row.plan_name);
     }
     const {error}=await supabaseClient.from('jobs').insert([job]);
     if(error){
       if(!isUnlimited){
-        await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('employer_id', user.id).eq('plan_name', row.plan_name);
+        await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('employer_id', employerId).eq('plan_name', row.plan_name);
       }
       alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return;
     }
