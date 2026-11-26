@@ -117,27 +117,30 @@ async function loadCredits(){
   try{
     let user = getUser();
     if(!user || !user.id) return;
-    const { data } = await supabaseClient.from('employer_limits').select('*').eq('employer_id', user.id).single();
-    if(data){
-      userCredits = data;
-      const banner = document.getElementById('creditBanner');
-      banner.style.display='block';
-      banner.innerHTML = `💼 ${data.job_display || data.job_credits+' jobs'} • 📄 ${data.cv_display || data.cv_credits+' CVs'} • ${data.plan ? 'Plan: '+data.plan : ''}`;
-      if(data.job_credits > 0 || data.job_credits >= 999999){
-        document.getElementById('post').innerText = `Post Job — Uses 1 Credit (${data.job_credits>=999999?'Unlimited':data.job_credits+' left'})`;
-      } else {
-        document.getElementById('post').innerText = 'Continue to Payment — R299 →';
-      }
+    // FIXED: Read directly from job_credits (same table admin writes to)
+    const { data } = await supabaseClient.from('job_credits').select('credits, plan_name').eq('employer_id', user.id);
+    let total = 0;
+    let plan = '';
+    if(data && data.length){
+      data.forEach(r=>{ total += (r.credits||0); if((r.credits||0)>0) plan = r.plan_name; });
+    }
+    userCredits = { job_credits: total, cv_credits: 0 };
+    const banner = document.getElementById('creditBanner');
+    banner.style.display='block';
+    if(total > 0){
+      banner.innerHTML = `💼 ${total>=9999?'Unlimited':total+' jobs'} • Plan: ${plan}`;
+      banner.style.background = 'linear-gradient(135deg,#01F9C6,#2dd4bf)';
+      banner.style.color = '#11283a';
+      document.getElementById('post').innerText = `Post Job — Uses 1 Credit (${total>=9999?'Unlimited':total+' left'})`;
     } else {
-      document.getElementById('creditBanner').style.display='block';
-      document.getElementById('creditBanner').innerHTML = '💼 0 jobs left • Buy credits to post';
-      document.getElementById('creditBanner').style.background='#ff6b6b';
-      document.getElementById('creditBanner').style.color='white';
+      banner.innerHTML = '💼 0 jobs left • Buy credits to post';
+      banner.style.background='#ff6b6b';
+      banner.style.color='white';
+      document.getElementById('post').innerText = 'Continue to Payment — R299 →';
     }
   }catch(e){ console.log('credit load', e); }
 }
 window.onload = ()=>{
-  // FIX B: Email optional - only prefill if it exists, never require
   const savedEmail = localStorage.getItem('invoice_email') || localStorage.getItem('jobway_user_email') || '';
   if(savedEmail && isValidEmail(savedEmail)) document.getElementById('invoiceEmail').value = savedEmail;
   document.getElementById('company').value = localStorage.getItem('company_name') || '';
@@ -147,10 +150,8 @@ window.onload = ()=>{
 async function handlePost(isDraft=false){
 const titleVal=document.getElementById('title').value.trim();
 const companyVal=document.getElementById('company').value.trim();
-// FIX B: Email OPTIONAL - invoice only, NEVER blocks posting / draft / payment
 let invoiceEmailVal=document.getElementById('invoiceEmail').value.trim().toLowerCase();
 if(invoiceEmailVal && !isValidEmail(invoiceEmailVal)){
-  // Warn, don't block - clear invalid email and continue
   document.getElementById('msg').innerText = '⚠️ That email looks invalid, so no invoice will be sent. Continuing anyway...';
   invoiceEmailVal = "";
 }
@@ -171,17 +172,14 @@ if(logoFileObj){
   }catch(e){}
 }
 let user = getUser();
-// FIX B: WhatsApp is identity - required, normalised to 27...
 let waRaw = document.getElementById('whatsapp').value.trim();
 let wa = normalizeWhatsapp(waRaw);
 if(!wa && user) wa = normalizeWhatsapp(user.phone || user.whatsapp_number || '');
 if(!wa){ alert('Please enter your WhatsApp number (e.g. 0790608952)'); document.getElementById('whatsapp').focus(); b.textContent='Post Job'; b.disabled=false; return; }
-// Email is INVOICE ONLY - never login. Save it for pricing + invoice, but "" is allowed.
 if(invoiceEmailVal){ localStorage.setItem('invoice_email', invoiceEmailVal); localStorage.setItem('jobway_user_email', invoiceEmailVal); }
 else { localStorage.removeItem('invoice_email'); localStorage.removeItem('jobway_user_email'); }
 localStorage.setItem('company_name', companyVal);
 localStorage.setItem('whatsapp_number', wa);
-// NO VAT - removed vat_number entirely
 localStorage.setItem('pending_job_title', titleVal);
 if(user && user.id){
   try{
@@ -211,7 +209,6 @@ const job={
   status: isDraft ? 'draft' : 'active'
 };
 if(isDraft){
-  // Draft: if guest, save locally only - no DB insert without login
   if(!user || !user.id){
     localStorage.setItem('pending_job', JSON.stringify(job));
     alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
@@ -220,13 +217,22 @@ if(isDraft){
   if(error){ alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return; }
   alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
-// --- CREDIT CHECK - logged-in only ---
+// --- CREDIT CHECK - FIXED: direct from job_credits ---
 if(user && user.id){
-  const { data: canPost } = await supabaseClient.rpc('use_job_credit', { p_employer_id: user.id });
-  if(canPost === true){
+  const { data: rows } = await supabaseClient.from('job_credits').select('*').eq('employer_id', user.id).gt('credits', 0).order('credits', {ascending:false});
+  if(rows && rows.length > 0){
+    const row = rows[0];
+    const isUnlimited = (row.credits || 0) >= 9999;
+    const newCredits = isUnlimited ? row.credits : (row.credits - 1);
+    // Use 1 credit (skip decrement if Unlimited)
+    if(!isUnlimited){
+      await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('employer_id', user.id).eq('plan_name', row.plan_name);
+    }
     const {error}=await supabaseClient.from('jobs').insert([job]);
     if(error){
-      await supabaseClient.rpc('add_job_credits', { employer_id: user.id, amount: 1 });
+      if(!isUnlimited){
+        await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('employer_id', user.id).eq('plan_name', row.plan_name);
+      }
       alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return;
     }
     alert('✅ Job posted! 1 credit used.');
@@ -234,8 +240,6 @@ if(user && user.id){
     return;
   }
 }
-// No credits / guest - save as pending, DO NOT insert yet. Pricing will send whatsapp + invoice_email to PayFast.
-// FIX B: Email may be "" - pricing handles "" without blocking.
 localStorage.setItem('pending_job', JSON.stringify(job));
 document.getElementById('msg').innerHTML='No credits — redirecting to payment...';
 location.href=`pricing.html?email=${encodeURIComponent(invoiceEmailVal)}&company=${encodeURIComponent(companyVal)}&job=${encodeURIComponent(titleVal)}&whatsapp=${encodeURIComponent(wa)}`;
