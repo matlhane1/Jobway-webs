@@ -85,9 +85,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 </style>
 <script>
-// FIX: Header buttons must work even if Supabase / dashboard script fails later.
-// Define them EARLY, on window, and use inline onclick in HTML.
-// BUTTONS NOT TOUCHED - same id, same onclick, same text.
 window.goHome = function(){ location.href='index.html'; };
 window.handlePostJob = function(){
   try{
@@ -212,7 +209,7 @@ function normalizeCategory(v){
   if(v === 'Automotive') return 'Automotive Industry';
   return v;
 }
-function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
 function normalizeWhatsapp(v){
   let d = String(v||'').replace(/\D/g,'');
@@ -233,12 +230,13 @@ function setCreditsLoaded(){
   if(!el) return;
   el.style.color = '#fff'; el.style.fontWeight = '700'; el.style.fontSize = '15px';
 }
+// FIXED: Return user even if no id - login only saves WhatsApp. ID is resolved later via profiles.
 function getCurrentUser(){
   try{
     var emp = JSON.parse(localStorage.getItem('jobway_employer') || 'null');
-    if(emp && emp.id) return emp;
+    if(emp && (emp.id || emp.whatsapp_number || emp.phone || emp.whatsapp)) return emp;
     var u = JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null');
-    if(u && u.id) return u;
+    if(u && (u.id || u.whatsapp_number || u.phone || u.whatsapp)) return u;
   }catch(e){ return null; }
   return null;
 }
@@ -248,7 +246,6 @@ function idVariants(){
   if(isUuid(base)) return [base];
   return [];
 }
-// FIX B: Claim by WhatsApp ONLY. Email is NEVER used to claim / login. Never blocks.
 function phoneVariants(){
   var raw = currentUser?.phone || currentUser?.whatsapp_number || currentUser?.whatsapp || localStorage.getItem('whatsapp_number') || localStorage.getItem('jobway_whatsapp') || localStorage.getItem('phone') || '';
   var norm = normalizeWhatsapp(raw);
@@ -286,7 +283,6 @@ function updatePostJobButton(){
   btn.textContent = '+ Post Job';
   btn.classList.remove('locked');
 }
-// FIX B: Claim guest payments by WhatsApp ONLY. Email never used. If no email was given, invoice was skipped in notify - do NOT block claim for missing email.
 async function claimGuestPayments(){
   if(claimDone) return 0;
   claimDone = true;
@@ -314,7 +310,6 @@ async function claimGuestPayments(){
   for(var pay of claimed){
     try{
       var code = String(pay.product_code || '').trim();
-      // FIX: Use product_code first. Fallback must check item_name for CV vs Job - 999 could be cv_20 OR starter.
       if(!PRODUCT_CREDITS[code]){
         var hay = String(pay.item_name || pay.plan || '').toLowerCase();
         var amt = Number(pay.amount || pay.amount_gross || 0);
@@ -330,27 +325,28 @@ async function claimGuestPayments(){
       if(upd.error) continue;
       var nowIso = new Date().toISOString();
       var expires30 = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+      // FIXED: Write to job_credits / employer_credits ONLY - employer_limits is a VIEW, cannot insert into it.
       if(prod.unlimited){
-        var ex = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
-        if(ex.data) await supabaseClient.from('employer_credits').update({ plan: 'unlimited', status: 'active', cv_category: pay.cv_category || ex.data.cv_category || null, expires_at: expires30, updated_at: nowIso }).eq('employer_id', employerId);
-        else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: 0, credits: 0, plan: 'unlimited', status: 'active', cv_category: pay.cv_category || null, expires_at: expires30 });
-        var limU = await supabaseClient.from('employer_limits').select('*').eq('employer_id', employerId).maybeSingle();
-        if(limU.data) await supabaseClient.from('employer_limits').update({ plan: 'unlimited', status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
-        else await supabaseClient.from('employer_limits').insert({ employer_id: employerId, job_credits: 0, cv_credits: 0, plan: 'unlimited', status: 'active' });
+        try{ var ex = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
+          if(ex.data) await supabaseClient.from('employer_credits').update({ plan: 'unlimited', status: 'active', cv_category: pay.cv_category || ex.data.cv_category || null, expires_at: expires30, updated_at: nowIso }).eq('employer_id', employerId);
+          else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: 0, credits: 0, plan: 'unlimited', status: 'active', cv_category: pay.cv_category || null, expires_at: expires30 });
+        }catch(e){}
       } else if(prod.cv){
-        var exC = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
-        if(exC.data){ var newCv = (exC.data.cv_credits||0)+prod.cv; await supabaseClient.from('employer_credits').update({ cv_credits: newCv, credits: newCv, cv_category: pay.cv_category || exC.data.cv_category || null, plan: 'cv', status: 'active', updated_at: nowIso }).eq('employer_id', employerId); }
-        else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, credits: prod.cv, cv_category: pay.cv_category || null, plan: 'cv', status: 'active' });
-        var limC = await supabaseClient.from('employer_limits').select('*').eq('employer_id', employerId).maybeSingle();
-        if(limC.data) await supabaseClient.from('employer_limits').update({ cv_credits: (limC.data.cv_credits||0)+prod.cv, plan: 'cv', status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
-        else await supabaseClient.from('employer_limits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, plan: 'cv', status: 'active' });
+        try{ var exC = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
+          if(exC.data){ var newCv = (exC.data.cv_credits||0)+prod.cv; await supabaseClient.from('employer_credits').update({ cv_credits: newCv, credits: newCv, cv_category: pay.cv_category || exC.data.cv_category || null, plan: 'cv', status: 'active', updated_at: nowIso }).eq('employer_id', employerId); }
+          else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: 0, cv_credits: prod.cv, credits: prod.cv, cv_category: pay.cv_category || null, plan: 'cv', status: 'active' });
+        }catch(e){}
       } else if(prod.job){
-        var exJ = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
-        if(exJ.data) await supabaseClient.from('employer_credits').update({ job_credits: (exJ.data.job_credits||0)+prod.job, plan: 'job', status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
-        else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: prod.job, cv_credits: 0, credits: 0, plan: 'job', status: 'active' });
-        var limJ = await supabaseClient.from('employer_limits').select('*').eq('employer_id', employerId).maybeSingle();
-        if(limJ.data) await supabaseClient.from('employer_limits').update({ job_credits: (limJ.data.job_credits||0)+prod.job, plan: prod.plan, status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
-        else await supabaseClient.from('employer_limits').insert({ employer_id: employerId, job_credits: prod.job, cv_credits: 0, plan: prod.plan, status: 'active' });
+        // Write job credits to job_credits - same table admin-eft uses
+        try{
+          var exJ = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).eq('plan_name', prod.plan).maybeSingle();
+          if(exJ.data) await supabaseClient.from('job_credits').update({ credits: (exJ.data.credits||0)+prod.job }).eq('employer_id', employerId).eq('plan_name', prod.plan);
+          else await supabaseClient.from('job_credits').insert({ employer_id: employerId, plan_name: prod.plan, credits: prod.job });
+        }catch(e){ console.log('job_credits claim write failed', e); }
+        try{ var exJ2 = await supabaseClient.from('employer_credits').select('*').eq('employer_id', employerId).maybeSingle();
+          if(exJ2.data) await supabaseClient.from('employer_credits').update({ job_credits: (exJ2.data.job_credits||0)+prod.job, plan: prod.plan, status: 'active', updated_at: nowIso }).eq('employer_id', employerId);
+          else await supabaseClient.from('employer_credits').insert({ employer_id: employerId, job_credits: prod.job, cv_credits: 0, credits: 0, plan: prod.plan, status: 'active' });
+        }catch(e){}
         try{ await supabaseClient.from('employer_subscriptions').upsert({ employer_id: employerId, plan: prod.plan, status: 'active', updated_at: nowIso }, { onConflict: 'employer_id' }); }catch(e){}
         try{ await supabaseClient.from('subscriptions').upsert({ employer_id: employerId, plan: prod.plan, status: 'active', updated_at: nowIso }, { onConflict: 'employer_id' }); }catch(e){}
       }
@@ -383,6 +379,13 @@ async function checkPayment(){
       if(c.data) currentWallet = c.data;
     }catch(e){}
   }
+  // FIXED: Also check job_credits - admin-eft writes here, not employer_credits
+  if(!HAS_PAID && ids.length){
+    try{
+      var jc = await supabaseClient.from('job_credits').select('credits').in('employer_id', ids);
+      if(jc.data && jc.data.some(r=>(r.credits||0)>0)) HAS_PAID = true;
+    }catch(e){}
+  }
   if(!HAS_PAID && ids.length){
     try{
       var s = await supabaseClient.from('subscriptions').select('status').in('employer_id', ids).eq('status','active').limit(1);
@@ -393,7 +396,6 @@ async function checkPayment(){
   updatePostJobButton();
   return HAS_PAID;
 }
-// Keep old names working, but they now just call the window versions - BUTTONS NOT TOUCHED
 window.handlePostJob = function(){
   if(!window.__HAS_PAID__){
     alert('You need to pay first to post a job.\n\nPay R299 for 1 job post (no login needed to pay). Use the SAME WhatsApp number you log in with, so your credits are linked to you.\n\nAfter payment, your invoice will be sent from invoices@jobway.co.za if you entered an invoice email.');
@@ -440,23 +442,36 @@ async function enrichApplications(applications){
  }
  return applications;
 }
+// FIXED: Load from job_credits (admin source of truth) + employer_credits (CVs)
 async function loadCredits(){
-  if(!currentUser?.id){ var ct = document.getElementById('creditsText'); if(ct){ setCreditsLoading(); ct.textContent='Please log in to view credits'; } return null; }
+  if(!currentUser){ var ct = document.getElementById('creditsText'); if(ct){ setCreditsLoading(); ct.textContent='Please log in to view credits'; } return null; }
   setCreditsLoading();
   await resolveEmployerUuid();
   var ids = idVariants();
-  var data = null;
+  var jobTotal = 0, jobPlan = '', cvTotal = 0, cvPlan = '', isUnlimited = false, expiresAt = null;
   if(ids.length){
     try{
-      var r = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
-      data = r.data || null;
+      var r = await supabaseClient.from('job_credits').select('credits, plan_name').in('employer_id', ids);
+      (r.data||[]).forEach(row=>{ jobTotal += (row.credits||0); if((row.credits||0)>0) jobPlan = row.plan_name || jobPlan; });
+    }catch(e){ console.log('job_credits read', e); }
+    try{
+      var r2 = await supabaseClient.from('employer_credits').select('*').in('employer_id', ids).limit(1).maybeSingle();
+      if(r2.data){ cvTotal = (r2.data.cv_credits||0) || (r2.data.credits||0); if(r2.data.plan) cvPlan = r2.data.plan; if(r2.data.plan==='unlimited') isUnlimited = true; expiresAt = r2.data.expires_at || null; }
+    }catch(e){}
+    // Also check cv_credits table if it exists
+    try{
+      var r3 = await supabaseClient.from('cv_credits').select('credits, plan_name').in('employer_id', ids);
+      if(r3.data && r3.data.length){ r3.data.forEach(row=>{ cvTotal += (row.credits||0); if((row.credits||0)>0) cvPlan = row.plan_name || cvPlan; }); }
     }catch(e){}
   }
-  currentWallet = data || { credits:0, plan:'free' };
+  var plan = jobPlan || cvPlan || 'free';
+  currentWallet = { job_credits: jobTotal, credits: cvTotal, cv_credits: cvTotal, plan: plan, expires_at: expiresAt };
+  if(jobTotal>0 || cvTotal>0 || plan!=='free'){ HAS_PAID = true; window.__HAS_PAID__ = true; }
   updateCreditsBanner();
   return currentWallet;
 }
 function isUnlimitedWallet(w){ if(!w) return false; if(w.plan !== 'unlimited') return false; if(w.expires_at && new Date(w.expires_at) < new Date()) return false; return true; }
+// FIXED: Plan + Payment now come from the SAME source (job_credits + employer_credits) - can't be Paid + Free
 function updateCreditsBanner(){
   var creditsEl = document.getElementById('creditsText');
   var planEl = document.getElementById('planText');
@@ -470,17 +485,19 @@ function updateCreditsBanner(){
     return;
   }
   if(isUnlimitedWallet(currentWallet)){
-    creditsEl.textContent = 'Unlimited CV credits remaining';
+    creditsEl.textContent = 'Unlimited CV credits remaining • ' + (currentWallet.job_credits>=9999 ? 'Unlimited jobs' : (currentWallet.job_credits||0) + ' job credits');
     if(planEl) planEl.textContent = 'Current plan: Unlimited';
     if(payEl) payEl.textContent = 'Payment status: Paid';
     return;
   }
-  var credits = currentWallet.credits || 0;
+  var cvCredits = currentWallet.credits || 0;
+  var jobCredits = currentWallet.job_credits || 0;
   var plan = currentWallet.plan || 'free';
-  var planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
-  creditsEl.textContent = credits + ' CV credits remaining';
-  if(planEl) planEl.textContent = 'Current plan: ' + planLabel;
-  if(payEl) payEl.textContent = 'Payment status: ' + (HAS_PAID ? 'Paid' : 'Unpaid');
+  var isPaid = HAS_PAID || jobCredits>0 || cvCredits>0 || (plan && plan!=='free');
+  var planLabel = plan==='free' ? 'Free' : plan.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  creditsEl.textContent = cvCredits + ' CV credits remaining • ' + (jobCredits>=9999 ? 'Unlimited jobs' : jobCredits + ' job credits');
+  if(planEl) planEl.textContent = 'Current plan: ' + (isPaid && plan==='free' ? 'Paid' : planLabel);
+  if(payEl) payEl.textContent = 'Payment status: ' + (isPaid ? 'Paid' : 'Unpaid');
 }
 async function openSecureCV(path,appId,button){
  const app = currentApps.find(a => String(a.id) === String(appId));
@@ -644,7 +661,7 @@ async function loadDashboard(){
  if(loadingDashboard) return; loadingDashboard = true; const list = document.getElementById('list'); list.innerHTML = '<div class="loading">Loading your dashboard...</div>';
  try{
   currentUser = getCurrentUser();
-  if(!currentUser || !currentUser.id){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
+  if(!currentUser){ list.innerHTML = `<div class="card">Please log in as an employer to view your dashboard.<br><br><a href="login.html" style="color:#01F9C6">Go to employer login →</a></div>`; document.getElementById('empty').style.display = 'none'; document.getElementById('jobsList').innerHTML = ''; return; }
   await resolveEmployerUuid();
   await checkPayment();
   await loadCredits();
@@ -679,10 +696,10 @@ document.getElementById('list').addEventListener('click',function(e){
 });
 document.getElementById('list').addEventListener('change',function(e){ const element = e.target; if(element.dataset.action === 'select-status'){ changeStatusOnly(element.dataset.id,element.value); } });
 function startRealtime(){
- if(!currentUser?.id) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
+ if(!currentUser?.id && !EMPLOYER_UUID) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
  try{ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); }); }catch(e){}
 }
-async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser?.id){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
+async function startDashboard(){ currentUser = getCurrentUser(); if(!currentUser){ await loadDashboard(); return; } await loadDashboard(); startRealtime(); }
 startDashboard();
 </script>
 </body>
