@@ -79,11 +79,15 @@ function waVariants(wa27){
   const zero = '0'+wa27.slice(2);
   return [...new Set([wa27, zero])];
 }
+function formatPlanLabel(plan){
+  if(!plan) return '';
+  if(plan==='free') return 'Free';
+  return String(plan).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+}
 function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim().toLowerCase()); }
 function getUser(){
-  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||'null'); }catch(e){ return null; }
+  try{ return JSON.parse(localStorage.getItem('jobway_user')||localStorage.getItem('user')||localStorage.getItem('jobway_employer')||'null'); }catch(e){ return null; }
 }
-// FIX: Your login has NO id - only whatsapp_number. Resolve id from profiles by WhatsApp.
 async function resolveEmployerId(user, fallbackWaRaw){
   if(resolvedEmployerId) return resolvedEmployerId;
   if(user && user.id){ resolvedEmployerId = user.id; return resolvedEmployerId; }
@@ -150,6 +154,7 @@ async function loadCredits(){
       banner.style.background='#ff6b6b'; banner.style.color='white';
       return;
     }
+    // SAME AS DASHBOARD: sum ALL rows in job_credits for this employer
     const { data } = await supabaseClient.from('job_credits').select('credits, plan_name').eq('employer_id', employerId);
     let total = 0;
     let plan = '';
@@ -160,7 +165,7 @@ async function loadCredits(){
     const banner = document.getElementById('creditBanner');
     banner.style.display='block';
     if(total > 0){
-      banner.innerHTML = `💼 ${total>=9999?'Unlimited':total+' jobs'} • Plan: ${plan}`;
+      banner.innerHTML = `💼 ${total>=9999?'Unlimited':total+' jobs'} • Plan: ${formatPlanLabel(plan)}`;
       banner.style.background = 'linear-gradient(135deg,#01F9C6,#2dd4bf)';
       banner.style.color = '#11283a';
       document.getElementById('post').innerText = `Post Job — Uses 1 Credit (${total>=9999?'Unlimited':total+' left'})`;
@@ -251,18 +256,24 @@ if(isDraft){
   alert('✅ Draft saved!'); location.href='employer-dashboard.html'; return;
 }
 if(employerId){
+  // MATCH DASHBOARD: pick ONE row with credits > 0, deduct by its id (not plan_name)
   const { data: rows } = await supabaseClient.from('job_credits').select('*').eq('employer_id', employerId).gt('credits', 0).order('credits', {ascending:false});
   if(rows && rows.length > 0){
     const row = rows[0];
     const isUnlimited = (row.credits || 0) >= 9999;
     const newCredits = isUnlimited ? row.credits : (row.credits - 1);
+    let deducted = false;
     if(!isUnlimited){
-      await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('employer_id', employerId).eq('plan_name', row.plan_name);
+      let upd;
+      if(row.id){ upd = await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('id', row.id); }
+      else { upd = await supabaseClient.from('job_credits').update({ credits: newCredits }).eq('employer_id', employerId).eq('plan_name', row.plan_name).limit(1); }
+      if(!upd.error) deducted = true;
     }
     const {error}=await supabaseClient.from('jobs').insert([job]);
     if(error){
-      if(!isUnlimited){
-        await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('employer_id', employerId).eq('plan_name', row.plan_name);
+      if(deducted){
+        if(row.id) await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('id', row.id);
+        else await supabaseClient.from('job_credits').update({ credits: row.credits }).eq('employer_id', employerId).eq('plan_name', row.plan_name).limit(1);
       }
       alert('Error: '+error.message); b.textContent='Post Job'; b.disabled=false; return;
     }
