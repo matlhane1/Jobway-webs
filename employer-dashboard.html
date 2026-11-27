@@ -60,7 +60,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .loading,.empty{text-align:center;padding:30px;color:#8DB0BF;font-size:13px}
 .btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .btn-cv{background:#01F9C6;color:#0A1F2E;border:0;border-radius:999px;padding:10px 13px;font-size:11px;font-weight:800}
-.btn-cv-locked{background:#2a2a1a!important;color:#FFB020!important;border:1px solid #FFB020!important}
 .job-card{background:#11283A;border:1px solid rgba(255,255,255,.08);padding:15px;border-radius:13px;margin-bottom:10px}
 .job-card b{font-size:13px}
 .job-card small{display:block;color:#8DB0BF;margin-top:7px;line-height:1.7}
@@ -120,13 +119,13 @@ window.doLogout = function(){
  <div id="dashboardMessage"></div>
  <div class="credits-banner">
   <div>
-    <div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#8DB0BF;text-transform:uppercase">Employer CV Access</div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#8DB0BF;text-transform:uppercase">Employer Access</div>
     <div id="creditsText" style="font-size:13px;font-weight:500;color:#8DB0BF;margin-top:8px">Checking your credits…</div>
     <div id="planText" style="font-size:13px;color:#C2D6DD;margin-top:4px">Current plan: Free</div>
     <div id="paymentText" style="font-size:13px;color:#C2D6DD;margin-top:2px">Payment status: Unpaid</div>
-    <div style="font-size:12px;color:#8DB0BF;margin-top:8px;line-height:1.5">1 CV view = 1 credit. Previously unlocked CVs can be viewed again at no additional cost.</div>
+    <div style="font-size:12px;color:#8DB0BF;margin-top:8px;line-height:1.5">CVs from applications to YOUR jobs are included in your job post — no extra credits needed. Credits are only for job posts.</div>
   </div>
-  <button class="btn btn-green" type="button" onclick="location.href='pricing.html'">Buy More Credits →</button>
+  <button class="btn btn-green" type="button" onclick="location.href='pricing.html'">Buy Job Credits →</button>
  </div>
  <div class="stats">
   <div class="stat"><b id="jobCount">0</b><span>My Posted Jobs</span></div>
@@ -198,7 +197,8 @@ function normalizeCategory(v){
   if(v === 'Automotive') return 'Automotive Industry';
   return v;
 }
-function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+// FIXED: < must escape to &lt; not &gt;
+function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
 function normalizeWhatsapp(v){
   let d = String(v||'').replace(/\D/g,'');
@@ -392,13 +392,17 @@ window.handlePostJob = function(){
 function cleanCvPath(raw){
  if(!raw) return null; raw = String(raw).trim(); if(!raw) return null;
  try{
-  if(/^https?:\/\//i.test(raw)){ const url = new URL(raw); const markers = ['/storage/v1/object/public/cvs/','/storage/v1/object/sign/cvs/','/storage/v1/object/authenticated/cvs/','/cvs/']; for(const marker of markers){ const index = url.pathname.indexOf(marker); if(index !== -1){ return decodeURIComponent(url.pathname.substring(index + marker.length)).replace(/^\/+/,''); } } throw new Error('CV URL does not belong to the JobWay CV bucket.'); }
+  if(/^https?:\/\//i.test(raw)){ const url = new URL(raw); const markers = ['/storage/v1/object/public/cvs/','/storage/v1/object/sign/cvs/','/storage/v1/object/authenticated/cvs/','/cvs/','/storage/v1/object/public/cvs_private/','/storage/v1/object/sign/cvs_private/']; for(const marker of markers){ const index = url.pathname.indexOf(marker); if(index !== -1){ return decodeURIComponent(url.pathname.substring(index + marker.length)).replace(/^\/+/,''); } } throw new Error('CV URL does not belong to the JobWay CV bucket.'); }
   return decodeURIComponent(raw).replace(/^cvs\//,'').replace(/^\/+/,'').split('?')[0].trim();
  }catch(e){ console.warn('Invalid CV path:',e); return null; }
 }
 function getCvPath(app){ return cleanCvPath(app._cv_path || app.cv_path || app.cv_url || app.profiles?.cv_url || ''); }
-function getCvName(app){ if(app._cv_name) return app._cv_name; if(app.cv_name) return app.cv_name; if(app.profiles?.cv_name) return app.profiles.cv_name; const path = getCvPath(app); if(!path) return 'Candidate CV'; try{ return decodeURIComponent(path.split('/').pop()); }catch(e){ return 'Candidate CV'; } }
-// FIXED: Accept applications WITHOUT applicant_id - use full_name/phone/cv_url straight from the row
+// FIXED: Never return UUID filename. Return candidate name + CV
+function getCvName(app){
+  const name = app._full_name || app.full_name || app.applicant_name || app.profiles?.full_name || '';
+  if(name) return name.trim().split(' ')[0] + ' CV';
+  return 'Candidate CV';
+}
 async function enrichApplications(applications){
  const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(Boolean))];
  const ids = rawIds.filter(isUuid);
@@ -414,7 +418,6 @@ async function enrichApplications(applications){
   if(!error && data){ data.forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; }); }
  }
  for(const app of applications){
-  // FIXED: Fallback to direct fields first - jobs.html sends these
   app._full_name = app.full_name || app.applicant_name || app.name || '';
   app._phone = app.phone || app.whatsapp || app.applicant_phone || '';
   app._email = app.email || app.applicant_email || '';
@@ -427,13 +430,13 @@ async function enrichApplications(applications){
   const cvRow = cvMap[app.applicant_id] || null;
   if(cvRow){ app._job_category = normalizeCategory(cvRow.job_category || cvRow.category || ''); app._qualifications = cvRow.qualifications || ''; app._experience_years = cvRow.experience_years || ''; app._area = cvRow.area || cvRow.location || ''; }
   else { app._job_category = ''; app._qualifications = ''; app._experience_years = ''; app._area = ''; }
-  if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); app._cv_name = app.cv_name || null; continue; }
-  if(app.profiles?.cv_url){ app._cv_path = cleanCvPath(app.profiles.cv_url); app._cv_name = app.profiles.cv_name || null; continue; }
+  if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); app._cv_name = null; continue; }
+  if(app.profiles?.cv_url){ app._cv_path = cleanCvPath(app.profiles.cv_url); app._cv_name = null; continue; }
   if(!app.applicant_id || !isUuid(app.applicant_id)) continue;
   try{
    const {data,error} = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone,job_category,category,qualifications,experience_years,area,location').eq('user_id',app.applicant_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
    if(error){ console.warn('Candidate CV lookup:',error.message); continue; }
-   if(data){ app._cv_path = cleanCvPath(data.cv_url); app._cv_name = data.cv_name || null; if(!app._full_name) app._full_name = data.full_name || app.profiles?.full_name; if(!app._phone) app._phone = data.phone || app.profiles?.phone; app._job_category = normalizeCategory(data.job_category || data.category || app._job_category); app._qualifications = data.qualifications || app._qualifications; app._experience_years = data.experience_years || app._experience_years; app._area = data.area || data.location || app._area; }
+   if(data){ app._cv_path = cleanCvPath(data.cv_url); app._cv_name = null; if(!app._full_name) app._full_name = data.full_name || app.profiles?.full_name; if(!app._phone) app._phone = data.phone || app.profiles?.phone; app._job_category = normalizeCategory(data.job_category || data.category || app._job_category); app._qualifications = data.qualifications || app._qualifications; app._experience_years = data.experience_years || app._experience_years; app._area = data.area || data.location || app._area; }
   }catch(e){ console.warn('CV lookup error:',e); }
  }
  return applications;
@@ -472,82 +475,61 @@ function updateCreditsBanner(){
   if(!creditsEl) return;
   setCreditsLoaded();
   if(!currentWallet){
-    creditsEl.textContent = '0 CV credits remaining';
+    creditsEl.textContent = '0 job credits remaining';
     if(planEl) planEl.textContent = 'Current plan: Free';
     if(payEl) payEl.textContent = 'Payment status: Unpaid';
     return;
   }
   if(isUnlimitedWallet(currentWallet)){
-    creditsEl.textContent = 'Unlimited CV credits remaining • ' + (currentWallet.job_credits>=9999 ? 'Unlimited jobs' : (currentWallet.job_credits||0) + ' job credits');
+    creditsEl.textContent = 'Unlimited job posts • Application CVs included';
     if(planEl) planEl.textContent = 'Current plan: Unlimited';
     if(payEl) payEl.textContent = 'Payment status: Paid';
     return;
   }
-  var cvCredits = currentWallet.credits || 0;
   var jobCredits = currentWallet.job_credits || 0;
   var plan = currentWallet.plan || 'free';
-  var isPaid = HAS_PAID || jobCredits>0 || cvCredits>0 || (plan && plan!=='free');
+  var isPaid = HAS_PAID || jobCredits>0 || (plan && plan!=='free');
   var planLabel = plan==='free' ? 'Free' : plan.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-  creditsEl.textContent = cvCredits + ' CV credits remaining • ' + (jobCredits>=9999 ? 'Unlimited jobs' : jobCredits + ' job credits');
+  creditsEl.textContent = (jobCredits>=9999 ? 'Unlimited job posts' : jobCredits + ' job credits remaining') + ' • Application CVs included';
   if(planEl) planEl.textContent = 'Current plan: ' + (isPaid && plan==='free' ? 'Paid' : planLabel);
   if(payEl) payEl.textContent = 'Payment status: ' + (isPaid ? 'Paid' : 'Unpaid');
 }
+// FIXED: Applications are FREE - no credit check, no deduction. Only check: this job belongs to this employer + application exists.
 async function openSecureCV(path,appId,button){
  const app = currentApps.find(a => String(a.id) === String(appId));
  if(!app){ alert('Application not found.'); return; }
  const clean = cleanCvPath(path);
  if(!clean){
-   // FIXED: If path is a full URL, open it directly (jobs.html saves full URLs)
-   var raw = app.cv_url || app._cv_path || '';
-   if(raw && /^https?:\/\//i.test(raw)){ window.open(raw,'_blank','noopener'); return; }
    alert('No CV has been uploaded by this candidate.'); return;
  }
  const jobBelongsToEmployer = currentJobs.some(j => String(j.id) === String(app.job_id));
  if(!jobBelongsToEmployer){ alert('You are not authorised to access this application.'); return; }
  const original = button.innerText;
- setLoading(button,'Checking credits...');
+ setLoading(button,'Creating secure CV link...');
  try{
-  if(!currentWallet) await loadCredits();
-  const unlimited = isUnlimitedWallet(currentWallet);
-  const credits = currentWallet?.credits || 0;
-  var empIdForUnlock = EMPLOYER_UUID || (isUuid(currentUser.id) ? currentUser.id : null);
-  var already = null;
-  if(empIdForUnlock){
-    var chk = await supabaseClient.from('cv_unlocks').select('id').eq('employer_id', empIdForUnlock).eq('application_id', appId).maybeSingle();
-    already = chk.data;
+  // Try private bucket first (your new setup), then public bucket (your current setup)
+  let signedUrl = null;
+  let lastError = null;
+  const bucketsToTry = ['cvs_private','cvs'];
+  for(const bucket of bucketsToTry){
+    const {data,error} = await supabaseClient.storage.from(bucket).createSignedUrl(clean,3600);
+    if(!error && data?.signedUrl){ signedUrl = data.signedUrl; break; }
+    lastError = error;
   }
-  if(!already && !unlimited && credits <= 0){
-    button.disabled = false; button.innerText = original;
-    alert('🔒 No CV credits left.\n\nBuy more:\n• 20 CVs — R999\n• 100 CVs — R2,499 (POPULAR)\n• 250 CVs — R5,999\n• Unlimited — R9,999 / month');
-    location.href='pricing.html';
-    return;
-  }
-  setLoading(button,'Creating secure CV link...');
-  const {data,error} = await supabaseClient.storage.from('cvs').createSignedUrl(clean,300);
-  if(error){
-    // If signed URL fails, try direct URL - cv_url from jobs.html may already be public
-    var direct = app.cv_url || '';
-    if(direct && /^https?:\/\//i.test(direct)){ window.open(direct,'_blank','noopener'); button.innerText = '✓ CV opened'; return; }
-    throw error;
-  }
-  if(!data?.signedUrl) throw new Error('Secure CV link was not created.');
-  if(empIdForUnlock){
-    const {error:logError} = await supabaseClient.from('cv_access_log').insert([{application_id:appId,cv_path:clean,accessed_by:empIdForUnlock}]);
-    if(logError){ console.warn('CV access logging:',logError.message); }
-  }
-  const opened = window.open(data.signedUrl,'_blank','noopener');
+  if(!signedUrl) throw lastError || new Error('Secure CV link was not created.');
+  // Log access - do not block if logging fails
+  try{
+    const empIdForLog = EMPLOYER_UUID || (isUuid(currentUser.id) ? currentUser.id : null);
+    if(empIdForLog){
+      await supabaseClient.from('cv_access_log').insert([{application_id:appId,cv_path:clean,accessed_by:empIdForLog}]);
+    }
+  }catch(e){ console.warn('CV access logging:',e.message); }
+  const opened = window.open(signedUrl,'_blank','noopener');
   if(!opened){ alert('Your browser blocked the CV. Allow popups for JobWay.'); }
-  if(!already && !unlimited && empIdForUnlock){
-    const newCredits = Math.max(0, credits - 1);
-    await supabaseClient.from('employer_credits').update({ credits: newCredits, updated_at: new Date().toISOString() }).eq('employer_id', empIdForUnlock);
-    await supabaseClient.from('cv_unlocks').insert([{ employer_id: empIdForUnlock, application_id: appId, cv_path: clean }]);
-    currentWallet.credits = newCredits;
-    updateCreditsBanner();
-    button.innerText = '✓ CV opened — 1 credit used';
-  } else { button.innerText = '✓ CV opened'; }
+  button.innerText = '✓ CV opened — Included in job post';
  }catch(e){
   console.error('CV error:',e);
-  alert('Unable to open this CV: ' + e.message + '\n\nPlease check the private cvs bucket and its Storage permissions.');
+  alert('Unable to open this CV: ' + e.message + '\n\nPlease check the cvs / cvs_private bucket and its Storage permissions.');
  }finally{ setTimeout(()=>{ button.disabled = false; button.innerText = original; },2500); }
 }
 function progressHTML(status){
@@ -634,12 +616,12 @@ function renderApplicant(app){
  const jobObj = app.jobs || currentJobs.find(j=>String(j.id)===String(app.job_id)) || {};
  const title = jobObj.title || 'Job'; const company = jobObj.company || jobObj.company_name || '';
  const status = app.status || 'Application Received';
- const cvPath = getCvPath(app); const cvName = getCvName(app);
+ const cvPath = getCvPath(app);
  const jobCat = app._job_category || ''; const quals = app._qualifications || ''; const exp = app._experience_years || ''; const area = app._area || '';
  let badgeClass = 'b-grey';
  if(status === 'Shortlisted' || status === 'Interview Scheduled'){ badgeClass = 'b-green'; }else if(status === 'Hired'){ badgeClass = 'b-orange'; }else if(status === 'Not Selected'){ badgeClass = 'b-red'; }
- const hasCredits = isUnlimitedWallet(currentWallet) || (currentWallet?.credits || 0) > 0;
- const cvHTML = cvPath ? (hasCredits ? `<button class="btn-cv" data-action="cv" data-id="${esc(app.id)}">🔒 View CV — ${esc(cvName)} (1 credit)</button>` : `<button class="btn-cv btn-cv-locked" data-action="cv" data-id="${esc(app.id)}">🔒 Unlock CV — ${esc(cvName)} (Buy Credits)</button>`) : `<span style="color:#FF8A9D;font-size:11px">No CV uploaded</span>`;
+ // FIXED: Applications are FREE - no credit check, no UUID in button
+ const cvHTML = cvPath ? `<button class="btn-cv" data-action="cv" data-id="${esc(app.id)}">📄 View CV — Free (Included)</button>` : `<span style="color:#FF8A9D;font-size:11px">No CV uploaded</span>`;
  const interviewHTML = app.interview_date ? `<div class="interview-box">📅 <b>Interview:</b> ${esc(app.interview_date)} at ${esc(app.interview_time || '')}<br>📍 ${esc(app.interview_location || 'Not specified')}<br>${esc(app.interview_note || '')}</div>` : '';
  const tagsHTML = (jobCat || quals || exp || area) ? `<div style="margin-top:8px">${jobCat?`<span class="tag">💼 ${esc(jobCat)}</span>`:''}${quals?`<span class="tag">🎓 ${esc(quals)}</span>`:''}${exp?`<span class="tag">⏱️ ${esc(exp)}</span>`:''}${area?`<span class="tag">📍 ${esc(area)}</span>`:''}</div>` : `<div style="font-size:11px;color:#8DB0BF;margin-top:6px">No category / qualifications provided — ask candidate to update profile</div>`;
  return `<article class="card applicant-card" data-search="${esc((name+' '+title+' '+company+' '+email+' '+jobCat+' '+quals+' '+exp+' '+area).toLowerCase())}" data-status="${esc(status)}" data-category="${esc(jobCat)}" data-exp="${esc(exp)}" data-area="${esc(area)}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap"><b style="font-size:14px">${esc(name)}</b><span class="badge ${badgeClass}">${esc(status)}</span></div><div class="meta">Applied for: <b style="color:white">${esc(title)} — ${esc(company)}</b><br>Date: ${esc(fmt(app.created_at))}<br>Email: ${esc(email || 'Not provided')}<br>WhatsApp: ${esc(phone || 'No number')}</div>${tagsHTML}${progressHTML(status)}${interviewHTML}<div class="btn-row"><button class="btn btn-green" data-action="status" data-id="${esc(app.id)}" data-status="Shortlisted">✓ Shortlist</button><button class="btn btn-orange" data-action="interview" data-id="${esc(app.id)}">📅 Interview</button><button class="btn btn-dark" data-action="status" data-id="${esc(app.id)}" data-status="Hired">🎉 Hire</button><button class="btn btn-red" data-action="status" data-id="${esc(app.id)}" data-status="Not Selected">Reject</button></div><div class="btn-row">${cvHTML}<button class="btn btn-whats" data-action="whatsapp" data-id="${esc(app.id)}">💬 WhatsApp</button></div><label class="label">CHANGE APPLICATION STATUS</label><select class="filter" data-action="select-status" data-id="${esc(app.id)}">${STATUSES.map(s=>`<option value="${esc(s)}" ${status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></article>`;
@@ -682,7 +664,6 @@ async function loadDashboard(){
   if(!jobs.length){
     try{ var r3 = await supabaseClient.from('jobs').select('*').in('whatsapp_number', phoneVariants()).order('created_at',{ascending:false}); if(r3.data && r3.data.length) jobs = r3.data; }catch(e){}
   }
-  // FIXED: Also try other employer columns used by post-job
   if(!jobs.length){
     try{ var r4 = await supabaseClient.from('jobs').select('*').in('posted_by', phoneVariants()).order('created_at',{ascending:false}); if(r4.data && r4.data.length) jobs = r4.data; }catch(e){}
   }
@@ -693,16 +674,13 @@ async function loadDashboard(){
   currentJobs = jobs || [];
   currentApps = []; const jobIds = currentJobs.map(j=>j.id);
   if(jobIds.length){
-    // FIXED: Don't fail if jobs() join fails - fetch applications alone, then attach job info locally
     var appsRes = await supabaseClient.from('applications').select('*').in('job_id',jobIds).order('created_at',{ascending:false});
     if(appsRes.error){
-      // Try with join as fallback
       var appsRes2 = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false});
       if(appsRes2.error) throw appsRes2.error;
       currentApps = await enrichApplications(appsRes2.data || []);
     } else {
       currentApps = await enrichApplications(appsRes.data || []);
-      // Attach job info locally
       currentApps.forEach(a=>{ a.jobs = currentJobs.find(j=>String(j.id)===String(a.job_id)) || null; });
     }
   }
