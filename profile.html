@@ -86,6 +86,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 const SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 const CV_BUCKET = 'cvs';
+const CV_PRIVATE_BUCKET = 'cvs_private';
 const MAX_CV_BYTES = 5 * 1024 * 1024;
 let selectedFile = null;
 let savedCvPath = '';
@@ -121,26 +122,42 @@ function cleanPath(raw){
   if(!raw) return '';
   raw=String(raw).trim();
   if(raw.indexOf('http')===0){
-    var markers=['/object/sign/cvs/','/object/public/cvs/','/cvs/'];
+    var markers=['/object/sign/cvs_private/','/object/public/cvs_private/','/object/sign/cvs/','/object/public/cvs/','/cvs_private/','/cvs/'];
     var found=false;
     for(var i=0;i<markers.length;i++){ var pos=raw.indexOf(markers[i]); if(pos!==-1){ raw=raw.substring(pos+markers[i].length).split('?')[0]; found=true; break; } }
     if(!found) return '';
   }
-  raw=raw.split('?')[0].replace(/^\/+/,'').replace(/^cvs\//,'');
+  raw=raw.split('?')[0].replace(/^\/+/,'').replace(/^cvs_private\//,'').replace(/^cvs\//,'');
   try{ raw=decodeURIComponent(raw); }catch(e){}
   return raw.trim();
 }
 function encodeStoragePath(p){ return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
 function updateViewCvButton(){ $('viewCvBtn').style.display = savedCvPath ? 'block' : 'none'; }
-/* FIXED: Bucket is PUBLIC - use public URL first, signed as backup. Same as Track. */
+async function getSignedCvUrl(bucket, cvPath){
+  var res = await request('POST','/storage/v1/object/sign/'+bucket+'/'+encodeStoragePath(cvPath), {expiresIn:3600});
+  if(res && res.data && res.data.signedURL) return SUPABASE_URL + res.data.signedURL;
+  throw new Error('Could not create signed URL');
+}
 async function viewUploadedCV(btn){
   var cvPath = cleanPath(savedCvPath || getStoredCv());
   if(!cvPath){ alert('No CV on file yet. Upload your CV and Save first.'); return; }
   var originalText = btn ? btn.innerHTML : '';
   if(btn){ btn.disabled=true; btn.innerHTML='⏳ Opening CV...'; }
-  var publicUrl = SUPABASE_URL+'/storage/v1/object/public/cvs/'+encodeStoragePath(cvPath);
-  var newWindow = window.open(publicUrl,'_blank');
-  if(!newWindow) window.location.href = publicUrl;
+  try{
+    var signedUrl = await getSignedCvUrl(CV_PRIVATE_BUCKET, cvPath);
+    var w = window.open(signedUrl,'_blank');
+    if(!w) window.location.href = signedUrl;
+  }catch(e1){
+    try{
+      var signedUrl2 = await getSignedCvUrl(CV_BUCKET, cvPath);
+      var w2 = window.open(signedUrl2,'_blank');
+      if(!w2) window.location.href = signedUrl2;
+    }catch(e2){
+      var publicUrl = SUPABASE_URL+'/storage/v1/object/public/cvs/'+encodeStoragePath(cvPath);
+      var w3 = window.open(publicUrl,'_blank');
+      if(!w3) window.location.href = publicUrl;
+    }
+  }
   if(btn){ btn.innerHTML='✅ CV opened'; setTimeout(function(){ btn.innerHTML=originalText; btn.disabled=false; },3000); }
 }
 function getStableUserId(user){
@@ -215,7 +232,12 @@ async function uploadCv(file){
   const ext=file.name.split('.').pop().toLowerCase();
   const path=makeUUID()+'.'+ext;
   const contentTypes={pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
-  await request('POST','/storage/v1/object/'+CV_BUCKET+'/'+path,file,{'Content-Type':contentTypes[ext],'x-upsert':'false'});
+  const contentType = contentTypes[ext] || 'application/octet-stream';
+  // Upload to PRIVATE first - this is the one employers will use
+  await request('POST','/storage/v1/object/'+CV_PRIVATE_BUCKET+'/'+path,file,{'Content-Type':contentType,'x-upsert':'false'});
+  // Then upload same file to legacy public bucket for backward compatibility
+  // If this second upload fails, we do NOT fail the save - private copy already exists
+  try{ await request('POST','/storage/v1/object/'+CV_BUCKET+'/'+path,file,{'Content-Type':contentType,'x-upsert':'false'}); }catch(e){ console.warn('Legacy cvs upload failed, private copy OK:', e.message); }
   return path;
 }
 async function saveProfile(){
@@ -263,10 +285,10 @@ async function saveProfile(){
     savedCvPath=profile.cv_path; savedCvName=profile.cvName; selectedFile=null; $('cvFile').value='';
     displayCv(savedCvName,false); updateViewCvButton();
     showMessage('✅ Your profile and CV have been saved successfully.',false);
-    showDebug('Profile saved.\nCandidate ID: '+userId+'\nPhone saved in profiles: '+phoneClean+'\nCV: '+savedCvPath+'\nPublic URL: '+SUPABASE_URL+'/storage/v1/object/public/cvs/'+savedCvPath);
+    showDebug('Profile saved.\nCandidate ID: '+userId+'\nPhone saved in profiles: '+phoneClean+'\nCV: '+savedCvPath+'\nPrivate signed URL will be used to view it.');
     setBusy(false,'✅ Saved');
   }catch(err){
-    if(uploadedPath){ try{ await request('DELETE','/storage/v1/object/'+CV_BUCKET+'/'+encodeURIComponent(uploadedPath)); }catch(_){} }
+    if(uploadedPath){ try{ await request('DELETE','/storage/v1/object/'+CV_PRIVATE_BUCKET+'/'+encodeURIComponent(uploadedPath)); }catch(_){} try{ await request('DELETE','/storage/v1/object/'+CV_BUCKET+'/'+encodeURIComponent(uploadedPath)); }catch(_){} }
     showMessage('Could not save your profile: '+err.message,true); showDebug('Save failed.\n'+err.message); setBusy(false);
   }
 }
@@ -280,7 +302,7 @@ async function deleteEverything(){
   const cvPath=cleanPath(p.cv_path||p.cv_url||getStoredCv()||'');
   setBusy(true,'Deleting…');
   const phones=[]; if(phoneClean){ phones.push(phoneClean); phones.push('0'+phoneClean.slice(2)); } if(phoneRaw&&phones.indexOf(phoneRaw)===-1) phones.push(phoneRaw);
-  if(cvPath){ try{ await request('DELETE','/storage/v1/object/'+CV_BUCKET+'/'+encodeURIComponent(cvPath)); }catch(e){} }
+  if(cvPath){ try{ await request('DELETE','/storage/v1/object/'+CV_PRIVATE_BUCKET+'/'+encodeURIComponent(cvPath)); }catch(e){} try{ await request('DELETE','/storage/v1/object/'+CV_BUCKET+'/'+encodeURIComponent(cvPath)); }catch(e){} }
   for(const ph of phones){ try{ await request('DELETE','/rest/v1/candidate_cvs?phone=eq.'+encodeFilter(ph)); }catch(e){} }
   if(userId){ try{ await request('DELETE','/rest/v1/candidate_cvs?user_id=eq.'+encodeFilter(userId)); }catch(e){} }
   if(userId){ try{ await request('DELETE','/rest/v1/profiles?id=eq.'+encodeFilter(userId)); }catch(e){} }
