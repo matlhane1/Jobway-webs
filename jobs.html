@@ -23,7 +23,7 @@ select,.search-input{width:100%;background:#0F2230;border:1px solid #25475A;colo
 .search-input:focus,select:focus{border-color:#01F9C6}
 .btn-filter{width:100%;padding:12px;border-radius:20px;font-weight:800;margin:5px 0;font-size:13px;border:0;cursor:pointer}
 .btn-wa{background:#1A3E52;color:#fff}.btn-track{background:#01F9C6;color:#0A1F2E}
-.card{background:#11283A;border:1px solid #1e3a4a;border-radius:14px;padding:14px;margin:10px 0}
+.card{background:#11283A;border:1px solid #1e4a4a;border-radius:14px;padding:14px;margin:10px 0}
 .company{font-weight:800;font-size:13px}.meta{color:#8DB0BF;font-size:12px;margin:4px 0}
 .job-title{font-size:17px;font-weight:800;line-height:1.3;margin:7px 0}
 .badge{display:inline-block;background:#0F2230;color:#A8C8D0;padding:5px 9px;border-radius:20px;font-size:11px;margin:3px 2px}
@@ -81,7 +81,8 @@ function doSearchFromJobs(){
 function escapeHTML(value){ return String(value == null ? '' : value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function timeAgo(ts){ var h = Math.floor((Date.now() - ts) / 3600000); if(h < 1) return 'Posted today'; if(h < 24) return 'Posted ' + h + 'h ago'; return 'Posted ' + Math.floor(h / 24) + ' days ago'; }
 function initials(n){ var parts = (n || 'J').trim().split(/\s+/); var s = ''; for(var i = 0; i < parts.length && s.length < 2; i++){ if(parts[i].length > 0) s += parts[i][0]; } return s.toUpperCase(); }
-function extractUrl(text,url){ if(url){ try{ var parsed = new URL(url); if(parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href; }catch(e){} } if(!text) return 'https://www.careers24.com'; var m = text.match(/https?:\/\/[^\s)]+/); if(m) return m[0].replace(/[.,]$/,''); return 'https://www.careers24.com'; }
+// FIXED: Never default to Careers24. Return empty if no real link found.
+function extractUrl(text,url){ if(url){ try{ var parsed = new URL(url); if(parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href; }catch(e){} } if(!text) return ''; var m = text.match(/https?:\/\/[^\s)]+/); if(m) return m[0].replace(/[.,]$/,''); return ''; }
 function hasCV(){ try{ var p = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); return !!p.cv_url; }catch(e){ return false; } }
 var STOP_WORDS = ['job','jobs','vacancy','vacancies','work','works','opportunity','opportunities','position','positions','career','careers','looking','find','for','the','a','an','in','at','near','and','to','me','my'];
 var JOB_GROUPS = [
@@ -169,9 +170,8 @@ function fetchJobs(callback){
     if(xhr.status === 200){
       try{
         var rows = JSON.parse(xhr.responseText); var mapped = [];
-        for(var i = 0; i < rows.length; i++){ var j = rows[i]; if(isExpired(j)) continue; var salaryText = 'Salary: Employer to disclose'; if(j.salary_min && j.salary_max) salaryText = 'R' + j.salary_min + ' - R' + j.salary_max; else if(j.salary_min) salaryText = 'R' + j.salary_min + '+'; else if(j.salary) salaryText = j.salary; mapped.push({title:j.title || 'Job Opportunity', company:j.company_name || j.company || 'Company', location:j.location || j.province || 'South Africa', province:j.province || '', category:j.category || j.job_category || '', industry:j.industry || '', type:j.type || j.job_type || 'Full-time', salaryText:salaryText, desc:j.description || '', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, closing_date:j.closing_date || '', applyUrl:extractUrl(j.description || '', j.apply_url || j.application_url || j.url || '')}); }
+        for(var i = 0; i < rows.length; i++){ var j = rows[i]; if(isExpired(j)) continue; var salaryText = 'Salary: Employer to disclose'; if(j.salary_min && j.salary_max) salaryText = 'R' + j.salary_min + ' - R' + j.salary_max; else if(j.salary_min) salaryText = 'R' + j.salary_min + '+'; else if(j.salary) salaryText = j.salary; mapped.push({title:j.title || 'Job Opportunity', company:j.company_name || j.company || 'Company', location:j.location || j.province || 'South Africa', province:j.province || '', category:j.category || j.job_category || '', industry:j.industry || '', type:j.type || j.job_type || 'Full-time', salaryText:salaryText, desc:j.description || '', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, closing_date:j.closing_date || '', applyUrl:extractUrl(j.description || '', j.apply_url || j.application_url || j.url || ''), whatsapp: j.whatsapp_number_for_applicants || j.whatsapp_number || j.whatsapp || j.contact_whatsapp || ''}); }
         mapped = cleanJobs(mapped);
-        // FIXED: Only cache when we actually got jobs - never cache empty list
         if(mapped.length > 0){ try{ localStorage.setItem('jobway_cached_jobs', JSON.stringify(mapped)); }catch(e){} finish(mapped,false); return; }
         finish(cleanJobs(cached),false); return;
       }catch(e){}
@@ -182,18 +182,27 @@ function fetchJobs(callback){
   xhr.ontimeout = function(){ finish(cleanJobs(cached),true); };
   try{ jobsLoading = true; xhr.send(); }catch(e){ finish(cleanJobs(cached),true); }
 }
-function handleApply(jobId,applyUrl,title){
+// FIXED: Employer-paid jobs apply via WhatsApp FIRST. Scraped jobs use their link. No more Careers24 fallback.
+function handleApply(jobId,applyUrl,title,whatsapp){
   var logged = localStorage.getItem('jobway_logged_in');
   if(!logged){ localStorage.setItem('jobway_wanted_job',jobId); window.location.href = 'login.html'; return; }
   if(!hasCV()){ if(confirm('You need to upload your CV first. Go to Profile now?')) window.location.href = 'profile.html'; return; }
   var profile = {}; try{ profile = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); }catch(e){}
   try{ var apps = JSON.parse(localStorage.getItem('jobway_applications') || '[]'); apps.unshift({jobId:jobId, title:title, url:applyUrl, date:new Date().toISOString(), cv_url:profile.cv_url || ''}); localStorage.setItem('jobway_applications', JSON.stringify(apps)); }catch(e){}
   try{ var xhr = new XMLHttpRequest(); xhr.open('POST', SUPABASE_URL + '/rest/v1/applications', true); xhr.setRequestHeader('apikey',SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.setRequestHeader('Content-Type','application/json'); xhr.setRequestHeader('Prefer','return=minimal'); xhr.send(JSON.stringify({job_id:jobId, phone:profile.phoneClean || profile.whatsapp || '', full_name:profile.fullName || '', cv_url:profile.cv_url || ''})); }catch(e){}
-  window.open(applyUrl,'_blank');
+  if(whatsapp){
+    var clean = String(whatsapp).replace(/\D/g,'');
+    if(clean.length === 10 && clean.charAt(0) === '0') clean = '27' + clean.substring(1);
+    if(clean.length === 9) clean = '27' + clean;
+    if(clean.length >= 9){
+      window.open('https://wa.me/' + clean + '?text=' + encodeURIComponent("Hi, I'm interested in the " + title + " role. I found it on JobWay."), '_blank');
+      return;
+    }
+  }
+  if(applyUrl){ window.open(applyUrl,'_blank'); return; }
+  alert('No application link for this job yet. Please try another job.');
 }
 function render(){
-  // FIXED: URL is source of truth. Input is synced FROM URL on load, not OR logic.
-  // This stops old ?q= from coming back after you clear the box.
   var qTitle = document.getElementById('qTitle').value.trim();
   var qLocText = document.getElementById('qLocText').value.trim();
   var qLoc = document.getElementById('loc').value;
@@ -231,7 +240,7 @@ document.getElementById('list').addEventListener('click', function(e){
   var button = e.target.closest('button[data-action]'); if(!button) return;
   var index = Number(button.getAttribute('data-index')); if(!Number.isInteger(index) || !allJobs[index]) return;
   var job = allJobs[index]; var action = button.getAttribute('data-action');
-  if(action === 'apply') handleApply(job.id, job.applyUrl, job.title);
+  if(action === 'apply') handleApply(job.id, job.applyUrl, job.title, job.whatsapp);
   if(action === 'details') alert(job.title + '\n\n' + job.company + '\n' + job.location + '\n\n' + (job.desc || 'No additional description available.'));
 });
 function clearF(){
@@ -240,7 +249,6 @@ function clearF(){
   document.getElementById('loc').value = '';
   document.getElementById('type').value = '';
   document.getElementById('exp').value = '';
-  // FIXED: Clear URL AND inputs, then re-render from empty state
   window.history.replaceState({},'', 'jobs.html');
   render();
 }
