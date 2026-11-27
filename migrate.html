@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Migrate CVs to Private</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{font-family:sans-serif;background:#0F2835;color:#fff;padding:20px}button{background:#01F9C6;border:0;padding:14px 20px;border-radius:999px;font-weight:800;cursor:pointer}#log{margin-top:20px;font-size:13px;line-height:1.8;white-space:pre-wrap}</style>
+</head><body>
+<h2>Migrate cvs → cvs_private</h2>
+<p>This copies ALL files with the SAME name. Run once only.</p>
+<button id="startBtn">Start Migration →</button>
+<div id="log">Ready...</div>
+<script>
+const supabaseClient = window.supabase.createClient('https://dmxumcjeetphwzvgzzuk.supabase.co','sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-');
+const logEl = document.getElementById('log');
+function log(m){ logEl.textContent += '\n' + m; console.log(m); }
+
+document.getElementById('startBtn').onclick = async () => {
+  document.getElementById('startBtn').disabled = true;
+  log('Starting...');
+  let offset = 0;
+  let totalCopied = 0, totalSkipped = 0, totalFailed = 0;
+  while(true){
+    // List 100 at a time
+    const { data: files, error } = await supabaseClient.storage.from('cvs').list('', { limit: 100, offset: offset });
+    if(error){ log('LIST ERROR: ' + error.message); break; }
+    if(!files || files.length === 0) break;
+    for(const f of files){
+      if(!f.name || f.name.endsWith('/')) continue;
+      // Skip if already in private
+      const { data: exists } = await supabaseClient.storage.from('cvs_private').list('', { search: f.name });
+      if(exists && exists.some(x => x.name === f.name)){ totalSkipped++; log('SKIP (already exists): ' + f.name); continue; }
+      try{
+        const { data: blob, error: dlErr } = await supabaseClient.storage.from('cvs').download(f.name);
+        if(dlErr) throw dlErr;
+        const { error: upErr } = await supabaseClient.storage.from('cvs_private').upload(f.name, blob, { upsert: true, contentType: blob.type || 'application/pdf' });
+        if(upErr) throw upErr;
+        totalCopied++;
+        log('COPIED ' + totalCopied + ': ' + f.name);
+      }catch(e){ totalFailed++; log('FAILED: ' + f.name + ' - ' + e.message); }
+      // Small pause so Supabase doesn't rate-limit you
+      await new Promise(r => setTimeout(r, 100));
+    }
+    offset += 100;
+    log('--- Batch done, next offset: ' + offset + ' ---');
+    if(files.length < 100) break;
+  }
+  log('\nDONE! Copied: ' + totalCopied + ' | Skipped: ' + totalSkipped + ' | Failed: ' + totalFailed);
+  alert('Migration done! Copied: ' + totalCopied);
+};
+</script>
+</body></html>
