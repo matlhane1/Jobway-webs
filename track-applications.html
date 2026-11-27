@@ -15,26 +15,46 @@ var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 
 function fmtDate(d){ try{ if(!d) return ''; var dt = new Date(d); if(isNaN(dt)) return d; return dt.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getFullYear(); }catch(e){ return d; } }
 function formatPhone(p){ if(!p) return ''; var c = p.toString().replace(/[^0-9]/g, ''); if(c.charAt(0) === '0') c = '27' + c.slice(1); return c; }
-function getCurrentUser(){ try{ return JSON.parse(localStorage.getItem('jobway_user') || localStorage.getItem('user') || 'null'); }catch(e){ return null; } }
-
-// NEW: Private CV handling - no public URL ever
+// FIXED: Check ALL keys jobs.html / login uses, not just jobway_user
+function getCurrentUser(){
+  var keys = ['jobway_user','jobway_profile','jobway_jobseeker','user','jobway_logged_in_user'];
+  for(var i=0;i<keys.length;i++){
+    try{ var u = JSON.parse(localStorage.getItem(keys[i]) || 'null'); if(u && (u.id || u.email || u.phone || u.fullName || u.full_name)) return u; }catch(e){}
+  }
+  // jobway_profile stores fullName / phoneClean / whatsapp differently
+  try{ var p = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); if(p && (p.fullName || p.phoneClean)) return { id: p.id || p.user_id || '', full_name: p.fullName || '', fullName: p.fullName || '', phone: p.phoneClean || p.whatsapp || '', email: p.email || '', cv_url: p.cv_url || '' }; }catch(e){}
+  return null;
+}
+function getMyPhone(){
+  var u = getCurrentUser() || {};
+  return u.phoneClean || u.phone || u.whatsapp || u.whatsapp_number || localStorage.getItem('phone') || localStorage.getItem('jobway_whatsapp') || '';
+}
+function getMyName(){
+  var u = getCurrentUser() || {};
+  return u.fullName || u.full_name || u.name || 'Applicant';
+}
+// FIXED: Read local save from jobs.html FIRST - this is what makes Track show (1) instantly
+function getLocalApps(){
+  try{ var a = JSON.parse(localStorage.getItem('jobway_applications') || '[]'); if(Array.isArray(a)) return a; }catch(e){}
+  return [];
+}
 function getCvPath(a){
   var raw = a.cv_path || a.cv_url || '';
+  if(!raw){
+    try{ var p = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); raw = p.cv_url || ''; }catch(e){}
+  }
   if(!raw) return null;
   if(raw.indexOf('http') !== -1){
-    // Old record with public URL - extract just the file name
-    var m = raw.split('/cvs/'); 
+    var m = raw.split('/cvs/');
     if(m[1]) return m[1].split('?')[0];
     return raw.split('/').pop();
   }
   return raw.replace(/^cvs\//,'').trim();
 }
-
 function downloadMyCV(cvPath, btn){
   if(!cvPath){ alert('No CV found for this application'); return; }
   btn.innerHTML = '⏳ Generating secure link...';
   btn.disabled = true;
-  // Call Edge Function that creates 60-min signed URL using service_role
   var xhr = new XMLHttpRequest();
   xhr.open('POST', SUPABASE_URL + '/functions/v1/get-cv-link', true);
   xhr.setRequestHeader('apikey', SUPABASE_KEY);
@@ -45,15 +65,10 @@ function downloadMyCV(cvPath, btn){
       if(xhr.status === 200){
         try{
           var res = JSON.parse(xhr.responseText);
-          if(res.signedUrl){
-            window.open(res.signedUrl, '_blank');
-            btn.innerHTML = '✅ Opened (valid 60min)';
-          } else {
-            btn.innerHTML = '🔒 Private CV — contact support';
-          }
+          if(res.signedUrl){ window.open(res.signedUrl, '_blank'); btn.innerHTML = '✅ Opened (valid 60min)'; }
+          else { btn.innerHTML = '🔒 Private CV — contact support'; }
         }catch(e){ btn.innerHTML = '❌ Failed, try again'; }
       } else {
-        // Fallback if function not deployed yet - show private message
         btn.innerHTML = '🔒 CV is private (deploy get-cv-link function)';
         alert('Edge function not deployed yet. Deploy get-cv-link to enable temporary downloads. CV is safe and private.');
       }
@@ -62,12 +77,14 @@ function downloadMyCV(cvPath, btn){
   };
   xhr.send(JSON.stringify({ cv_path: cvPath, mode: 'applicant' }));
 }
-
+// FIXED: Never default to Careers24
 function getApplyUrl(job){
-  if(!job) return 'https://www.careers24.com';
+  if(!job) return '';
   if(job.apply_url && job.apply_url.indexOf('http') === 0) return job.apply_url;
+  if(job.application_url && job.application_url.indexOf('http') === 0) return job.application_url;
+  if(job.url && job.url.indexOf('http') === 0) return job.url;
   if(job.description){ var m = job.description.match(/https?:\/\/[^\s\)]+/); if(m) return m[0].replace(/[.,]$/, ''); }
-  return 'https://www.careers24.com';
+  return '';
 }
 function xhrGet(url, cb){
   var xhr = new XMLHttpRequest();
@@ -80,45 +97,96 @@ function xhrGet(url, cb){
   xhr.ontimeout = function(){ cb([]); };
   try{ xhr.send(); }catch(e){ cb([]); }
 }
-
 function load(){
   var user = getCurrentUser();
-  if(!user || (!user.id && !user.email)){
-    document.getElementById('list').innerHTML = '<div class="card" style="text-align:center"><p>Please log in to track applications</p><button class="btn btn-green" onclick="location.href=\'login.html\'">Log In</button></div>';
-    return;
-  }
-  var applicantId = user.id;
-  if(!applicantId || applicantId.length < 20){
-    if(user.email){
-      xhrGet(SUPABASE_URL + '/rest/v1/profiles?select=id&email=eq.' + encodeURIComponent(user.email), function(profs){
-        if(profs && profs.length > 0) fetchApps(profs[0].id);
-        else render([]);
+  var local = getLocalApps();
+  // Show local instantly so user never sees (0) after applying
+  if(local.length){
+    // Convert local shape to track shape, then enrich with job details
+    var converted = local.map(function(a){ return { jobId: a.jobId, job_id: a.jobId, title: a.title, created_at: a.date, status: a.status || 'Application Received', cv_url: a.cv_url || '', _isLocal: true }; });
+    enrichWithJobs(converted, function(enriched){
+      render(enriched);
+      // Then also try Supabase in background to get employer status updates
+      fetchFromSupabase(function(remote){
+        if(remote && remote.length){
+          var merged = mergeApps(enriched, remote);
+          enrichWithJobs(merged, function(finalList){ render(finalList); });
+        }
       });
-    } else render([]);
+    });
     return;
   }
-  fetchApps(applicantId);
-}
-
-function fetchApps(applicantId){
-  xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*&applicant_id=eq.' + applicantId + '&order=created_at.desc', function(apps){
-    if(!apps || apps.length === 0){ render([]); return; }
-    var done = 0; var clean = [];
-    if(apps.length === 0){ render([]); return; }
-    for(var i=0;i<apps.length;i++){
-      (function(app){
-        if(!app.job_id){ done++; if(done === apps.length) render(clean); return; }
-        xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&id=eq.' + app.job_id, function(jobs){
-          if(jobs && jobs.length > 0) app.jobs = jobs[0];
-          if(app.jobs) clean.push(app);
-          done++;
-          if(done === apps.length) render(clean);
-        });
-      })(apps[i]);
-    }
+  // No local - try Supabase
+  fetchFromSupabase(function(remote){
+    if(!remote || !remote.length){ render([]); return; }
+    enrichWithJobs(remote, function(enriched){ render(enriched); });
   });
 }
-
+function mergeApps(localList, remoteList){
+  var seen = {};
+  var out = [];
+  // Remote (Supabase) is truth - it has employer status
+  for(var i=0;i<remoteList.length;i++){ var r = remoteList[i]; var k = String(r.job_id || r.jobId || ''); if(k && !seen[k]){ seen[k]=1; out.push(r); } }
+  for(var j=0;j<localList.length;j++){ var l = localList[j]; var k2 = String(l.job_id || l.jobId || ''); if(k2 && !seen[k2]){ seen[k2]=1; out.push(l); } }
+  return out;
+}
+function fetchFromSupabase(cb){
+  var user = getCurrentUser();
+  var applicantId = user ? (user.id || user.user_id || '') : '';
+  var phone = getMyPhone();
+  var phoneClean = phone ? phone.replace(/[^0-9]/g,'') : '';
+  var phoneVariants = [];
+  if(phoneClean){
+    phoneVariants.push(phoneClean);
+    if(phoneClean.charAt(0)==='0') phoneVariants.push('27'+phoneClean.slice(1));
+    if(phoneClean.indexOf('27')===0) phoneVariants.push('0'+phoneClean.slice(2));
+    phoneVariants.push(formatPhone(phoneClean));
+  }
+  var done = false;
+  function finish(apps){ if(done) return; done=true; cb(apps||[]); }
+  // 1. Try by applicant_id (new jobs.html sends this)
+  if(applicantId && String(applicantId).length >= 10){
+    xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*&applicant_id=eq.' + encodeURIComponent(applicantId) + '&order=created_at.desc', function(apps){
+      if(apps && apps.length){ finish(apps); return; }
+      // 2. Fallback: try by phone (old jobs.html only sent phone)
+      tryByPhone();
+    });
+  } else {
+    tryByPhone();
+  }
+  function tryByPhone(){
+    if(!phoneVariants.length){ finish([]); return; }
+    // Try first phone variant, then others if needed
+    var tried = 0;
+    function tryOne(){
+      if(tried >= phoneVariants.length){ finish([]); return; }
+      var ph = phoneVariants[tried]; tried++;
+      xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*&phone=eq.' + encodeURIComponent(ph) + '&order=created_at.desc', function(apps){
+        if(apps && apps.length){ finish(apps); return; }
+        tryOne();
+      });
+    }
+    tryOne();
+  }
+}
+function enrichWithJobs(apps, cb){
+  if(!apps || !apps.length){ cb([]); return; }
+  var done = 0; var clean = [];
+  for(var i=0;i<apps.length;i++){
+    (function(app){
+      var jobId = app.job_id || app.jobId;
+      if(!jobId){ done++; if(done === apps.length) cb(clean); return; }
+      // If local already has title, keep it even if job fetch fails
+      xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&id=eq.' + encodeURIComponent(jobId), function(jobs){
+        if(jobs && jobs.length > 0) app.jobs = jobs[0];
+        // Keep local apps even if job was deleted
+        clean.push(app);
+        done++;
+        if(done === apps.length) cb(clean);
+      });
+    })(apps[i]);
+  }
+}
 function render(all){
   document.getElementById('count').innerHTML = '(' + all.length + ')';
   var shortlisted = 0, interviews = 0, hired = 0;
@@ -135,7 +203,7 @@ function render(all){
   var html = '';
   for(var k=0;k<all.length;k++){
     var app = all[k];
-    var title = (app.jobs && app.jobs.title) || 'Job';
+    var title = (app.jobs && app.jobs.title) || app.title || 'Job';
     var comp = (app.jobs && (app.jobs.company_name || app.jobs.company)) || '';
     var status = app.status || 'Application Received';
     if(status === 'Applied') status = 'Application Received';
@@ -154,12 +222,14 @@ function render(all){
     }
     var hiredBox = status === 'Hired' ? '<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">' + comp + ' will contact you.</span></div>' : '';
     var rejected = (status === 'Not Selected' || status === 'Rejected') ? '<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected. Keep applying — new jobs every week.</div>' : '';
-    var empPhone = formatPhone((app.jobs && app.jobs.whatsapp_number) || '0790608952');
-    var myName = (getCurrentUser() && getCurrentUser().full_name) || 'Applicant';
+    var empPhone = formatPhone((app.jobs && (app.jobs.whatsapp_number_for_applicants || app.jobs.whatsapp_number)) || '0790608952');
+    var myName = getMyName();
     var msg = 'Hi ' + comp + ', I\'m ' + myName + '. I applied for ' + title + ' on JobWay. Status: ' + status;
     var waBtn = '<a href="https://wa.me/' + empPhone + '?text=' + encodeURIComponent(msg) + '" target="_blank" class="wa-btn">💬 Message Employer</a>';
     var salaryText = (app.jobs && app.jobs.salary_min) ? 'R' + app.jobs.salary_min + (app.jobs.salary_max ? ' - R' + app.jobs.salary_max : '+') : '';
-    var extBtn = '<a href="' + getApplyUrl(app.jobs) + '" target="_blank" class="ext-link">Apply on Original Site ↗</a>';
+    var applyUrl = getApplyUrl(app.jobs);
+    // FIXED: Only show external link if job is scraped (has real link). Paid jobs have no external link.
+    var extBtn = applyUrl ? '<a href="' + applyUrl + '" target="_blank" class="ext-link">Apply on Original Site ↗</a>' : '';
     var cvPath = getCvPath(app);
     var cvBtn = cvPath ? '<br><button class="cv-link" onclick="downloadMyCV(\''+cvPath+'\', this)">📄 View My Submitted CV (60min link)</button>' : '<br><span class="meta">🔒 No CV attached to this application</span>';
     html += '<div class="card"><h3 style="margin:0 0 6px">' + title + ' - ' + comp + '</h3><div class="meta">Applied: ' + fmtDate(app.created_at) + ' • ' + ((app.jobs && app.jobs.location) || '') + ' ' + salaryText + '</div><div>' + badges + '</div><div class="meta"><b>Status:</b> ' + status + '</div>' + interview + hiredBox + rejected + cvBtn + '<br>' + waBtn + extBtn + '</div>';
