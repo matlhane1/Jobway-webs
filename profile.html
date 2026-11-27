@@ -73,8 +73,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </div>
 <input type="file" id="cvFile" hidden accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 <button class="btn btn-green" id="saveBtn" type="button" onclick="saveProfile()">💾 Save Profile + CV</button>
-<!-- NEW: View Uploaded CV - same logic as Track -->
-<button class="btn btn-view" id="viewCvBtn" type="button" onclick="viewUploadedCV(this)" style="display:none">📄 View My Uploaded CV (Secure 60min link)</button>
+<button class="btn btn-view" id="viewCvBtn" type="button" onclick="viewUploadedCV(this)" style="display:none">📄 View My Uploaded CV</button>
 <div id="savedMsg" role="status" aria-live="polite"></div>
 <div id="debugBox" aria-live="polite"></div>
 <hr style="margin:16px 0;border:0;border-top:1px solid #25475A">
@@ -118,8 +117,6 @@ function encodeFilter(value){ return encodeURIComponent(String(value)); }
 function normalizeSAWhatsApp(raw){ const digits=String(raw||'').replace(/\D/g,''); let n=digits; if(n.startsWith('0027')) n=n.slice(2); if(n.startsWith('0')) n='27'+n.slice(1); if(!n.startsWith('27')||n.length!==11) return null; return n; }
 function makeUUID(){ if(window.crypto&&crypto.randomUUID) return crypto.randomUUID(); return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{ const r=Math.random()*16|0; const v=c==='x'?r:(r&3|8); return v.toString(16); }); }
 function isUUID(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
-
-/* --- SHARED CV HELPERS - SAME AS TRACK --- */
 function cleanPath(raw){
   if(!raw) return '';
   raw=String(raw).trim();
@@ -135,29 +132,17 @@ function cleanPath(raw){
 }
 function encodeStoragePath(p){ return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
 function updateViewCvButton(){ $('viewCvBtn').style.display = savedCvPath ? 'block' : 'none'; }
+/* FIXED: Bucket is PUBLIC - use public URL first, signed as backup. Same as Track. */
 async function viewUploadedCV(btn){
   var cvPath = cleanPath(savedCvPath || getStoredCv());
   if(!cvPath){ alert('No CV on file yet. Upload your CV and Save first.'); return; }
-  var originalText = btn.innerHTML; btn.disabled=true; btn.innerHTML='⏳ Generating secure link...';
-  var newWindow = window.open('about:blank','_blank');
-  try{
-    var res = await fetch(SUPABASE_URL+'/storage/v1/object/sign/cvs/'+encodeStoragePath(cvPath),{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});
-    var data={}; try{ data=await res.json(); }catch(e){}
-    if(res.ok && (data.signedURL||data.signedUrl)){
-      var signed=data.signedURL||data.signedUrl;
-      var finalUrl=signed.indexOf('http')===0?signed:SUPABASE_URL+'/storage/v1'+signed;
-      if(newWindow&&!newWindow.closed) newWindow.location.replace(finalUrl); else window.open(finalUrl,'_blank');
-      btn.innerHTML='✅ CV opened'; setTimeout(function(){ btn.innerHTML=originalText; btn.disabled=false; },3000); return;
-    }
-    if(newWindow&&!newWindow.closed) newWindow.close();
-    throw new Error(data.message||data.msg||data.error||('HTTP '+res.status));
-  }catch(e){
-    if(newWindow&&!newWindow.closed) newWindow.close();
-    btn.innerHTML=originalText; btn.disabled=false;
-    alert('Could not open your CV.\n\nReason: '+e.message+'\n\nTried file: '+cvPath+'\n\nCheck Supabase Storage > cvs has this exact file.');
-  }
+  var originalText = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled=true; btn.innerHTML='⏳ Opening CV...'; }
+  var publicUrl = SUPABASE_URL+'/storage/v1/object/public/cvs/'+encodeStoragePath(cvPath);
+  var newWindow = window.open(publicUrl,'_blank');
+  if(!newWindow) window.location.href = publicUrl;
+  if(btn){ btn.innerHTML='✅ CV opened'; setTimeout(function(){ btn.innerHTML=originalText; btn.disabled=false; },3000); }
 }
-
 function getStableUserId(user){
   var raw=user&&(user.id||user.user_id||user.profile_id);
   if(isUUID(raw)) return raw;
@@ -190,7 +175,6 @@ async function restoreCvFromDB(phoneRaw){
         if(r.job_category) setCategorySelect(r.job_category);
         if(r.qualifications) $('qualifications').value=r.qualifications;
         if(r.experience_years) $('experienceYears').value=r.experience_years;
-        // FIXED: Re-use existing user_id so we don't create a new profile every Save
         if(isUUID(r.user_id)){ const u=getUser()||{}; u.id=r.user_id; localStorage.setItem('jobway_user',JSON.stringify(u)); const p=getLocalProfile(); p.userId=r.user_id; localStorage.setItem('jobway_profile',JSON.stringify(p)); }
         displayCv(r.cv_name||'CV on file',true);
         return;
@@ -253,7 +237,6 @@ async function saveProfile(){
   setBusy(true,'Saving profile…'); $('savedMsg').style.display='none';
   let uploadedPath='';
   try{
-    // FIXED: Look up existing CV by PHONE first, re-use its user_id + id. No new profile every Save.
     let existing=null;
     try{ existing=await findExistingCv(phoneClean); }catch(e){}
     if(!existing){ try{ existing=await findExistingCv('0'+phoneClean.slice(2)); }catch(e){} }
@@ -261,15 +244,12 @@ async function saveProfile(){
     if(selectedFile) uploadedPath=await uploadCv(selectedFile);
     const finalPath=cleanPath(uploadedPath||savedCvPath);
     const finalName=selectedFile?selectedFile.name:(savedCvName||(finalPath?finalPath.split('/').pop():'CV.pdf'));
-    // FIXED: Save PHONE in profiles - Track searches by this phone
     const profileRow={ id:userId, full_name:fullName, phone:phoneClean, whatsapp_number:phoneClean, whatsapp:phoneClean, phoneClean:phoneClean, location:locationVal, province:locationVal, job_category:jobCategory, qualifications:qualifications, experience_years:experienceYears, skills:skills, cv_url:finalPath, cv_name:finalName };
     try{ await request('POST','/rest/v1/profiles?on_conflict=id',profileRow,{'Prefer':'resolution=merge-duplicates,return=minimal'}); }
     catch(e1){
-      // Fallback if your profiles table doesn't have some columns yet - try minimal set WITH phone
       try{ await request('POST','/rest/v1/profiles?on_conflict=id',{id:userId,full_name:fullName,phone:phoneClean,whatsapp_number:phoneClean,cv_url:finalPath,cv_name:finalName},{'Prefer':'resolution=merge-duplicates,return=minimal'}); }
       catch(e2){ showDebug('profiles not saved (candidate_cvs will still save): '+e2.message); }
     }
-    // ALSO: If profiles has a unique phone constraint, ensure phone row exists via phone upsert
     try{ await request('POST','/rest/v1/profiles?on_conflict=phone',{id:userId,full_name:fullName,phone:phoneClean,whatsapp_number:phoneClean,cv_url:finalPath,cv_name:finalName},{'Prefer':'resolution=merge-duplicates,return=minimal'}); }catch(e){}
     const cvRow={ id: existing&&existing.id?existing.id:makeUUID(), user_id:userId, full_name:fullName, phone:phoneClean, whatsapp_number:phoneClean, location:locationVal, area:locationVal, job_category:jobCategory, category:jobCategory, qualifications:qualifications, experience_years:experienceYears, cv_url:finalPath, cv_name:finalName };
     if(!cvRow.cv_url) throw new Error('No CV storage path is available.');
@@ -283,7 +263,7 @@ async function saveProfile(){
     savedCvPath=profile.cv_path; savedCvName=profile.cvName; selectedFile=null; $('cvFile').value='';
     displayCv(savedCvName,false); updateViewCvButton();
     showMessage('✅ Your profile and CV have been saved successfully.',false);
-    showDebug('Profile saved.\nCandidate ID: '+userId+'\nPhone saved in profiles: '+phoneClean+'\nJob: '+jobCategory+'\nQualifications: '+qualifications+'\nExperience: '+experienceYears+'\nCV: '+savedCvPath+'\n\nTap "View My Uploaded CV" above to confirm it opens.');
+    showDebug('Profile saved.\nCandidate ID: '+userId+'\nPhone saved in profiles: '+phoneClean+'\nCV: '+savedCvPath+'\nPublic URL: '+SUPABASE_URL+'/storage/v1/object/public/cvs/'+savedCvPath);
     setBusy(false,'✅ Saved');
   }catch(err){
     if(uploadedPath){ try{ await request('DELETE','/storage/v1/object/'+CV_BUCKET+'/'+encodeURIComponent(uploadedPath)); }catch(_){} }
