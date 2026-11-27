@@ -1,263 +1,729 @@
+
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
 <title>Track Applications - JobWay.co.za</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#11283a;color:#fff;font-family:Arial,sans-serif}.header{background:#0d1f2d;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;border-bottom:1px solid #1e3a4a}.logo{color:#01F9C6;font-weight:900;font-size:20px}.btn{border:0;border-radius:20px;padding:9px 14px;font-weight:800;font-size:13px}.btn-green{background:#01F9C6;color:#11283a}.btn-white{background:#fff;color:#11283a}.container{max-width:480px;margin:0 auto;padding:14px}.card{background:#1a3446;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #1e3a4a}.meta{color:#8fb3c1;font-size:12px;margin:6px 0;line-height:1.5}.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}.s-active{background:#01F9C6;color:#11283a}.s-pending{background:#2a4a5c;color:#8fb3c1}.s-done{background:#143e4a;color:#01F9C6}.interview-box{background:#2a2410;border:1px solid #ffb020;border-radius:12px;padding:12px;margin-top:10px;font-size:13px}.hired-box{background:#0a3a2a;border:1px solid #01F9C6;border-radius:12px;padding:12px;margin-top:10px}.wa-btn{display:inline-block;background:#25D366;color:#fff;padding:9px 14px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;margin-top:10px}.ext-link{display:inline-block;background:#01F9C6;color:#11283a;padding:9px 14px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;margin-top:10px;margin-left:6px}.cv-link{display:inline-block;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:7px 11px;border-radius:20px;font-weight:700;font-size:12px;text-decoration:none;margin-top:8px;cursor:pointer}.notif{padding:10px;border-radius:10px;font-size:12px;margin-bottom:12px;text-align:center;font-weight:700}</style></head>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#11283a;color:#fff;font-family:Arial,sans-serif}
+.header{background:#0d1f2d;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;border-bottom:1px solid #1e3a4a;z-index:10}
+.logo{color:#01F9C6;font-weight:900;font-size:20px;cursor:pointer}
+.btn{border:0;border-radius:20px;padding:9px 14px;font-weight:800;font-size:13px;cursor:pointer}
+.btn-green{background:#01F9C6;color:#11283a}
+.btn-white{background:#fff;color:#11283a}
+.container{max-width:480px;margin:0 auto;padding:14px}
+.card{background:#1a3446;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #1e3a4a;overflow-wrap:anywhere}
+.meta{color:#8fb3c1;font-size:12px;margin:6px 0;line-height:1.5}
+.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin:2px}
+.s-active{background:#01F9C6;color:#11283a}
+.s-pending{background:#2a4a5c;color:#8fb3c1}
+.s-done{background:#143e4a;color:#01F9C6}
+.interview-box{background:#2a2410;border:1px solid #ffb020;border-radius:12px;padding:12px;margin-top:10px;font-size:13px}
+.hired-box{background:#0a3a2a;border:1px solid #01F9C6;border-radius:12px;padding:12px;margin-top:10px}
+.wa-btn{display:inline-block;background:#25D366;color:#fff;padding:9px 14px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;margin-top:10px}
+.ext-link{display:inline-block;background:#01F9C6;color:#11283a;padding:9px 14px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;margin-top:8px;margin-left:6px}
+.cv-link{display:inline-block;background:#0F2230;border:1px solid #01F9C6;color:#01F9C6;padding:9px 13px;border-radius:20px;font-weight:700;font-size:12px;margin-top:10px;cursor:pointer}
+.cv-link:disabled{opacity:.6;cursor:wait}
+.notif{padding:10px;border-radius:10px;font-size:12px;margin-bottom:12px;text-align:center;font-weight:700}
+</style>
+</head>
+
 <body>
-<div class="header"><div class="logo" onclick="location.href='index.html'">JobWay</div><div><button class="btn btn-white" onclick="location.href='jobs.html'">← Jobs</button><button class="btn btn-green" style="margin-left:6px" onclick="location.href='notifications.html'">🔔 Bell</button></div></div>
-<div class="container">
-<h2>📊 My Applications <span id="count" style="color:#01F9C6"></span></h2>
-<div id="banner"></div>
-<div id="list"><p class="meta">Loading...</p></div>
+
+<div class="header">
+  <div class="logo" onclick="location.href='index.html'">JobWay</div>
+  <div>
+    <button class="btn btn-white" onclick="location.href='jobs.html'">← Jobs</button>
+    <button class="btn btn-green" style="margin-left:6px" onclick="location.href='notifications.html'">🔔 Bell</button>
+  </div>
 </div>
+
+<div class="container">
+  <h2>📊 My Applications <span id="count" style="color:#01F9C6"></span></h2>
+  <div id="banner"></div>
+  <div id="list"><p class="meta">Loading applications...</p></div>
+</div>
+
 <script>
 var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
-var _profileCvUrl = ''; // CV from Supabase profiles - single source of truth, upload once
 
-function fmtDate(d){ try{ if(!d) return ''; var dt = new Date(d); if(isNaN(dt)) return d; return dt.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getFullYear(); }catch(e){ return d; } }
-function formatPhone(p){ if(!p) return ''; var c = p.toString().replace(/[^0-9]/g, ''); if(c.charAt(0) === '0') c = '27' + c.slice(1); return c; }
+var _profileCvUrl = '';
+
+function fmtDate(d){
+  try{
+    if(!d) return '';
+    var dt = new Date(d);
+    if(isNaN(dt)) return d;
+    return dt.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()]+' '+dt.getFullYear();
+  }catch(e){return d;}
+}
+
+function formatPhone(p){
+  if(!p) return '';
+  var c = String(p).replace(/[^0-9]/g,'');
+  if(c.charAt(0)==='0') c='27'+c.slice(1);
+  return c;
+}
+
+/* NORMALISE SUPABASE CV PATHS */
 function cleanPath(raw){
   if(!raw) return '';
-  raw = String(raw).trim();
-  if(raw.indexOf('http') !== -1){
-    var m = raw.split('/cvs/');
-    if(m[1]) raw = decodeURIComponent(m[1].split('?')[0]);
-    else raw = raw.split('/').pop();
+
+  raw=String(raw).trim();
+
+  if(raw.indexOf('http')===0){
+    var markers=['/object/sign/cvs/','/object/public/cvs/','/cvs/'];
+    var found=false;
+
+    for(var i=0;i<markers.length;i++){
+      var pos=raw.indexOf(markers[i]);
+      if(pos!==-1){
+        raw=raw.substring(pos+markers[i].length).split('?')[0];
+        found=true;
+        break;
+      }
+    }
+
+    if(!found) return '';
   }
-  return raw.replace(/^cvs\//,'').replace(/^\/+/,'').trim();
+
+  raw=raw.split('?')[0].replace(/^\/+/,'');
+  raw=raw.replace(/^cvs\//,'');
+
+  try{raw=decodeURIComponent(raw);}catch(e){}
+
+  return raw.trim();
 }
+
+function encodeStoragePath(p){
+  return p.split('/').map(function(s){
+    return encodeURIComponent(s);
+  }).join('/');
+}
+
 function getCurrentUser(){
-  var keys = ['jobway_user','jobway_profile','jobway_jobseeker','user','jobway_logged_in_user'];
+  var keys=['jobway_user','jobway_profile','jobway_jobseeker','user','jobway_logged_in_user'];
+
   for(var i=0;i<keys.length;i++){
-    try{ var u = JSON.parse(localStorage.getItem(keys[i]) || 'null'); if(u && (u.id || u.email || u.phone || u.fullName || u.full_name)) return u; }catch(e){}
+    try{
+      var u=JSON.parse(localStorage.getItem(keys[i])||'null');
+      if(u&&(u.id||u.email||u.phone||u.fullName||u.full_name)) return u;
+    }catch(e){}
   }
   return null;
 }
+
 function getMyPhone(){
-  var u = getCurrentUser() || {};
-  return u.phoneClean || u.phone || u.whatsapp || u.whatsapp_number || localStorage.getItem('phone') || localStorage.getItem('jobway_whatsapp') || '';
+  var u=getCurrentUser()||{};
+  return u.phoneClean||u.phone||u.whatsapp||u.whatsapp_number||
+    localStorage.getItem('phone')||
+    localStorage.getItem('jobway_whatsapp')||'';
 }
+
 function getMyName(){
-  var u = getCurrentUser() || {};
-  return u.fullName || u.full_name || u.name || 'Applicant';
+  var u=getCurrentUser()||{};
+  return u.fullName||u.full_name||u.name||'Applicant';
 }
+
 function getLocalApps(){
-  try{ var a = JSON.parse(localStorage.getItem('jobway_applications') || '[]'); if(Array.isArray(a)) return a; }catch(e){}
-  return [];
-}
-// FIXED: Never use localStorage profile CV. Use app cv_url, else Supabase profile CV.
-function getCvPath(a){
-  var raw = a.cv_path || a.cv_url || '';
-  if(!raw) raw = _profileCvUrl || '';
-  raw = cleanPath(raw);
-  return raw || null;
-}
-function encodeStoragePath(p){
-  return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/');
-}
-// FIXED: Direct Storage signed link, no Edge Function needed
-async function downloadMyCV(cvPath, btn){
-  if(!cvPath){ alert('No CV found for this application. Upload your CV in Profile once, then it will show here.'); return; }
-  if(String(cvPath).indexOf('http') === 0){ window.open(cvPath, '_blank'); return; }
-  var originalText = btn.innerHTML;
-  btn.innerHTML = '⏳ Generating secure link...';
-  btn.disabled = true;
   try{
-    var res = await fetch(SUPABASE_URL + '/storage/v1/object/sign/cvs/' + encodeStoragePath(cvPath), {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expiresIn: 3600 })
-    });
-    var data = await res.json();
-    if(res.ok && data.signedURL){
-      window.open(SUPABASE_URL + '/storage/v1' + data.signedURL, '_blank');
-      btn.innerHTML = '✅ Opened (valid 60min)';
-      setTimeout(function(){ btn.innerHTML = '📄 View My Submitted CV (60min link)'; btn.disabled=false; }, 3000);
-      return;
-    }
-    btn.innerHTML = '❌ Could not open CV';
-    alert('Could not open CV: ' + (data.message || data.msg || 'Object not found') + '\nTried file: ' + cvPath + '\nIf you just uploaded a new CV, check that the file name in Supabase Storage > cvs matches this.');
-    setTimeout(function(){ btn.innerHTML = originalText; btn.disabled=false; }, 3000);
+    var a=JSON.parse(localStorage.getItem('jobway_applications')||'[]');
+    return Array.isArray(a)?a:[];
+  }catch(e){return [];}
+}
+
+/*
+ IMPORTANT FIX:
+ Always prioritise the latest CV in the candidate's profile.
+ Old application CV paths are only fallbacks.
+*/
+function getCvCandidates(app){
+  var paths=[];
+  var candidates=[
+    _profileCvUrl,
+    app.cv_path,
+    app.cv_url
+  ];
+
+  for(var i=0;i<candidates.length;i++){
+    var p=cleanPath(candidates[i]);
+    if(p&&paths.indexOf(p)===-1) paths.push(p);
+  }
+
+  return paths;
+}
+
+/* OPEN CV USING A TEMPORARY SIGNED URL */
+async function downloadMyCV(encodedPaths,btn){
+
+  var paths=[];
+
+  try{
+    paths=JSON.parse(decodeURIComponent(encodedPaths));
   }catch(e){
-    btn.innerHTML = '❌ Failed, try again';
-    alert('Could not open CV: ' + e.message);
-    setTimeout(function(){ btn.innerHTML = originalText; btn.disabled=false; }, 3000);
+    alert('Invalid CV path. Please refresh the page.');
+    return;
   }
-}
-function getApplyUrl(job){
-  if(!job) return '';
-  if(job.apply_url && job.apply_url.indexOf('http') === 0) return job.apply_url;
-  if(job.application_url && job.application_url.indexOf('http') === 0) return job.application_url;
-  if(job.url && job.url.indexOf('http') === 0) return job.url;
-  if(job.description){ var m = job.description.match(/https?:\/\/[^\s\)]+/); if(m) return m[0].replace(/[.,]$/, ''); }
-  return '';
-}
-function xhrGet(url, cb){
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.setRequestHeader('apikey', SUPABASE_KEY);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
-  xhr.timeout = 8000;
-  xhr.onreadystatechange = function(){ if(xhr.readyState === 4){ if(xhr.status === 200){ try{ cb(JSON.parse(xhr.responseText)); }catch(e){ cb([]); } } else cb([]); } };
-  xhr.onerror = function(){ cb([]); };
-  xhr.ontimeout = function(){ cb([]); };
-  try{ xhr.send(); }catch(e){ cb([]); }
-}
-// FIXED: Fetch profile CV from Supabase by PHONE (stable), not by changing applicant_id
-function fetchProfileCv(cb){
-  var phone = getMyPhone();
-  var phoneClean = phone ? phone.replace(/[^0-9]/g,'') : '';
-  if(!phoneClean){ cb(''); return; }
-  var variants = [phoneClean];
-  if(phoneClean.charAt(0)==='0') variants.push('27'+phoneClean.slice(1));
-  if(phoneClean.indexOf('27')===0) variants.push('0'+phoneClean.slice(2));
-  variants.push(formatPhone(phoneClean));
-  var tried = 0;
-  function tryOne(){
-    if(tried >= variants.length){ cb(''); return; }
-    var ph = variants[tried]; tried++;
-    // Try phone column, then whatsapp_number column
-    xhrGet(SUPABASE_URL + '/rest/v1/profiles?select=cv_url,phone,whatsapp_number&or=(phone.eq.' + encodeURIComponent(ph) + ',whatsapp_number.eq.' + encodeURIComponent(ph) + ')&order=created_at.desc&limit=10', function(rows){
-      if(rows && rows.length){
-        for(var i=0;i<rows.length;i++){ if(rows[i].cv_url){ _profileCvUrl = cleanPath(rows[i].cv_url); cb(_profileCvUrl); return; } }
-        // Found profile but no CV, try next variant
-        tryOne();
-      } else tryOne();
-    });
+
+  if(!Array.isArray(paths)||!paths.length){
+    alert('No CV found. Please upload your CV in your JobWay profile.');
+    return;
   }
-  tryOne();
-}
-function load(){
-  // 1. Get profile CV first - this is "upload once"
-  fetchProfileCv(function(profileCv){
-    // Sync phone's localStorage so jobs.html also uses new CV next time
-    if(profileCv){
-      try{
-        var p = JSON.parse(localStorage.getItem('jobway_profile') || '{}');
-        p.cv_url = profileCv;
-        localStorage.setItem('jobway_profile', JSON.stringify(p));
-      }catch(e){}
-    }
-    // 2. Then get applications - Supabase is truth
-    fetchFromSupabase(function(remote){
-      if(!remote || !remote.length){
-        var local = getLocalApps();
-        if(!local.length){ render([]); return; }
-        // Local only, fill missing CV from profile
-        var converted = local.map(function(a){ return { jobId: a.jobId, job_id: a.jobId, title: a.title, created_at: a.date, status: a.status || 'Application Received', cv_url: profileCv || '', _isLocal: true }; });
-        enrichWithJobs(converted, function(enriched){ render(enriched); });
+
+  var originalText=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='⏳ Generating secure CV link...';
+
+  /* Open window immediately to reduce mobile popup blocking */
+  var newWindow=window.open('about:blank','_blank');
+
+  try{
+    var lastError='CV file not found';
+
+    for(var i=0;i<paths.length;i++){
+
+      var cvPath=cleanPath(paths[i]);
+
+      if(!cvPath) continue;
+
+      var endpoint=
+        SUPABASE_URL+
+        '/storage/v1/object/sign/cvs/'+
+        encodeStoragePath(cvPath);
+
+      var res=await fetch(endpoint,{
+        method:'POST',
+        headers:{
+          'apikey':SUPABASE_KEY,
+          'Authorization':'Bearer '+SUPABASE_KEY,
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          expiresIn:3600
+        })
+      });
+
+      var data={};
+
+      try{data=await res.json();}catch(e){}
+
+      if(res.ok&&(data.signedURL||data.signedUrl)){
+
+        var signed=data.signedURL||data.signedUrl;
+
+        var finalUrl=signed.indexOf('http')===0
+          ? signed
+          : SUPABASE_URL+'/storage/v1'+signed;
+
+        if(newWindow&&!newWindow.closed){
+          newWindow.location.replace(finalUrl);
+        }else{
+          window.location.href=finalUrl;
+        }
+
+        btn.innerHTML='✅ CV opened';
+        setTimeout(function(){
+          btn.innerHTML=originalText;
+          btn.disabled=false;
+        },3000);
+
         return;
       }
-      // Fill NULL cv_url in applications with profile CV (upload once, apply many times)
-      for(var i=0;i<remote.length;i++){ if(!remote[i].cv_url && profileCv) remote[i].cv_url = profileCv; }
-      enrichWithJobs(remote, function(enriched){ render(enriched); });
+
+      lastError=data.message||data.msg||data.error||('HTTP '+res.status);
+
+      /* Try the next stored CV path if this one is missing */
+    }
+
+    if(newWindow&&!newWindow.closed) newWindow.close();
+
+    throw new Error(lastError);
+
+  }catch(e){
+
+    if(newWindow&&!newWindow.closed) newWindow.close();
+
+    btn.innerHTML=originalText;
+    btn.disabled=false;
+
+    alert(
+      'Could not open your CV.\n\n'+
+      'Reason: '+e.message+
+      '\n\nWe tried '+paths.length+' CV path(s).'+
+      '\n\nPlease check that the exact file exists in Supabase Storage > cvs.'
+    );
+  }
+}
+
+/* GET CURRENT CANDIDATE CV FROM PROFILE */
+function xhrGet(url,cb){
+
+  var xhr=new XMLHttpRequest();
+
+  xhr.open('GET',url,true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.timeout=10000;
+
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState===4){
+      if(xhr.status===200){
+        try{cb(JSON.parse(xhr.responseText));}
+        catch(e){cb([]);}
+      }else{
+        cb([]);
+      }
+    }
+  };
+
+  xhr.onerror=function(){cb([]);};
+  xhr.ontimeout=function(){cb([]);};
+
+  try{xhr.send();}catch(e){cb([]);}
+}
+
+function fetchProfileCv(cb){
+
+  var phone=getMyPhone();
+  var phoneClean=phone?phone.replace(/[^0-9]/g,''):'';
+
+  if(!phoneClean){
+    cb('');
+    return;
+  }
+
+  var variants=[phoneClean];
+
+  if(phoneClean.charAt(0)==='0')
+    variants.push('27'+phoneClean.slice(1));
+
+  if(phoneClean.indexOf('27')===0)
+    variants.push('0'+phoneClean.slice(2));
+
+  variants.push(formatPhone(phoneClean));
+
+  var tried=0;
+
+  function tryOne(){
+
+    if(tried>=variants.length){
+      cb('');
+      return;
+    }
+
+    var ph=variants[tried++];
+
+    var url=SUPABASE_URL+
+      '/rest/v1/profiles?select=cv_url,phone,whatsapp_number'+
+      '&or=(phone.eq.'+encodeURIComponent(ph)+
+      ',whatsapp_number.eq.'+encodeURIComponent(ph)+')'+
+      '&order=created_at.desc&limit=10';
+
+    xhrGet(url,function(rows){
+
+      if(rows&&rows.length){
+
+        for(var i=0;i<rows.length;i++){
+
+          if(rows[i].cv_url){
+
+            var path=cleanPath(rows[i].cv_url);
+
+            if(path){
+              _profileCvUrl=path;
+              cb(path);
+              return;
+            }
+          }
+        }
+      }
+
+      tryOne();
     });
-  });
+  }
+
+  tryOne();
 }
-function mergeApps(localList, remoteList){
-  var seen = {};
-  var out = [];
-  for(var i=0;i<remoteList.length;i++){ var r = remoteList[i]; var k = String(r.job_id || r.jobId || ''); if(k && !seen[k]){ seen[k]=1; out.push(r); } }
-  for(var j=0;j<localList.length;j++){ var l = localList[j]; var k2 = String(l.job_id || l.jobId || ''); if(k2 && !seen[k2]){ seen[k2]=1; if(!l.cv_url && _profileCvUrl) l.cv_url = _profileCvUrl; out.push(l); } }
-  return out;
-}
-// FIXED: Search by PHONE first (stable), applicant_id second (changes every Save)
+
+/* GET APPLICATIONS */
 function fetchFromSupabase(cb){
-  var phone = getMyPhone();
-  var phoneClean = phone ? phone.replace(/[^0-9]/g,'') : '';
-  var phoneVariants = [];
+
+  var phone=getMyPhone();
+  var phoneClean=phone?phone.replace(/[^0-9]/g,''):'';
+
+  var variants=[];
+
   if(phoneClean){
-    phoneVariants.push(phoneClean);
-    if(phoneClean.charAt(0)==='0') phoneVariants.push('27'+phoneClean.slice(1));
-    if(phoneClean.indexOf('27')===0) phoneVariants.push('0'+phoneClean.slice(2));
-    phoneVariants.push(formatPhone(phoneClean));
+    variants.push(phoneClean);
+
+    if(phoneClean.charAt(0)==='0')
+      variants.push('27'+phoneClean.slice(1));
+
+    if(phoneClean.indexOf('27')===0)
+      variants.push('0'+phoneClean.slice(2));
+
+    variants.push(formatPhone(phoneClean));
   }
-  var all = [];
-  var seenId = {};
-  function addApps(apps){ for(var i=0;i<(apps||[]).length;i++){ var key = String(apps[i].id || apps[i].job_id || ''); if(key && !seenId[key]){ seenId[key]=1; all.push(apps[i]); } else if(!key) all.push(apps[i]); } }
-  function tryByPhone(idx, next){
-    if(idx >= phoneVariants.length){ next(); return; }
-    var ph = phoneVariants[idx];
-    xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*&phone=eq.' + encodeURIComponent(ph) + '&order=created_at.desc', function(apps){
-      addApps(apps);
-      tryByPhone(idx+1, next);
-    });
+
+  var all=[];
+  var seen={};
+
+  function addApps(apps){
+
+    for(var i=0;i<(apps||[]).length;i++){
+
+      var a=apps[i];
+      var key=String(a.id||a.job_id||'');
+
+      if(key&&!seen[key]){
+        seen[key]=1;
+        all.push(a);
+      }else if(!key){
+        all.push(a);
+      }
+    }
   }
-  tryByPhone(0, function(){
-    var user = getCurrentUser();
-    var applicantId = user ? (user.id || user.user_id || '') : '';
-    if(applicantId && String(applicantId).length >= 10){
-      xhrGet(SUPABASE_URL + '/rest/v1/applications?select=*&applicant_id=eq.' + encodeURIComponent(applicantId) + '&order=created_at.desc', function(apps2){
-        addApps(apps2);
-        cb(all);
-      });
-    } else cb(all);
+
+  function tryByPhone(idx,next){
+
+    if(idx>=variants.length){
+      next();
+      return;
+    }
+
+    var ph=variants[idx];
+
+    xhrGet(
+      SUPABASE_URL+
+      '/rest/v1/applications?select=*&phone=eq.'+
+      encodeURIComponent(ph)+
+      '&order=created_at.desc',
+      function(apps){
+        addApps(apps);
+        tryByPhone(idx+1,next);
+      }
+    );
+  }
+
+  tryByPhone(0,function(){
+
+    var user=getCurrentUser();
+    var applicantId=user?(user.id||user.user_id||''):'';
+
+    if(applicantId&&String(applicantId).length>=10){
+
+      xhrGet(
+        SUPABASE_URL+
+        '/rest/v1/applications?select=*&applicant_id=eq.'+
+        encodeURIComponent(applicantId)+
+        '&order=created_at.desc',
+        function(apps){
+          addApps(apps);
+          cb(all);
+        }
+      );
+
+    }else{
+      cb(all);
+    }
   });
 }
-function enrichWithJobs(apps, cb){
-  if(!apps || !apps.length){ cb([]); return; }
-  var done = 0; var clean = [];
+
+/* GET JOB DETAILS */
+function enrichWithJobs(apps,cb){
+
+  if(!apps||!apps.length){
+    cb([]);
+    return;
+  }
+
+  var done=0;
+  var clean=[];
+
   for(var i=0;i<apps.length;i++){
+
     (function(app){
-      var jobId = app.job_id || app.jobId;
-      if(!jobId){ done++; if(done === apps.length) cb(clean); return; }
-      xhrGet(SUPABASE_URL + '/rest/v1/jobs?select=*&id=eq.' + encodeURIComponent(jobId), function(jobs){
-        if(jobs && jobs.length > 0) app.jobs = jobs[0];
+
+      var jobId=app.job_id||app.jobId;
+
+      if(!jobId){
         clean.push(app);
         done++;
-        if(done === apps.length) cb(clean);
-      });
+        if(done===apps.length) cb(clean);
+        return;
+      }
+
+      xhrGet(
+        SUPABASE_URL+
+        '/rest/v1/jobs?select=*&id=eq.'+
+        encodeURIComponent(jobId),
+        function(jobs){
+
+          if(jobs&&jobs.length>0)
+            app.jobs=jobs[0];
+
+          clean.push(app);
+          done++;
+
+          if(done===apps.length)
+            cb(clean);
+        }
+      );
+
     })(apps[i]);
   }
 }
+
+function getApplyUrl(job){
+
+  if(!job) return '';
+
+  if(job.apply_url&&job.apply_url.indexOf('http')===0)
+    return job.apply_url;
+
+  if(job.application_url&&job.application_url.indexOf('http')===0)
+    return job.application_url;
+
+  if(job.url&&job.url.indexOf('http')===0)
+    return job.url;
+
+  if(job.description){
+    var m=job.description.match(/https?:\/\/[^\s\)]+/);
+    if(m) return m[0].replace(/[.,]$/,'');
+  }
+
+  return '';
+}
+
+/* LOAD EVERYTHING */
+function load(){
+
+  fetchProfileCv(function(profileCv){
+
+    if(profileCv){
+      try{
+        var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}');
+        p.cv_url=profileCv;
+        localStorage.setItem('jobway_profile',JSON.stringify(p));
+      }catch(e){}
+    }
+
+    fetchFromSupabase(function(remote){
+
+      if(!remote||!remote.length){
+
+        var local=getLocalApps();
+
+        if(!local.length){
+          render([]);
+          return;
+        }
+
+        var converted=local.map(function(a){
+          return {
+            jobId:a.jobId,
+            job_id:a.jobId,
+            title:a.title,
+            created_at:a.date,
+            status:a.status||'Application Received',
+            cv_url:a.cv_url||'',
+            cv_path:a.cv_path||'',
+            _isLocal:true
+          };
+        });
+
+        enrichWithJobs(converted,function(enriched){
+          render(enriched);
+        });
+
+        return;
+      }
+
+      enrichWithJobs(remote,function(enriched){
+        render(enriched);
+      });
+
+    });
+  });
+}
+
+/* RENDER APPLICATIONS */
 function render(all){
-  document.getElementById('count').innerHTML = '(' + all.length + ')';
-  var shortlisted = 0, interviews = 0, hired = 0;
-  for(var i=0;i<all.length;i++){ var s = (all[i].status || '').toLowerCase(); if(s.indexOf('shortlist') !== -1) shortlisted++; if(s.indexOf('interview') !== -1 || all[i].interview_date) interviews++; if(s.indexOf('hired') !== -1 || all[i].status === 'Approved') hired++; }
-  var banner = '';
-  if(hired) banner = '<div class="notif" style="background:#0a3a2a;color:#01F9C6">🎉 You are Hired for ' + hired + ' job(s)!</div>';
-  else if(interviews) banner = '<div class="notif" style="background:#2a2410;color:#FFB020">📅 ' + interviews + ' Interview Scheduled — check below</div>';
-  else if(shortlisted) banner = '<div class="notif" style="background:#0a3a2a;color:#01F9C6">⭐ Shortlisted for ' + shortlisted + ' job(s)!</div>';
-  document.getElementById('banner').innerHTML = banner;
-  if(all.length === 0){
-    document.getElementById('list').innerHTML = '<div class="card" style="text-align:center"><p>No applications yet</p><p class="meta">Go apply for Cashier/General Worker first</p><button class="btn btn-green" onclick="location.href=\'jobs.html\'">Go Apply</button></div>';
+
+  document.getElementById('count').innerHTML='('+all.length+')';
+
+  var shortlisted=0,interviews=0,hired=0;
+
+  for(var i=0;i<all.length;i++){
+
+    var s=(all[i].status||'').toLowerCase();
+
+    if(s.indexOf('shortlist')!==-1) shortlisted++;
+
+    if(s.indexOf('interview')!==-1||all[i].interview_date)
+      interviews++;
+
+    if(s.indexOf('hired')!==-1||all[i].status==='Approved')
+      hired++;
+  }
+
+  var banner='';
+
+  if(hired)
+    banner='<div class="notif" style="background:#0a3a2a;color:#01F9C6">🎉 You are Hired for '+hired+' job(s)!</div>';
+  else if(interviews)
+    banner='<div class="notif" style="background:#2a2410;color:#FFB020">📅 '+interviews+' Interview Scheduled — check below</div>';
+  else if(shortlisted)
+    banner='<div class="notif" style="background:#0a3a2a;color:#01F9C6">⭐ Shortlisted for '+shortlisted+' job(s)!</div>';
+
+  document.getElementById('banner').innerHTML=banner;
+
+  if(!all.length){
+
+    document.getElementById('list').innerHTML=
+      '<div class="card" style="text-align:center">'+
+      '<p>No applications yet</p>'+
+      '<p class="meta">Go apply for available jobs first.</p>'+
+      '<button class="btn btn-green" onclick="location.href=\'jobs.html\'">Go Apply</button>'+
+      '</div>';
+
     return;
   }
-  var html = '';
+
+  var html='';
+
   for(var k=0;k<all.length;k++){
-    var app = all[k];
-    var title = (app.jobs && app.jobs.title) || app.title || 'Job';
-    var comp = (app.jobs && (app.jobs.company_name || app.jobs.company)) || '';
-    var status = app.status || 'Application Received';
-    if(status === 'Applied') status = 'Application Received';
-    if(status === 'Approved') status = 'Hired';
-    if(status === 'shortlisted') status = 'Shortlisted';
-    if(status === 'interview') status = 'Interview Scheduled';
-    var steps = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
-    var idx = steps.indexOf(status);
-    if((status === 'Not Selected' || status === 'Rejected')) idx = -1;
-    if(idx === -1 && status !== 'Not Selected' && status !== 'Rejected') idx = 0;
-    var badges = '';
-    for(var b=0;b<steps.length;b++){ var cls = b < idx ? 's-done' : (b === idx ? 's-active' : 's-pending'); var icon = b < idx ? '✅' : (b === idx ? '👁️' : ''); badges += '<span class="badge ' + cls + '">' + icon + ' ' + steps[b] + '</span>'; }
-    var interview = '';
-    if(app.interview_date || status === 'Interview Scheduled'){
-      interview = '<div class="interview-box">📅 <b>INTERVIEW SCHEDULED</b><br>Date: <b>' + (app.interview_date || 'To be confirmed') + '</b><br>Time: <b>' + (app.interview_time || '') + '</b><br>Location: <b>' + (app.interview_location || 'Thohoyandou Office') + '</b><br>' + (app.interview_note || 'Bring ID & CV') + '</div>';
+
+    var app=all[k];
+
+    var title=(app.jobs&&app.jobs.title)||app.title||'Job';
+
+    var comp=(app.jobs&&(app.jobs.company_name||app.jobs.company))||'';
+
+    var status=app.status||'Application Received';
+
+    if(status==='Applied') status='Application Received';
+    if(status==='Approved') status='Hired';
+    if(status==='shortlisted') status='Shortlisted';
+    if(status==='interview') status='Interview Scheduled';
+
+    var steps=[
+      'Application Received',
+      'Under Review',
+      'Shortlisted',
+      'Interview Scheduled',
+      'Hired'
+    ];
+
+    var idx=steps.indexOf(status);
+
+    if(status==='Not Selected'||status==='Rejected')
+      idx=-1;
+
+    if(idx===-1&&status!=='Not Selected'&&status!=='Rejected')
+      idx=0;
+
+    var badges='';
+
+    for(var b=0;b<steps.length;b++){
+
+      var cls=b<idx?'s-done':(b===idx?'s-active':'s-pending');
+
+      var icon=b<idx?'✅':(b===idx?'👁️':'');
+
+      badges+='<span class="badge '+cls+'">'+icon+' '+steps[b]+'</span>';
     }
-    var hiredBox = status === 'Hired' ? '<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">' + comp + ' will contact you.</span></div>' : '';
-    var rejected = (status === 'Not Selected' || status === 'Rejected') ? '<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected. Keep applying — new jobs every week.</div>' : '';
-    var empPhone = formatPhone((app.jobs && (app.jobs.whatsapp_number_for_applicants || app.jobs.whatsapp_number)) || '0790608952');
-    var myName = getMyName();
-    var msg = 'Hi ' + comp + ', I\'m ' + myName + '. I applied for ' + title + ' on JobWay. Status: ' + status;
-    var waBtn = '<a href="https://wa.me/' + empPhone + '?text=' + encodeURIComponent(msg) + '" target="_blank" class="wa-btn">💬 Message Employer</a>';
-    var salaryText = (app.jobs && app.jobs.salary_min) ? 'R' + app.jobs.salary_min + (app.jobs.salary_max ? ' - R' + app.jobs.salary_max : '+') : '';
-    var applyUrl = getApplyUrl(app.jobs);
-    var extBtn = applyUrl ? '<a href="' + applyUrl + '" target="_blank" class="ext-link">Apply on Original Site ↗</a>' : '';
-    var cvPath = getCvPath(app);
-    var cvSafe = cvPath ? cvPath.replace(/'/g, "\\'") : '';
-    var cvBtn = cvPath ? '<br><button class="cv-link" onclick="downloadMyCV(\''+cvSafe+'\', this)">📄 View My Submitted CV (60min link)</button>' : '<br><span class="meta">🔒 No CV attached — upload CV once in Profile</span>';
-    html += '<div class="card"><h3 style="margin:0 0 6px">' + title + ' - ' + comp + '</h3><div class="meta">Applied: ' + fmtDate(app.created_at) + ' • ' + ((app.jobs && app.jobs.location) || '') + ' ' + salaryText + '</div><div>' + badges + '</div><div class="meta"><b>Status:</b> ' + status + '</div>' + interview + hiredBox + rejected + cvBtn + '<br>' + waBtn + extBtn + '</div>';
+
+    var interview='';
+
+    if(app.interview_date||status==='Interview Scheduled'){
+
+      interview=
+        '<div class="interview-box">'+
+        '📅 <b>INTERVIEW SCHEDULED</b><br>'+
+        'Date: <b>'+(app.interview_date||'To be confirmed')+'</b><br>'+
+        'Time: <b>'+(app.interview_time||'')+'</b><br>'+
+        'Location: <b>'+(app.interview_location||'To be confirmed')+'</b><br>'+
+        (app.interview_note||'Bring ID & CV')+
+        '</div>';
+    }
+
+    var hiredBox=status==='Hired'
+      ? '<div class="hired-box">🎉 <b>CONGRATULATIONS — YOU ARE HIRED!</b><br><span style="font-size:12px">'+comp+' will contact you.</span></div>'
+      : '';
+
+    var rejected=(status==='Not Selected'||status==='Rejected')
+      ? '<div style="color:#ff8a8a;margin-top:8px;font-size:13px">❌ Not Selected. Keep applying — new jobs every week.</div>'
+      : '';
+
+    var empPhone=formatPhone(
+      (app.jobs&&(app.jobs.whatsapp_number_for_applicants||app.jobs.whatsapp_number))||'0790608952'
+    );
+
+    var myName=getMyName();
+
+    var msg='Hi '+comp+', I am '+myName+'. I applied for '+title+' on JobWay. Status: '+status;
+
+    var waBtn=
+      '<a href="https://wa.me/'+empPhone+'?text='+encodeURIComponent(msg)+
+      '" target="_blank" rel="noopener" class="wa-btn">💬 Message Employer</a>';
+
+    var salaryText=(app.jobs&&app.jobs.salary_min)
+      ? 'R'+app.jobs.salary_min+(app.jobs.salary_max?' - R'+app.jobs.salary_max:'+')
+      : '';
+
+    var applyUrl=getApplyUrl(app.jobs);
+
+    var extBtn=applyUrl
+      ? '<a href="'+applyUrl+'" target="_blank" rel="noopener" class="ext-link">Apply on Original Site ↗</a>'
+      : '';
+
+    /* IMPORTANT FIX: PROFILE CV FIRST, OLD APPLICATION PATHS SECOND */
+    var cvPaths=getCvCandidates(app);
+
+    var cvBtn='';
+
+    if(cvPaths.length){
+
+      var encodedPaths=encodeURIComponent(JSON.stringify(cvPaths));
+
+      cvBtn=
+        '<br><button class="cv-link" onclick="downloadMyCV(\''+
+        encodedPaths+
+        '\',this)">📄 View My CV (Secure 60min link)</button>';
+
+    }else{
+
+      cvBtn=
+        '<br><span class="meta">🔒 No CV found — upload your CV in Profile.</span>';
+    }
+
+    html+=
+      '<div class="card">'+
+      '<h3 style="margin:0 0 6px">'+title+' - '+comp+'</h3>'+
+      '<div class="meta">Applied: '+fmtDate(app.created_at)+' • '+
+      ((app.jobs&&app.jobs.location)||'')+' '+salaryText+'</div>'+
+      '<div>'+badges+'</div>'+
+      '<div class="meta"><b>Status:</b> '+status+'</div>'+
+      interview+
+      hiredBox+
+      rejected+
+      cvBtn+
+      '<br>'+waBtn+extBtn+
+      '</div>';
   }
-  document.getElementById('list').innerHTML = html;
+
+  document.getElementById('list').innerHTML=html;
 }
+
+/* START */
 load();
-</script></body></html>
+
+</script>
+</body>
+</html>
