@@ -64,6 +64,25 @@ var SUPABASE_URL = 'https://dmxumcjeetphwzvgzzuk.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-';
 var allJobs = []; var cached = []; var jobsLoaded = false; var jobsLoading = false;
 try{ cached = JSON.parse(localStorage.getItem('jobway_cached_jobs') || '[]'); }catch(e){ cached = []; }
+
+// FIXED: View Submitted CV - turns a storage PATH like "400c3802-...pdf" into a 1-hour signed link and opens it.
+// Works with plain fetch, no supabase-js library needed.
+async function viewSubmittedCV(cvPath){
+  if(!cvPath){ alert("No CV uploaded for this application"); return; }
+  // If it's already a full https link, just open it
+  if(String(cvPath).indexOf('http') === 0){ window.open(cvPath, '_blank'); return; }
+  try{
+    var res = await fetch(SUPABASE_URL + '/storage/v1/object/sign/cvs/' + encodeURIComponent(cvPath), {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expiresIn: 3600 })
+    });
+    var data = await res.json();
+    if(!res.ok || !data.signedURL){ alert("Could not open CV: " + (data.message || data.msg || res.status)); return; }
+    window.open(SUPABASE_URL + '/storage/v1' + data.signedURL, '_blank');
+  }catch(e){ alert("Could not open CV: " + e.message); }
+}
+
 (function(){
   var logged = localStorage.getItem('jobway_logged_in');
   if(logged){ document.getElementById('profileBtn').style.display='inline-block'; try{ var p=JSON.parse(localStorage.getItem('jobway_profile')||'{}'); if(!p.cv_url) document.getElementById('cvAlert').style.display='block'; }catch(e){} }
@@ -82,10 +101,8 @@ function doSearchFromJobs(){
 function escapeHTML(value){ return String(value == null ? '' : value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function timeAgo(ts){ var h = Math.floor((Date.now() - ts) / 3600000); if(h < 1) return 'Posted today'; if(h < 24) return 'Posted ' + h + 'h ago'; return 'Posted ' + Math.floor(h / 24) + ' days ago'; }
 function initials(n){ var parts = (n || 'J').trim().split(/\s+/); var s = ''; for(var i = 0; i < parts.length && s.length < 2; i++){ if(parts[i].length > 0) s += parts[i][0]; } return s.toUpperCase(); }
-// FIXED: Never default to Careers24. Return empty if no real link found.
 function extractUrl(text,url){ if(url){ try{ var parsed = new URL(url); if(parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href; }catch(e){} } if(!text) return ''; var m = text.match(/https?:\/\/[^\s)]+/); if(m) return m[0].replace(/[.,]$/,''); return ''; }
 function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
-// FIXED: Merge ALL user keys - jobway_profile alone often has no id, no phone, no name
 function getCurrentUser(){
   var merged = {};
   var keys = ['jobway_user','jobway_profile','jobway_jobseeker','user','jobway_logged_in_user'];
@@ -200,7 +217,6 @@ function fetchJobs(callback){
           var j = rows[i]; if(isExpired(j)) continue;
           var salaryText = 'Salary: Employer to disclose'; if(j.salary_min && j.salary_max) salaryText = 'R' + j.salary_min + ' - R' + j.salary_max; else if(j.salary_min) salaryText = 'R' + j.salary_min + '+'; else if(j.salary) salaryText = j.salary;
           var applyUrl = extractUrl(j.description || '', j.apply_url || j.application_url || j.url || '');
-          // FIXED: Paid = posted by employer on JobWay. Scraped = has external link + no employer id.
           var hasEmployer = !!(j.employer_id || j.user_id || j.posted_by || j.employer_phone || j.whatsapp_number_for_applicants || j.whatsapp_number);
           var isPaid = hasEmployer || !applyUrl;
           mapped.push({title:j.title || 'Job Opportunity', company:j.company_name || j.company || 'Company', location:j.location || j.province || 'South Africa', province:j.province || '', category:j.category || j.job_category || '', industry:j.industry || '', type:j.type || j.job_type || 'Full-time', salaryText:salaryText, desc:j.description || '', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, closing_date:j.closing_date || '', applyUrl:applyUrl, isPaid:isPaid, employer_id: j.employer_id || j.user_id || j.posted_by || '', whatsapp: j.whatsapp_number_for_applicants || j.whatsapp_number || ''});
@@ -216,26 +232,20 @@ function fetchJobs(callback){
   xhr.ontimeout = function(){ finish(cleanJobs(cached),true); };
   try{ jobsLoading = true; xhr.send(); }catch(e){ finish(cleanJobs(cached),true); }
 }
-// FIXED: One-click apply to EMPLOYER DASHBOARD. Sends applicant_id + status so Dashboard + Track can find it. No WhatsApp. No Careers24.
 function handleApply(jobId,applyUrl,title,isPaid,btn){
   var logged = localStorage.getItem('jobway_logged_in');
   if(!logged){ localStorage.setItem('jobway_wanted_job',jobId); window.location.href = 'login.html'; return; }
   if(!hasCV()){ if(confirm('You need to upload your CV first. Go to Profile now?')) window.location.href = 'profile.html'; return; }
   if(hasApplied(jobId)){ alert('You already applied for this job. Check Track My Applications.'); return; }
   var profile = getProfile();
-  // Scraped job: no employer dashboard on JobWay - open its real external link
   if(!isPaid && applyUrl){ window.open(applyUrl,'_blank'); return; }
-  // PAID / EMPLOYER-POSTED JOB: One-click apply to dashboard
   if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
-  // 1. Save locally FIRST - Track page reads this instantly
   try{
     var apps = JSON.parse(localStorage.getItem('jobway_applications') || '[]');
     apps.unshift({jobId:jobId, job_id:jobId, title:title, url:applyUrl, date:new Date().toISOString(), created_at:new Date().toISOString(), cv_url:profile.cv_url || '', phone:profile.phone || '', full_name:profile.fullName || '', email:profile.email || '', applicant_id: profile.id || '', status:'Application Received'});
     localStorage.setItem('jobway_applications', JSON.stringify(apps));
   }catch(e){}
-  // 2. Send to Supabase - this is what Employer Dashboard reads
   var payload = { job_id: jobId, phone: profile.phone || '', full_name: profile.fullName || '', email: profile.email || '', cv_url: profile.cv_url || '', status: 'Application Received' };
-  // Only send applicant_id if it is a real UUID - otherwise Supabase rejects the whole insert
   if(profile.id && isUuid(profile.id)) payload.applicant_id = profile.id;
   var xhr = new XMLHttpRequest();
   xhr.open('POST', SUPABASE_URL + '/rest/v1/applications', true);
@@ -250,8 +260,6 @@ function handleApply(jobId,applyUrl,title,isPaid,btn){
       alert('Application sent! ✅\n\nYour CV has been sent to the employer. They will see it in their dashboard.');
       render();
     } else {
-      // Supabase failed (often RLS) - but local save still lets Track show it.
-      // Tell the truth so you can fix RLS, don't pretend it sent.
       console.log('Application insert failed:', xhr.status, xhr.responseText);
       if(btn){ btn.textContent = '✓ Applied (saved locally)'; }
       alert('Application saved on your phone, but Supabase blocked it (Error ' + xhr.status + ').\n\nEmployer will NOT see it until RLS is fixed.\n\nGo to Supabase > Authentication > Policies > applications > Enable INSERT for anon/authenticated.');
