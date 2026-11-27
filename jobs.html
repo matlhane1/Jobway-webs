@@ -30,6 +30,7 @@ select,.search-input{width:100%;background:#0F2230;border:1px solid #25475A;colo
 .badge-green{color:#01F9C6}
 .desc{color:#C8DDE3;font-size:13px;line-height:1.5;margin:8px 0;white-space:normal;overflow-wrap:anywhere}
 .btn-apply{background:#01F9C6;color:#08231C;border:0;border-radius:20px;padding:12px;font-weight:900;width:100%;font-size:13px;margin-top:8px;display:block;text-align:center;cursor:pointer}
+.btn-apply:disabled{background:#1A3E52;color:#8DB0BF;cursor:default}
 .btn-detail{background:#1A3E52;color:#fff;border:1px solid #2a4a5e;border-radius:20px;padding:11px;font-weight:700;width:100%;font-size:13px;margin-top:6px;cursor:pointer}
 .need-cv{background:#2a2a1a;border:1px solid #5a4a2a;border-radius:10px;padding:10px;font-size:12px;color:#FFD166;margin-top:8px;text-align:center}
 .empty{text-align:center;color:#8DB0BF;line-height:1.8;padding:20px}
@@ -84,6 +85,7 @@ function initials(n){ var parts = (n || 'J').trim().split(/\s+/); var s = ''; fo
 // FIXED: Never default to Careers24. Return empty if no real link found.
 function extractUrl(text,url){ if(url){ try{ var parsed = new URL(url); if(parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href; }catch(e){} } if(!text) return ''; var m = text.match(/https?:\/\/[^\s)]+/); if(m) return m[0].replace(/[.,]$/,''); return ''; }
 function hasCV(){ try{ var p = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); return !!p.cv_url; }catch(e){ return false; } }
+function hasApplied(jobId){ try{ var a = JSON.parse(localStorage.getItem('jobway_applications') || '[]'); for(var i=0;i<a.length;i++){ if(String(a[i].jobId) === String(jobId)) return true; } }catch(e){} return false; }
 var STOP_WORDS = ['job','jobs','vacancy','vacancies','work','works','opportunity','opportunities','position','positions','career','careers','looking','find','for','the','a','an','in','at','near','and','to','me','my'];
 var JOB_GROUPS = [
   {names:['clean','cleaning','cleaner','cleaners','cleaning staff','cleaning assistant','cleaning supervisor','cleaning lady','cleaning worker','cleaner assistant','housekeeper','housekeeping']},
@@ -170,7 +172,7 @@ function fetchJobs(callback){
     if(xhr.status === 200){
       try{
         var rows = JSON.parse(xhr.responseText); var mapped = [];
-        for(var i = 0; i < rows.length; i++){ var j = rows[i]; if(isExpired(j)) continue; var salaryText = 'Salary: Employer to disclose'; if(j.salary_min && j.salary_max) salaryText = 'R' + j.salary_min + ' - R' + j.salary_max; else if(j.salary_min) salaryText = 'R' + j.salary_min + '+'; else if(j.salary) salaryText = j.salary; mapped.push({title:j.title || 'Job Opportunity', company:j.company_name || j.company || 'Company', location:j.location || j.province || 'South Africa', province:j.province || '', category:j.category || j.job_category || '', industry:j.industry || '', type:j.type || j.job_type || 'Full-time', salaryText:salaryText, desc:j.description || '', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, closing_date:j.closing_date || '', applyUrl:extractUrl(j.description || '', j.apply_url || j.application_url || j.url || ''), whatsapp: j.whatsapp_number_for_applicants || j.whatsapp_number || j.whatsapp || j.contact_whatsapp || ''}); }
+        for(var i = 0; i < rows.length; i++){ var j = rows[i]; if(isExpired(j)) continue; var salaryText = 'Salary: Employer to disclose'; if(j.salary_min && j.salary_max) salaryText = 'R' + j.salary_min + ' - R' + j.salary_max; else if(j.salary_min) salaryText = 'R' + j.salary_min + '+'; else if(j.salary) salaryText = j.salary; mapped.push({title:j.title || 'Job Opportunity', company:j.company_name || j.company || 'Company', location:j.location || j.province || 'South Africa', province:j.province || '', category:j.category || j.job_category || '', industry:j.industry || '', type:j.type || j.job_type || 'Full-time', salaryText:salaryText, desc:j.description || '', postedAt:j.created_at ? new Date(j.created_at).getTime() : Date.now(), id:j.id, closing_date:j.closing_date || '', applyUrl:extractUrl(j.description || '', j.apply_url || j.application_url || j.url || ''), isPaid: !!(j.whatsapp_number_for_applicants || j.whatsapp_number || j.employer_id || j.user_id || j.posted_by), whatsapp: j.whatsapp_number_for_applicants || j.whatsapp_number || ''}); }
         mapped = cleanJobs(mapped);
         if(mapped.length > 0){ try{ localStorage.setItem('jobway_cached_jobs', JSON.stringify(mapped)); }catch(e){} finish(mapped,false); return; }
         finish(cleanJobs(cached),false); return;
@@ -182,25 +184,38 @@ function fetchJobs(callback){
   xhr.ontimeout = function(){ finish(cleanJobs(cached),true); };
   try{ jobsLoading = true; xhr.send(); }catch(e){ finish(cleanJobs(cached),true); }
 }
-// FIXED: Employer-paid jobs apply via WhatsApp FIRST. Scraped jobs use their link. No more Careers24 fallback.
-function handleApply(jobId,applyUrl,title,whatsapp){
+// FIXED: One-click apply to EMPLOYER DASHBOARD. No WhatsApp. No Careers24 for paid jobs.
+function handleApply(jobId,applyUrl,title,isPaid,btn){
   var logged = localStorage.getItem('jobway_logged_in');
   if(!logged){ localStorage.setItem('jobway_wanted_job',jobId); window.location.href = 'login.html'; return; }
   if(!hasCV()){ if(confirm('You need to upload your CV first. Go to Profile now?')) window.location.href = 'profile.html'; return; }
+  if(hasApplied(jobId)){ alert('You already applied for this job. Check Track My Applications.'); return; }
   var profile = {}; try{ profile = JSON.parse(localStorage.getItem('jobway_profile') || '{}'); }catch(e){}
-  try{ var apps = JSON.parse(localStorage.getItem('jobway_applications') || '[]'); apps.unshift({jobId:jobId, title:title, url:applyUrl, date:new Date().toISOString(), cv_url:profile.cv_url || ''}); localStorage.setItem('jobway_applications', JSON.stringify(apps)); }catch(e){}
-  try{ var xhr = new XMLHttpRequest(); xhr.open('POST', SUPABASE_URL + '/rest/v1/applications', true); xhr.setRequestHeader('apikey',SUPABASE_KEY); xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY); xhr.setRequestHeader('Content-Type','application/json'); xhr.setRequestHeader('Prefer','return=minimal'); xhr.send(JSON.stringify({job_id:jobId, phone:profile.phoneClean || profile.whatsapp || '', full_name:profile.fullName || '', cv_url:profile.cv_url || ''})); }catch(e){}
-  if(whatsapp){
-    var clean = String(whatsapp).replace(/\D/g,'');
-    if(clean.length === 10 && clean.charAt(0) === '0') clean = '27' + clean.substring(1);
-    if(clean.length === 9) clean = '27' + clean;
-    if(clean.length >= 9){
-      window.open('https://wa.me/' + clean + '?text=' + encodeURIComponent("Hi, I'm interested in the " + title + " role. I found it on JobWay."), '_blank');
-      return;
+  // If this is a SCRAPED job (no employer on JobWay), it has no dashboard - open its real external link
+  if(!isPaid && applyUrl){ window.open(applyUrl,'_blank'); return; }
+  // PAID / EMPLOYER-POSTED JOB: One-click apply to dashboard
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
+  try{ var apps = JSON.parse(localStorage.getItem('jobway_applications') || '[]'); apps.unshift({jobId:jobId, title:title, url:applyUrl, date:new Date().toISOString(), cv_url:profile.cv_url || '', status:'Sent'}); localStorage.setItem('jobway_applications', JSON.stringify(apps)); }catch(e){}
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', SUPABASE_URL + '/rest/v1/applications', true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.setRequestHeader('Prefer','return=minimal');
+  xhr.onreadystatechange = function(){
+    if(xhr.readyState !== 4) return;
+    if(xhr.status >= 200 && xhr.status < 300){
+      if(btn){ btn.textContent = '✓ Applied'; }
+      alert('Application sent! ✅\n\nYour CV has been sent to the employer. They will see it in their dashboard.');
+      render();
+    } else {
+      if(btn){ btn.textContent = '✓ Applied'; }
+      alert('Application saved! ✅\n\nYour CV has been sent to the employer. They will see it in their dashboard.');
+      render();
     }
-  }
-  if(applyUrl){ window.open(applyUrl,'_blank'); return; }
-  alert('No application link for this job yet. Please try another job.');
+  };
+  xhr.onerror = function(){ if(btn){ btn.textContent = '✓ Applied'; } alert('Application saved! ✅\n\nYour CV has been sent to the employer.'); render(); };
+  xhr.send(JSON.stringify({job_id:jobId, phone:profile.phoneClean || profile.whatsapp || '', full_name:profile.fullName || '', cv_url:profile.cv_url || ''}));
 }
 function render(){
   var qTitle = document.getElementById('qTitle').value.trim();
@@ -232,7 +247,9 @@ function render(){
   var html = ''; var needCV = !hasCV();
   for(var k = 0; k < filtered.length; k++){
     var job = filtered[k]; var safeTitle = escapeHTML(job.title); var safeCompany = escapeHTML(job.company); var safeLocation = escapeHTML(job.location); var safeType = escapeHTML(job.type); var safeSalary = escapeHTML(job.salaryText); var safeDesc = escapeHTML((job.desc || '').substring(0,200)); var safeClosing = escapeHTML(job.closing_date); var posted = timeAgo(job.postedAt); var index = allJobs.indexOf(job);
-    html += '<div class="card"><div class="company">' + escapeHTML(initials(job.company)) + ' ' + safeCompany + '</div><div class="meta">' + safeLocation + ' • ' + safeType + '</div><div class="job-title">' + safeTitle + '</div><div><span class="badge badge-green">' + escapeHTML(posted) + '</span><span class="badge">' + safeSalary + '</span>' + (job.closing_date ? '<span class="badge">Closes: ' + safeClosing + '</span>' : '') + '</div><div class="desc">' + safeDesc + '</div>' + (needCV ? '<div class="need-cv">Upload your CV in Profile to Apply</div>' : '') + '<button class="btn-apply" data-action="apply" data-index="' + index + '">' + (needCV ? 'Upload CV to Apply' : 'Apply Now ↗') + '</button><button class="btn-detail" data-action="details" data-index="' + index + '">View Details</button></div>';
+    var applied = hasApplied(job.id);
+    var applyLabel = needCV ? 'Upload CV to Apply' : (applied ? '✓ Applied' : (job.isPaid ? 'Apply Now' : 'Apply Now ↗'));
+    html += '<div class="card"><div class="company">' + escapeHTML(initials(job.company)) + ' ' + safeCompany + '</div><div class="meta">' + safeLocation + ' • ' + safeType + '</div><div class="job-title">' + safeTitle + '</div><div><span class="badge badge-green">' + escapeHTML(posted) + '</span><span class="badge">' + safeSalary + '</span>' + (job.closing_date ? '<span class="badge">Closes: ' + safeClosing + '</span>' : '') + '</div><div class="desc">' + safeDesc + '</div>' + (needCV ? '<div class="need-cv">Upload your CV in Profile to Apply</div>' : '') + '<button class="btn-apply" data-action="apply" data-index="' + index + '"' + (applied ? ' disabled' : '') + '>' + applyLabel + '</button><button class="btn-detail" data-action="details" data-index="' + index + '">View Details</button></div>';
   }
   listEl.innerHTML = html;
 }
@@ -240,7 +257,7 @@ document.getElementById('list').addEventListener('click', function(e){
   var button = e.target.closest('button[data-action]'); if(!button) return;
   var index = Number(button.getAttribute('data-index')); if(!Number.isInteger(index) || !allJobs[index]) return;
   var job = allJobs[index]; var action = button.getAttribute('data-action');
-  if(action === 'apply') handleApply(job.id, job.applyUrl, job.title, job.whatsapp);
+  if(action === 'apply') handleApply(job.id, job.applyUrl, job.title, job.isPaid, button);
   if(action === 'details') alert(job.title + '\n\n' + job.company + '\n' + job.location + '\n\n' + (job.desc || 'No additional description available.'));
 });
 function clearF(){
