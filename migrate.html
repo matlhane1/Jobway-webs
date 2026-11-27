@@ -1,50 +1,70 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Migrate CVs to Private</title>
+<title>Migrate CVs to Private v2</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>body{font-family:sans-serif;background:#0F2835;color:#fff;padding:20px}button{background:#01F9C6;border:0;padding:14px 20px;border-radius:999px;font-weight:800;cursor:pointer}#log{margin-top:20px;font-size:13px;line-height:1.8;white-space:pre-wrap}</style>
 </head><body>
-<h2>Migrate cvs → cvs_private</h2>
-<p>This copies ALL files with the SAME name. Run once only.</p>
+<h2>Migrate cvs → cvs_private v2</h2>
+<p>Uses database URLs, not storage list. Run once.</p>
 <button id="startBtn">Start Migration →</button>
 <div id="log">Ready...</div>
 <script>
 const supabaseClient = window.supabase.createClient('https://dmxumcjeetphwzvgzzuk.supabase.co','sb_publishable_AU4KIOG0oHh5NLK7hv1iEg_oYIrIM3-');
 const logEl = document.getElementById('log');
 function log(m){ logEl.textContent += '\n' + m; console.log(m); }
-
+function cleanPath(raw){
+  if(!raw) return null;
+  try{
+    if(/^https?:\/\//i.test(raw)){
+      const url = new URL(raw);
+      const markers = ['/storage/v1/object/public/cvs/','/storage/v1/object/sign/cvs/','/cvs/'];
+      for(const marker of markers){
+        const i = url.pathname.indexOf(marker);
+        if(i !== -1) return decodeURIComponent(url.pathname.substring(i + marker.length)).replace(/^\/+/,'');
+      }
+      return null;
+    }
+    return decodeURIComponent(String(raw)).replace(/^cvs\//,'').replace(/^\/+/,'').split('?')[0];
+  }catch(e){ return null; }
+}
 document.getElementById('startBtn').onclick = async () => {
   document.getElementById('startBtn').disabled = true;
   log('Starting...');
-  let offset = 0;
-  let totalCopied = 0, totalSkipped = 0, totalFailed = 0;
-  while(true){
-    // List 100 at a time
-    const { data: files, error } = await supabaseClient.storage.from('cvs').list('', { limit: 100, offset: offset });
-    if(error){ log('LIST ERROR: ' + error.message); break; }
-    if(!files || files.length === 0) break;
-    for(const f of files){
-      if(!f.name || f.name.endsWith('/')) continue;
-      // Skip if already in private
-      const { data: exists } = await supabaseClient.storage.from('cvs_private').list('', { search: f.name });
-      if(exists && exists.some(x => x.name === f.name)){ totalSkipped++; log('SKIP (already exists): ' + f.name); continue; }
-      try{
-        const { data: blob, error: dlErr } = await supabaseClient.storage.from('cvs').download(f.name);
-        if(dlErr) throw dlErr;
-        const { error: upErr } = await supabaseClient.storage.from('cvs_private').upload(f.name, blob, { upsert: true, contentType: blob.type || 'application/pdf' });
-        if(upErr) throw upErr;
-        totalCopied++;
-        log('COPIED ' + totalCopied + ': ' + f.name);
-      }catch(e){ totalFailed++; log('FAILED: ' + f.name + ' - ' + e.message); }
-      // Small pause so Supabase doesn't rate-limit you
-      await new Promise(r => setTimeout(r, 100));
-    }
-    offset += 100;
-    log('--- Batch done, next offset: ' + offset + ' ---');
-    if(files.length < 100) break;
+  // 1. Debug: what does storage.list see?
+  const testList = await supabaseClient.storage.from('cvs').list('', { limit: 100 });
+  log('DEBUG storage.list root: ' + JSON.stringify(testList.data?.map(f=>f.name) || testList.error?.message));
+  // 2. Get paths from DB - this is reliable
+  let allPaths = new Set();
+  // From candidate_cvs
+  const { data: cvs1, error: e1 } = await supabaseClient.from('candidate_cvs').select('cv_url').limit(5000);
+  if(e1) log('candidate_cvs error: ' + e1.message);
+  else { (cvs1||[]).forEach(r => { const p = cleanPath(r.cv_url); if(p) allPaths.add(p); }); log('Found in candidate_cvs: ' + (cvs1||[]).length); }
+  // From profiles
+  const { data: profs, error: e2 } = await supabaseClient.from('profiles').select('cv_url').limit(5000);
+  if(e2) log('profiles error: ' + e2.message);
+  else { (profs||[]).forEach(r => { const p = cleanPath(r.cv_url); if(p) allPaths.add(p); }); log('Found in profiles: ' + (profs||[]).length); }
+  // From applications
+  const { data: apps, error: e3 } = await supabaseClient.from('applications').select('cv_url').limit(5000);
+  if(!e3){ (apps||[]).forEach(r => { const p = cleanPath(r.cv_url); if(p) allPaths.add(p); }); log('Found in applications: ' + (apps||[]).length); }
+  const paths = Array.from(allPaths);
+  log('TOTAL UNIQUE CVs TO COPY: ' + paths.length);
+  if(paths.length === 0){ log('No paths found. Check: are CV URLs in candidate_cvs.cv_url?'); return; }
+  let copied=0, skipped=0, failed=0;
+  for(const path of paths){
+    try{
+      // Check if already in private
+      const { data: dlCheck } = await supabaseClient.storage.from('cvs_private').download(path);
+      if(dlCheck){ skipped++; log('SKIP (already in private): ' + path); continue; }
+      const { data: blob, error: dlErr } = await supabaseClient.storage.from('cvs').download(path);
+      if(dlErr) throw new Error('download from cvs failed: ' + dlErr.message);
+      const { error: upErr } = await supabaseClient.storage.from('cvs_private').upload(path, blob, { upsert: true, contentType: blob.type || 'application/pdf' });
+      if(upErr) throw new Error('upload to private failed: ' + upErr.message);
+      copied++; log('COPIED ' + copied + ': ' + path);
+    }catch(e){ failed++; log('FAILED: ' + path + ' - ' + e.message); }
+    await new Promise(r => setTimeout(r, 50));
   }
-  log('\nDONE! Copied: ' + totalCopied + ' | Skipped: ' + totalSkipped + ' | Failed: ' + totalFailed);
-  alert('Migration done! Copied: ' + totalCopied);
+  log('\nDONE! Copied: ' + copied + ' | Skipped: ' + skipped + ' | Failed: ' + failed);
+  alert('Done! Copied: ' + copied + ' Skipped: ' + skipped);
 };
 </script>
 </body></html>
