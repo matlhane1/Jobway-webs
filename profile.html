@@ -233,10 +233,7 @@ async function uploadCv(file){
   const path=makeUUID()+'.'+ext;
   const contentTypes={pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
   const contentType = contentTypes[ext] || 'application/octet-stream';
-  // Upload to PRIVATE first - this is the one employers will use
   await request('POST','/storage/v1/object/'+CV_PRIVATE_BUCKET+'/'+path,file,{'Content-Type':contentType,'x-upsert':'false'});
-  // Then upload same file to legacy public bucket for backward compatibility
-  // If this second upload fails, we do NOT fail the save - private copy already exists
   try{ await request('POST','/storage/v1/object/'+CV_BUCKET+'/'+path,file,{'Content-Type':contentType,'x-upsert':'false'}); }catch(e){ console.warn('Legacy cvs upload failed, private copy OK:', e.message); }
   return path;
 }
