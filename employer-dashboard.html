@@ -71,6 +71,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .empty a{color:#01F9C6}
 .footer{text-align:center;color:#668595;font-size:10px;padding:25px}
 .credits-banner{background:#11283A;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+/* Professional applicant card - same JobWay brand */
+.applicant-top{display:flex;gap:12px;align-items:flex-start}
+.avatar{width:48px;height:48px;min-width:48px;border-radius:50%;background:#01F9C6;color:#0A1F2E;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:800;font-size:18px}
+.applicant-name{font-size:16px;font-weight:800;line-height:1.2}
+.applicant-job{font-size:12px;color:#8DB0BF;margin-top:3px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:12px;background:#0F2230;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px}
+.detail-grid div{font-size:12px;line-height:1.5}
+.detail-grid .k{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:#8DB0BF;font-weight:800}
+.detail-grid .v{color:#fff;font-weight:600;margin-top:2px;overflow-wrap:anywhere}
+.detail-full{grid-column:1 / -1}
 @media(min-width:650px){.modal{align-items:center}.modal-card{border-radius:18px}}
 @media(max-width:600px){
  .header{align-items:flex-start;flex-direction:column}
@@ -80,6 +90,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
  .card{padding:14px}
  .page-title{font-size:19px}
  .btn-row .btn{flex:1}
+ .detail-grid{grid-template-columns:1fr}
 }
 </style>
 <script>
@@ -197,7 +208,6 @@ function normalizeCategory(v){
   if(v === 'Automotive') return 'Automotive Industry';
   return v;
 }
-// FIXED: < must escape to &lt; not &gt;
 function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 function isUuid(v){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||'')); }
 function normalizeWhatsapp(v){
@@ -207,6 +217,19 @@ function normalizeWhatsapp(v){
   if(d.startsWith('0') && d.length===10) return '27'+d.slice(1);
   if(d.length===9) return '27'+d;
   return d;
+}
+function phoneVariantsFor(raw){
+  const norm = normalizeWhatsapp(raw);
+  const out = new Set();
+  if(norm){ out.add(norm); if(norm.startsWith('27')) out.add('0'+norm.slice(2)); out.add('+'+norm); }
+  if(raw) out.add(String(raw).trim());
+  return Array.from(out).filter(Boolean);
+}
+function initialsFor(name){
+  const parts = String(name||'').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return '?';
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
 }
 function setCreditsLoading(){
   var el = document.getElementById('creditsText');
@@ -393,51 +416,92 @@ function cleanCvPath(raw){
  if(!raw) return null; raw = String(raw).trim(); if(!raw) return null;
  try{
   if(/^https?:\/\//i.test(raw)){ const url = new URL(raw); const markers = ['/storage/v1/object/public/cvs/','/storage/v1/object/sign/cvs/','/storage/v1/object/authenticated/cvs/','/cvs/','/storage/v1/object/public/cvs_private/','/storage/v1/object/sign/cvs_private/']; for(const marker of markers){ const index = url.pathname.indexOf(marker); if(index !== -1){ return decodeURIComponent(url.pathname.substring(index + marker.length)).replace(/^\/+/,''); } } throw new Error('CV URL does not belong to the JobWay CV bucket.'); }
-  return decodeURIComponent(raw).replace(/^cvs\//,'').replace(/^\/+/,'').split('?')[0].trim();
+  return decodeURIComponent(raw).replace(/^cvs_private\//,'').replace(/^cvs\//,'').replace(/^\/+/,'').split('?')[0].trim();
  }catch(e){ console.warn('Invalid CV path:',e); return null; }
 }
 function getCvPath(app){ return cleanCvPath(app._cv_path || app.cv_path || app.cv_url || app.profiles?.cv_url || ''); }
-// FIXED: Never return UUID filename. Return candidate name + CV
 function getCvName(app){
   const name = app._full_name || app.full_name || app.applicant_name || app.profiles?.full_name || '';
   if(name) return name.trim().split(' ')[0] + ' CV';
   return 'Candidate CV';
 }
+// FIXED: Enrich by applicant_id AND by phone. Applications often have no applicant_id, only phone.
 async function enrichApplications(applications){
- const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(Boolean))];
- const ids = rawIds.filter(isUuid);
+ const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(isUuid))];
+ // Collect every phone on the applications - this is the reliable key
+ const allPhones = new Set();
+ applications.forEach(a => {
+   const rawPhone = a.phone || a.whatsapp || a.applicant_phone || a.whatsapp_number || a.candidate_phone || '';
+   phoneVariantsFor(rawPhone).forEach(p => allPhones.add(p));
+ });
+ const phoneList = Array.from(allPhones);
  let profileMap = {};
- if(ids.length){
-  const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,cv_url,cv_name').in('id',ids);
-  if(error){ console.warn('Profile lookup:',error.message); }
-  (data || []).forEach(profile => { profileMap[profile.id] = profile; });
- }
+ let profileByPhone = {};
  let cvMap = {};
- if(ids.length){
-  const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('user_id',ids).order('created_at',{ascending:false});
-  if(!error && data){ data.forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; }); }
+ let cvByPhone = {};
+ if(rawIds.length){
+  const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,whatsapp_number,location,province,job_category,qualifications,experience_years,skills,cv_url,cv_name').in('id',rawIds);
+  if(!error) (data || []).forEach(p => { profileMap[p.id] = p; });
+ }
+ if(rawIds.length){
+  const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('user_id',rawIds).order('created_at',{ascending:false});
+  if(!error) (data || []).forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; });
+ }
+ // Phone lookups - this fixes "WhatsApp 3193" / "No category"
+ if(phoneList.length){
+   try{
+     const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('phone',phoneList).order('created_at',{ascending:false});
+     if(!error) (data || []).forEach(row => {
+       phoneVariantsFor(row.phone).forEach(p => { if(!cvByPhone[p]) cvByPhone[p] = row; });
+       if(row.user_id && !cvMap[row.user_id]) cvMap[row.user_id] = row;
+     });
+   }catch(e){ console.warn('candidate_cvs phone lookup:',e); }
+   try{
+     const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,whatsapp_number,location,province,job_category,qualifications,experience_years,skills,cv_url,cv_name').in('phone',phoneList).order('created_at',{ascending:false});
+     if(!error) (data || []).forEach(p => {
+       phoneVariantsFor(p.phone).forEach(ph => { if(!profileByPhone[ph]) profileByPhone[ph] = p; });
+       phoneVariantsFor(p.whatsapp_number).forEach(ph => { if(!profileByPhone[ph]) profileByPhone[ph] = p; });
+       if(p.id && !profileMap[p.id]) profileMap[p.id] = p;
+     });
+   }catch(e){ console.warn('profiles phone lookup:',e); }
+   // profiles.whatsapp_number is a separate column - try it too
+   try{
+     const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,whatsapp_number,location,province,job_category,qualifications,experience_years,skills,cv_url,cv_name').in('whatsapp_number',phoneList).order('created_at',{ascending:false});
+     if(!error) (data || []).forEach(p => {
+       phoneVariantsFor(p.phone).forEach(ph => { if(!profileByPhone[ph]) profileByPhone[ph] = p; });
+       phoneVariantsFor(p.whatsapp_number).forEach(ph => { if(!profileByPhone[ph]) profileByPhone[ph] = p; });
+     });
+   }catch(e){}
  }
  for(const app of applications){
-  app._full_name = app.full_name || app.applicant_name || app.name || '';
-  app._phone = app.phone || app.whatsapp || app.applicant_phone || '';
-  app._email = app.email || app.applicant_email || '';
-  app.profiles = profileMap[app.applicant_id] || null;
-  if(app.profiles){
-    if(!app._full_name) app._full_name = app.profiles.full_name || '';
-    if(!app._phone) app._phone = app.profiles.phone || '';
-    if(!app._email) app._email = app.profiles.email || '';
+  const appPhoneRaw = app.phone || app.whatsapp || app.applicant_phone || app.whatsapp_number || app.candidate_phone || '';
+  const appPhoneNorm = normalizeWhatsapp(appPhoneRaw);
+  // Find profile / CV by id first, then by phone
+  let prof = (app.applicant_id && profileMap[app.applicant_id]) || null;
+  let cvRow = (app.applicant_id && cvMap[app.applicant_id]) || null;
+  if(!prof && appPhoneNorm){
+    for(const v of phoneVariantsFor(appPhoneRaw)){ if(profileByPhone[v]){ prof = profileByPhone[v]; break; } }
   }
-  const cvRow = cvMap[app.applicant_id] || null;
-  if(cvRow){ app._job_category = normalizeCategory(cvRow.job_category || cvRow.category || ''); app._qualifications = cvRow.qualifications || ''; app._experience_years = cvRow.experience_years || ''; app._area = cvRow.area || cvRow.location || ''; }
-  else { app._job_category = ''; app._qualifications = ''; app._experience_years = ''; app._area = ''; }
-  if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); app._cv_name = null; continue; }
-  if(app.profiles?.cv_url){ app._cv_path = cleanCvPath(app.profiles.cv_url); app._cv_name = null; continue; }
-  if(!app.applicant_id || !isUuid(app.applicant_id)) continue;
-  try{
-   const {data,error} = await supabaseClient.from('candidate_cvs').select('cv_url,cv_name,full_name,phone,job_category,category,qualifications,experience_years,area,location').eq('user_id',app.applicant_id).order('created_at',{ascending:false}).limit(1).maybeSingle();
-   if(error){ console.warn('Candidate CV lookup:',error.message); continue; }
-   if(data){ app._cv_path = cleanCvPath(data.cv_url); app._cv_name = null; if(!app._full_name) app._full_name = data.full_name || app.profiles?.full_name; if(!app._phone) app._phone = data.phone || app.profiles?.phone; app._job_category = normalizeCategory(data.job_category || data.category || app._job_category); app._qualifications = data.qualifications || app._qualifications; app._experience_years = data.experience_years || app._experience_years; app._area = data.area || data.location || app._area; }
-  }catch(e){ console.warn('CV lookup error:',e); }
+  if(!cvRow && appPhoneNorm){
+    for(const v of phoneVariantsFor(appPhoneRaw)){ if(cvByPhone[v]){ cvRow = cvByPhone[v]; break; } }
+  }
+  app.profiles = prof;
+  app._full_name = app.full_name || app.applicant_name || app.name || prof?.full_name || cvRow?.full_name || '';
+  app._phone = appPhoneRaw || prof?.phone || prof?.whatsapp_number || cvRow?.phone || '';
+  app._email = app.email || app.applicant_email || prof?.email || '';
+  app._job_category = normalizeCategory(cvRow?.job_category || cvRow?.category || prof?.job_category || app.job_category || app.category || '');
+  app._qualifications = cvRow?.qualifications || prof?.qualifications || app.qualifications || '';
+  app._experience_years = cvRow?.experience_years || prof?.experience_years || app.experience_years || '';
+  app._area = cvRow?.area || cvRow?.location || prof?.location || prof?.province || app.location || app.area || '';
+  app._skills = Array.isArray(prof?.skills) ? prof.skills : (typeof prof?.skills === 'string' ? prof.skills.split(',').map(s=>s.trim()).filter(Boolean) : []);
+  if(app.cv_url || app.cv_path){ app._cv_path = cleanCvPath(app.cv_url || app.cv_path); }
+  else if(prof?.cv_url){ app._cv_path = cleanCvPath(prof.cv_url); }
+  else if(cvRow?.cv_url){ app._cv_path = cleanCvPath(cvRow.cv_url); }
+  else { app._cv_path = null; }
+  // Never show "WhatsApp 3193" as a name
+  if(!app._full_name || /^whatsapp\s*\d/i.test(app._full_name)){
+    app._full_name = app._full_name && !/^whatsapp\s*\d/i.test(app._full_name) ? app._full_name : '';
+  }
  }
  return applications;
 }
@@ -494,7 +558,6 @@ function updateCreditsBanner(){
   if(planEl) planEl.textContent = 'Current plan: ' + (isPaid && plan==='free' ? 'Paid' : planLabel);
   if(payEl) payEl.textContent = 'Payment status: ' + (isPaid ? 'Paid' : 'Unpaid');
 }
-// FIXED: Applications are FREE - no credit check, no deduction. Only check: this job belongs to this employer + application exists.
 async function openSecureCV(path,appId,button){
  const app = currentApps.find(a => String(a.id) === String(appId));
  if(!app){ alert('Application not found.'); return; }
@@ -507,7 +570,6 @@ async function openSecureCV(path,appId,button){
  const original = button.innerText;
  setLoading(button,'Creating secure CV link...');
  try{
-  // Try private bucket first (your new setup), then public bucket (your current setup)
   let signedUrl = null;
   let lastError = null;
   const bucketsToTry = ['cvs_private','cvs'];
@@ -517,7 +579,6 @@ async function openSecureCV(path,appId,button){
     lastError = error;
   }
   if(!signedUrl) throw lastError || new Error('Secure CV link was not created.');
-  // Log access - do not block if logging fails
   try{
     const empIdForLog = EMPLOYER_UUID || (isUuid(currentUser.id) ? currentUser.id : null);
     if(empIdForLog){
@@ -540,7 +601,7 @@ function progressHTML(status){
 }
 function buildWhatsAppMessage(app,status){
  const phone = formatPhone(app.profiles?.phone || app._phone || app.phone || '');
- const name = app.profiles?.full_name || app._full_name || app.full_name || 'Applicant';
+ const name = (app._full_name && !/^whatsapp\s*\d/i.test(app._full_name)) ? app._full_name : 'Applicant';
  const title = app.jobs?.title || (currentJobs.find(j=>String(j.id)===String(app.job_id))?.title) || 'Job'; const company = app.jobs?.company || (currentJobs.find(j=>String(j.id)===String(app.job_id))?.company) || 'JobWay';
  let message = '';
  if(status === 'Shortlisted'){ message = `Hi ${name}\n\nUpdate on your application for ${title} at ${company}: Status is Shortlisted.\n\nWe will contact you regarding the next steps.\n\nTrack your application:\nhttps://jobway.co.za/track-applications.html\n\n- ${company} via JobWay`; }
@@ -582,7 +643,7 @@ async function changeStatusOnly(id,newStatus){
 function openInterview(id){
  const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
  currentInterviewId = id;
- document.getElementById('interviewFor').innerText = 'For: ' + (app.profiles?.full_name || app._full_name || app.full_name || 'Applicant') + ' — ' + (app.jobs?.title || 'Job');
+ document.getElementById('interviewFor').innerText = 'For: ' + (app._full_name || app.profiles?.full_name || 'Applicant') + ' — ' + (app.jobs?.title || 'Job');
  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
  const localDate = [tomorrow.getFullYear(),String(tomorrow.getMonth()+1).padStart(2,'0'),String(tomorrow.getDate()).padStart(2,'0')].join('-');
  document.getElementById('intDate').value = localDate; document.getElementById('intDate').min = localDate; document.getElementById('intTime').value = '09:00'; document.getElementById('intLoc').value = ''; document.getElementById('intMsg').value = '';
@@ -610,21 +671,25 @@ async function confirmInterview(){
 }
 document.getElementById('confirmInterviewBtn').addEventListener('click',confirmInterview);
 function renderApplicant(app){
- const name = app.profiles?.full_name || app._full_name || app.full_name || 'Applicant';
- const email = app.profiles?.email || app._email || app.email || '';
- const phone = app.profiles?.phone || app._phone || app.phone || '';
+ const rawName = app._full_name || app.profiles?.full_name || app.full_name || '';
+ const name = rawName && !/^whatsapp\s*\d/i.test(rawName) ? rawName : 'Applicant — profile not completed';
+ const email = app._email || app.profiles?.email || app.email || 'Not provided';
+ const phone = app._phone || app.profiles?.phone || app.phone || '';
  const jobObj = app.jobs || currentJobs.find(j=>String(j.id)===String(app.job_id)) || {};
  const title = jobObj.title || 'Job'; const company = jobObj.company || jobObj.company_name || '';
  const status = app.status || 'Application Received';
  const cvPath = getCvPath(app);
  const jobCat = app._job_category || ''; const quals = app._qualifications || ''; const exp = app._experience_years || ''; const area = app._area || '';
+ const skills = Array.isArray(app._skills) ? app._skills : [];
  let badgeClass = 'b-grey';
  if(status === 'Shortlisted' || status === 'Interview Scheduled'){ badgeClass = 'b-green'; }else if(status === 'Hired'){ badgeClass = 'b-orange'; }else if(status === 'Not Selected'){ badgeClass = 'b-red'; }
- // FIXED: Applications are FREE - no credit check, no UUID in button
  const cvHTML = cvPath ? `<button class="btn-cv" data-action="cv" data-id="${esc(app.id)}">📄 View CV — Free (Included)</button>` : `<span style="color:#FF8A9D;font-size:11px">No CV uploaded</span>`;
  const interviewHTML = app.interview_date ? `<div class="interview-box">📅 <b>Interview:</b> ${esc(app.interview_date)} at ${esc(app.interview_time || '')}<br>📍 ${esc(app.interview_location || 'Not specified')}<br>${esc(app.interview_note || '')}</div>` : '';
- const tagsHTML = (jobCat || quals || exp || area) ? `<div style="margin-top:8px">${jobCat?`<span class="tag">💼 ${esc(jobCat)}</span>`:''}${quals?`<span class="tag">🎓 ${esc(quals)}</span>`:''}${exp?`<span class="tag">⏱️ ${esc(exp)}</span>`:''}${area?`<span class="tag">📍 ${esc(area)}</span>`:''}</div>` : `<div style="font-size:11px;color:#8DB0BF;margin-top:6px">No category / qualifications provided — ask candidate to update profile</div>`;
- return `<article class="card applicant-card" data-search="${esc((name+' '+title+' '+company+' '+email+' '+jobCat+' '+quals+' '+exp+' '+area).toLowerCase())}" data-status="${esc(status)}" data-category="${esc(jobCat)}" data-exp="${esc(exp)}" data-area="${esc(area)}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap"><b style="font-size:14px">${esc(name)}</b><span class="badge ${badgeClass}">${esc(status)}</span></div><div class="meta">Applied for: <b style="color:white">${esc(title)} — ${esc(company)}</b><br>Date: ${esc(fmt(app.created_at))}<br>Email: ${esc(email || 'Not provided')}<br>WhatsApp: ${esc(phone || 'No number')}</div>${tagsHTML}${progressHTML(status)}${interviewHTML}<div class="btn-row"><button class="btn btn-green" data-action="status" data-id="${esc(app.id)}" data-status="Shortlisted">✓ Shortlist</button><button class="btn btn-orange" data-action="interview" data-id="${esc(app.id)}">📅 Interview</button><button class="btn btn-dark" data-action="status" data-id="${esc(app.id)}" data-status="Hired">🎉 Hire</button><button class="btn btn-red" data-action="status" data-id="${esc(app.id)}" data-status="Not Selected">Reject</button></div><div class="btn-row">${cvHTML}<button class="btn btn-whats" data-action="whatsapp" data-id="${esc(app.id)}">💬 WhatsApp</button></div><label class="label">CHANGE APPLICATION STATUS</label><select class="filter" data-action="select-status" data-id="${esc(app.id)}">${STATUSES.map(s=>`<option value="${esc(s)}" ${status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></article>`;
+ const hasProfile = !!(jobCat || quals || exp || area || skills.length);
+ const profileHTML = hasProfile
+   ? `<div class="detail-grid"><div><div class="k">Job category</div><div class="v">${esc(jobCat || 'Not specified')}</div></div><div><div class="k">Experience</div><div class="v">${esc(exp || 'Not specified')}</div></div><div class="detail-full"><div class="k">Qualifications</div><div class="v">${esc(quals || 'Not specified')}</div></div><div><div class="k">Area</div><div class="v">${esc(area || 'Not specified')}</div></div><div><div class="k">Skills</div><div class="v">${skills.length ? esc(skills.join(', ')) : 'Not specified'}</div></div></div>`
+   : `<div style="font-size:12px;color:#FFB020;margin-top:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.25);border-radius:10px;padding:10px">⚠️ This candidate has not completed their JobWay profile yet. Ask them to complete it on jobway.co.za — their WhatsApp is below.</div>`;
+ return `<article class="card applicant-card" data-search="${esc((name+' '+title+' '+company+' '+email+' '+phone+' '+jobCat+' '+quals+' '+exp+' '+area+' '+skills.join(' ')).toLowerCase())}" data-status="${esc(status)}" data-category="${esc(jobCat)}" data-exp="${esc(exp)}" data-area="${esc(area)}"><div class="applicant-top"><div class="avatar">${esc(initialsFor(name))}</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap"><div class="applicant-name">${esc(name)}</div><span class="badge ${badgeClass}">${esc(status)}</span></div><div class="applicant-job">Applied for: <b style="color:white">${esc(title)} — ${esc(company)}</b> • ${esc(fmt(app.created_at))}</div><div style="font-size:12px;color:#A8C8D0;margin-top:6px;line-height:1.7">📱 WhatsApp: <b style="color:white">${esc(phone || 'No number')}</b><br>✉️ Email: ${esc(email)}</div></div></div>${profileHTML}${progressHTML(status)}${interviewHTML}<div class="btn-row"><button class="btn btn-green" data-action="status" data-id="${esc(app.id)}" data-status="Shortlisted">✓ Shortlist</button><button class="btn btn-orange" data-action="interview" data-id="${esc(app.id)}">📅 Interview</button><button class="btn btn-dark" data-action="status" data-id="${esc(app.id)}" data-status="Hired">🎉 Hire</button><button class="btn btn-red" data-action="status" data-id="${esc(app.id)}" data-status="Not Selected">Reject</button></div><div class="btn-row">${cvHTML}<button class="btn btn-whats" data-action="whatsapp" data-id="${esc(app.id)}">💬 WhatsApp</button></div><label class="label">CHANGE APPLICATION STATUS</label><select class="filter" data-action="select-status" data-id="${esc(app.id)}">${STATUSES.map(s=>`<option value="${esc(s)}" ${status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></article>`;
 }
 function renderJobs(){
  const el = document.getElementById('jobsList');
