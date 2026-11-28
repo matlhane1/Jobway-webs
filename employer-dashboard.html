@@ -233,6 +233,9 @@ function initialsFor(name){
   if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
   return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
 }
+/* FIXED: one helper so every status / interview write goes to the SAME table/columns you check in Supabase */
+function appStatus(a){ return a.application_status || a.status || 'Application Received'; }
+function appInterviewNote(a){ return a.interview_notes ?? a.interview_note ?? ''; }
 function setCreditsLoading(){
   var el = document.getElementById('creditsText');
   if(!el) return;
@@ -603,7 +606,7 @@ function buildWhatsAppMessage(app,status){
  const title = app.jobs?.title || (currentJobs.find(j=>String(j.id)===String(app.job_id))?.title) || 'Job'; const company = app.jobs?.company || (currentJobs.find(j=>String(j.id)===String(app.job_id))?.company) || 'JobWay';
  let message = '';
  if(status === 'Shortlisted'){ message = `Hi ${name}\n\nUpdate on your application for ${title} at ${company}: Status is Shortlisted.\n\nWe will contact you regarding the next steps.\n\nTrack your application:\nhttps://jobway.co.za/track-applications.html\n\n- ${company} via JobWay`; }
- else if(status === 'Interview Scheduled'){ message = `Hi ${name}\n\nYour interview for ${title} at ${company} has been scheduled.\n\nDate: ${app.interview_date || ''}\nTime: ${app.interview_time || ''}\nLocation: ${app.interview_location || ''}\n\nNote: ${app.interview_note || 'Bring your ID and CV.'}\n\nPlease reply YES to confirm.\n\n- ${company} via JobWay`; }
+ else if(status === 'Interview Scheduled'){ message = `Hi ${name}\n\nYour interview for ${title} at ${company} has been scheduled.\n\nDate: ${app.interview_date || ''}\nTime: ${app.interview_time || ''}\nLocation: ${app.interview_location || ''}\n\nNote: ${appInterviewNote(app) || 'Bring your ID and CV.'}\n\nPlease reply YES to confirm.\n\n- ${company} via JobWay`; }
  else if(status === 'Hired'){ message = `Hi ${name}\n\nUpdate on your application for ${title} at ${company}: Status is Hired.\n\nThank you for using JobWay.`; }
  else if(status === 'Under Review'){ message = `Hi ${name},\n\nYour application for ${title} at ${company} is now Under Review.\n\nWe will update you soon.\n\n- JobWay`; }
  else if(status === 'Not Selected'){ message = `Hi ${name},\n\nThank you for applying for ${title} at ${company}.\n\nUnfortunately, you were not selected this time.\n\nWe encourage you to continue applying for opportunities on JobWay.\n\nThank you.`; }
@@ -612,15 +615,16 @@ function buildWhatsAppMessage(app,status){
 }
 function openWhatsApp(phone,message){ if(!phone){ alert('No WhatsApp number is available for this candidate.'); return false; } const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); const popup = window.open(url,'_blank'); if(!popup){ alert('WhatsApp popup blocked. Please allow popups for JobWay.'); return false; } return true; }
 async function saveCandidateNotification(app,status,message){ if(!app.applicant_id || !isUuid(app.applicant_id)) return; try{ const {error} = await supabaseClient.from('notifications').insert([{user_id:app.applicant_id,title:'Application: ' + status,message:message}]); if(error) console.warn('Notification:',error.message); }catch(e){ console.warn('Notification error:',e); } }
+/* FIXED: was .from('applications').update({status}) — now saves to job_applications.application_status */
 async function changeStatusOnly(id,newStatus){
  const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
  if(!STATUSES.includes(newStatus)){ alert('Invalid status.'); return; }
- const previous = app.status || 'Application Received'; if(newStatus === previous) return;
+ const previous = appStatus(app); if(newStatus === previous) return;
  const shouldSend = confirm('Update status to ' + newStatus + '?\n\nPress OK to also open WhatsApp, or Cancel to update without WhatsApp.');
  let popup = null; const {phone} = buildWhatsAppMessage(app,newStatus); if(shouldSend && phone){ popup = window.open('about:blank','_blank'); }
  try{
-  const {error} = await supabaseClient.from('applications').update({status:newStatus}).eq('id',id); if(error) throw error;
-  app.status = newStatus;
+  const {error} = await supabaseClient.from('job_applications').update({application_status:newStatus}).eq('id',id); if(error) throw error;
+  app.application_status = newStatus; app.status = newStatus;
   if(shouldSend && phone){ const {message} = buildWhatsAppMessage(app,newStatus); if(popup){ popup.location.href = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); } await saveCandidateNotification(app,newStatus,message); }
   await loadDashboard();
  }catch(e){ if(popup) popup.close(); alert('Could not update status: ' + e.message); await loadDashboard(); }
@@ -637,18 +641,19 @@ function openInterview(id){
 function closeInterview(){ document.getElementById('interviewModal').classList.remove('open'); currentInterviewId = null; }
 document.getElementById('closeInterviewBtn').onclick = closeInterview;
 document.getElementById('interviewModal').addEventListener('click',e=>{ if(e.target.id === 'interviewModal') closeInterview(); });
+/* FIXED: was .from('applications').update({status, interview_note}) — now saves ALL interview fields to job_applications */
 async function confirmInterview(){
  if(!currentInterviewId) return;
  const date = document.getElementById('intDate').value; const time = document.getElementById('intTime').value; const location = document.getElementById('intLoc').value.trim(); const note = document.getElementById('intMsg').value.trim();
  if(!date || !time){ alert('Please enter the interview date and time.'); return; }
  const app = currentApps.find(a => String(a.id) === String(currentInterviewId)); if(!app) return;
  if(!currentJobs.some(j=>String(j.id)===String(app.job_id))){ alert('You cannot schedule an interview for this application.'); return; }
- const updates = {status:'Interview Scheduled',interview_date:date,interview_time:time,interview_location:location,interview_note:note};
+ const updates = {application_status:'Interview Scheduled',interview_date:date,interview_time:time,interview_location:location,interview_notes:note};
  const updatedApp = {...app,...updates}; const {phone,message} = buildWhatsAppMessage(updatedApp,'Interview Scheduled');
  let popup = null; if(phone){ popup = window.open('about:blank','_blank'); }
  const button = document.getElementById('confirmInterviewBtn'); setLoading(button,'Saving interview...');
  try{
-  const {error} = await supabaseClient.from('applications').update(updates).eq('id',currentInterviewId); if(error) throw error;
+  const {error} = await supabaseClient.from('job_applications').update(updates).eq('id',currentInterviewId); if(error) throw error;
   Object.assign(app,updates);
   if(phone){ if(popup){ popup.location.href = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); } await saveCandidateNotification(app,'Interview Scheduled',message); }else{ alert('Interview saved, but no WhatsApp number is available.'); }
   closeInterview(); showMessage('Interview successfully scheduled.','success'); await loadDashboard();
@@ -662,14 +667,14 @@ function renderApplicant(app){
  const phone = app._phone || app.profiles?.phone || app.phone || '';
  const jobObj = app.jobs || currentJobs.find(j=>String(j.id)===String(app.job_id)) || {};
  const title = jobObj.title || 'Job'; const company = jobObj.company || jobObj.company_name || '';
- const status = app.status || 'Application Received';
+ const status = appStatus(app);
  const cvPath = getCvPath(app);
  const jobCat = app._job_category || ''; const quals = app._qualifications || ''; const exp = app._experience_years || ''; const area = app._area || '';
  const skills = Array.isArray(app._skills) ? app._skills : [];
  let badgeClass = 'b-grey';
  if(status === 'Shortlisted' || status === 'Interview Scheduled'){ badgeClass = 'b-green'; }else if(status === 'Hired'){ badgeClass = 'b-orange'; }else if(status === 'Not Selected'){ badgeClass = 'b-red'; }
  const cvHTML = cvPath ? `<button class="btn-cv" data-action="cv" data-id="${esc(app.id)}">📄 View CV — Free (Included)</button>` : `<span style="color:#FF8A9D;font-size:11px">No CV uploaded</span>`;
- const interviewHTML = app.interview_date ? `<div class="interview-box">📅 <b>Interview:</b> ${esc(app.interview_date)} at ${esc(app.interview_time || '')}<br>📍 ${esc(app.interview_location || 'Not specified')}<br>${esc(app.interview_note || '')}</div>` : '';
+ const interviewHTML = app.interview_date ? `<div class="interview-box">📅 <b>Interview:</b> ${esc(app.interview_date)} at ${esc(app.interview_time || '')}<br>📍 ${esc(app.interview_location || 'Not specified')}<br>${esc(appInterviewNote(app))}</div>` : '';
  const hasProfile = !!(jobCat || quals || exp || area || skills.length);
  const profileHTML = hasProfile
    ? `<div class="detail-grid"><div><div class="k">Job category</div><div class="v">${esc(jobCat || 'Not specified')}</div></div><div><div class="k">Experience</div><div class="v">${esc(exp || 'Not specified')}</div></div><div class="detail-full"><div class="k">Qualifications</div><div class="v">${esc(quals || 'Not specified')}</div></div><div><div class="k">Area</div><div class="v">${esc(area || 'Not specified')}</div></div><div><div class="k">Skills</div><div class="v">${skills.length ? esc(skills.join(', ')) : 'Not specified'}</div></div></div>`
@@ -724,9 +729,9 @@ async function loadDashboard(){
   currentJobs = jobs || [];
   currentApps = []; const jobIds = currentJobs.map(j=>j.id);
   if(jobIds.length){
-    var appsRes = await supabaseClient.from('applications').select('*').in('job_id',jobIds).order('created_at',{ascending:false});
+    var appsRes = await supabaseClient.from('job_applications').select('*').in('job_id',jobIds).order('created_at',{ascending:false});
     if(appsRes.error){
-      var appsRes2 = await supabaseClient.from('applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false});
+      var appsRes2 = await supabaseClient.from('job_applications').select('*,jobs(title,company,location,salary)').in('job_id',jobIds).order('created_at',{ascending:false});
       if(appsRes2.error) throw appsRes2.error;
       currentApps = await enrichApplications(appsRes2.data || []);
     } else {
@@ -743,12 +748,12 @@ document.getElementById('list').addEventListener('click',function(e){
  const button = e.target.closest('[data-action]'); if(!button) return; const action = button.dataset.action; const id = button.dataset.id;
  if(action === 'interview'){ openInterview(id); }
  if(action === 'cv'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ openSecureCV(getCvPath(app),id,button); } }
- if(action === 'whatsapp'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ const {phone,message} = buildWhatsAppMessage(app,app.status || 'Application Received'); openWhatsApp(phone,message); } }
+ if(action === 'whatsapp'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ const {phone,message} = buildWhatsAppMessage(app,appStatus(app)); openWhatsApp(phone,message); } }
 });
 document.getElementById('list').addEventListener('change',function(e){ const element = e.target; if(element.dataset.action === 'select-status'){ changeStatusOnly(element.dataset.id,element.value); } });
 function startRealtime(){
  if(!currentUser?.id && !EMPLOYER_UUID) return; if(realtimeChannel){ supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
- try{ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); }); }catch(e){}
+ try{ realtimeChannel = supabaseClient.channel('jobway-employer-'+(EMPLOYER_UUID||currentUser.id)).on('postgres_changes',{event:'*',schema:'public',table:'job_applications'},()=>{ loadingDashboard=false; loadDashboard(); }).subscribe(status=>{ console.log('JobWay realtime:',status); }); }catch(e){}
 }
 async function startDashboard(){
   currentUser = getCurrentUser();
