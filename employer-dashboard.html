@@ -43,10 +43,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .b-red{background:#3a1a1a;color:#ff9a9a}
 .tag{display:inline-block;background:#143E4A;color:#01F9C6;padding:5px 9px;border-radius:20px;font-size:11px;margin:3px 3px 0 0;font-weight:700}
 .progress{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}
-.p-badge{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:700}
+.p-badge{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap}
 .p-done{background:rgba(1,249,198,.15);color:#01F9C6}
 .p-active{background:#01F9C6;color:#0A1F2E}
 .p-pending{background:#1D3545;color:#8DB0BF}
+.p-rejected{background:#3a1a1a;color:#ff9a9a}
 .interview-box{background:#0F2230;border:1px solid rgba(1,249,198,.25);border-radius:12px;padding:13px;margin-top:12px;font-size:12px;line-height:1.9}
 .controls{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
 .search,.filter,.input{width:100%;background:#0F2230;border:1px solid #25475A;color:white;padding:12px;border-radius:10px;font-size:13px;outline:none}
@@ -58,8 +59,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .message.error{border:1px solid #a04444;color:#ff9a9a}
 .message.success{border:1px solid #01F9C6;color:#01F9C6}
 .loading,.empty{text-align:center;padding:30px;color:#8DB0BF;font-size:13px}
-.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-.btn-cv{background:#01F9C6;color:#0A1F2E;border:0;border-radius:999px;padding:10px 13px;font-size:11px;font-weight:800}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-row .btn{flex:0 1 auto;white-space:nowrap}
+.action-btn{border:0;border-radius:12px;padding:12px 14px;font-size:12px;font-weight:800;white-space:nowrap;flex:0 1 auto}
+.btn-cv{background:#01F9C6;color:#0A1F2E;border:0;border-radius:12px;padding:12px 14px;font-size:12px;font-weight:800;white-space:nowrap}
 .job-card{background:#11283A;border:1px solid rgba(255,255,255,.08);padding:15px;border-radius:13px;margin-bottom:10px}
 .job-card b{font-size:13px}
 .job-card small{display:block;color:#8DB0BF;margin-top:7px;line-height:1.7}
@@ -71,7 +74,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .empty a{color:#01F9C6}
 .footer{text-align:center;color:#668595;font-size:10px;padding:25px}
 .credits-banner{background:#11283A;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-/* Professional applicant card - same JobWay brand */
 .applicant-top{display:flex;gap:12px;align-items:flex-start}
 .avatar{width:48px;height:48px;min-width:48px;border-radius:50%;background:#01F9C6;color:#0A1F2E;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:800;font-size:18px}
 .applicant-name{font-size:16px;font-weight:800;line-height:1.2}
@@ -89,8 +91,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
  .container{padding:12px}
  .card{padding:14px}
  .page-title{font-size:19px}
- .btn-row .btn{flex:1}
  .detail-grid{grid-template-columns:1fr}
+ .action-btn,.btn-cv{flex:1 1 140px;text-align:center}
 }
 </style>
 <script>
@@ -425,10 +427,8 @@ function getCvName(app){
   if(name) return name.trim().split(' ')[0] + ' CV';
   return 'Candidate CV';
 }
-// FIXED: Enrich by applicant_id AND by phone. Applications often have no applicant_id, only phone.
 async function enrichApplications(applications){
  const rawIds = [...new Set(applications.map(a => a.applicant_id).filter(isUuid))];
- // Collect every phone on the applications - this is the reliable key
  const allPhones = new Set();
  applications.forEach(a => {
    const rawPhone = a.phone || a.whatsapp || a.applicant_phone || a.whatsapp_number || a.candidate_phone || '';
@@ -447,7 +447,6 @@ async function enrichApplications(applications){
   const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('user_id',rawIds).order('created_at',{ascending:false});
   if(!error) (data || []).forEach(row => { if(!cvMap[row.user_id]) cvMap[row.user_id] = row; });
  }
- // Phone lookups - this fixes "WhatsApp 3193" / "No category"
  if(phoneList.length){
    try{
      const {data,error} = await supabaseClient.from('candidate_cvs').select('user_id,job_category,category,qualifications,experience_years,area,location,cv_url,cv_name,full_name,phone').in('phone',phoneList).order('created_at',{ascending:false});
@@ -464,7 +463,6 @@ async function enrichApplications(applications){
        if(p.id && !profileMap[p.id]) profileMap[p.id] = p;
      });
    }catch(e){ console.warn('profiles phone lookup:',e); }
-   // profiles.whatsapp_number is a separate column - try it too
    try{
      const {data,error} = await supabaseClient.from('profiles').select('id,full_name,email,phone,whatsapp_number,location,province,job_category,qualifications,experience_years,skills,cv_url,cv_name').in('whatsapp_number',phoneList).order('created_at',{ascending:false});
      if(!error) (data || []).forEach(p => {
@@ -476,7 +474,6 @@ async function enrichApplications(applications){
  for(const app of applications){
   const appPhoneRaw = app.phone || app.whatsapp || app.applicant_phone || app.whatsapp_number || app.candidate_phone || '';
   const appPhoneNorm = normalizeWhatsapp(appPhoneRaw);
-  // Find profile / CV by id first, then by phone
   let prof = (app.applicant_id && profileMap[app.applicant_id]) || null;
   let cvRow = (app.applicant_id && cvMap[app.applicant_id]) || null;
   if(!prof && appPhoneNorm){
@@ -498,7 +495,6 @@ async function enrichApplications(applications){
   else if(prof?.cv_url){ app._cv_path = cleanCvPath(prof.cv_url); }
   else if(cvRow?.cv_url){ app._cv_path = cleanCvPath(cvRow.cv_url); }
   else { app._cv_path = null; }
-  // Never show "WhatsApp 3193" as a name
   if(!app._full_name || /^whatsapp\s*\d/i.test(app._full_name)){
     app._full_name = app._full_name && !/^whatsapp\s*\d/i.test(app._full_name) ? app._full_name : '';
   }
@@ -595,9 +591,11 @@ async function openSecureCV(path,appId,button){
 }
 function progressHTML(status){
  const steps = ['Application Received','Under Review','Shortlisted','Interview Scheduled','Hired'];
- if(status === 'Not Selected'){ return `<div class="progress"><span class="p-badge" style="background:#3a1a1a;color:#ff9a9a">✕ Not Selected</span></div>`; }
+ if(status === 'Not Selected'){
+   return `<div class="progress">${steps.map(s=>`<span class="p-badge p-pending">${esc(s)}</span>`).join('')}<span class="p-badge p-rejected">✕ Not Selected</span></div>`;
+ }
  let index = steps.indexOf(status); if(index < 0) index = 0;
- return `<div class="progress">${steps.map((step,i)=>{ const cls = i < index ? 'p-done' : i === index ? 'p-active' : 'p-pending'; const icon = i < index ? '✓ ' : ''; return `<span class="p-badge ${cls}">${icon}${esc(step)}</span>`; }).join('')}</div>`;
+ return `<div class="progress">${steps.map((step,i)=>{ const cls = i < index ? 'p-done' : i === index ? 'p-active' : 'p-pending'; const icon = i < index ? '✓ ' : ''; return `<span class="p-badge ${cls}">${icon}${esc(step)}</span>`; }).join('')}<span class="p-badge p-pending">Not Selected</span></div>`;
 }
 function buildWhatsAppMessage(app,status){
  const phone = formatPhone(app.profiles?.phone || app._phone || app.phone || '');
@@ -614,19 +612,6 @@ function buildWhatsAppMessage(app,status){
 }
 function openWhatsApp(phone,message){ if(!phone){ alert('No WhatsApp number is available for this candidate.'); return false; } const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); const popup = window.open(url,'_blank'); if(!popup){ alert('WhatsApp popup blocked. Please allow popups for JobWay.'); return false; } return true; }
 async function saveCandidateNotification(app,status,message){ if(!app.applicant_id || !isUuid(app.applicant_id)) return; try{ const {error} = await supabaseClient.from('notifications').insert([{user_id:app.applicant_id,title:'Application: ' + status,message:message}]); if(error) console.warn('Notification:',error.message); }catch(e){ console.warn('Notification error:',e); } }
-async function updateStatus(id,newStatus,sendWA=true){
- if(!STATUSES.includes(newStatus)){ alert('Invalid application status.'); return; }
- const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
- if(!currentJobs.some(j=>String(j.id)===String(app.job_id))){ alert('You cannot update this application.'); return; }
- if((app.status || 'Application Received') === newStatus){ return; }
- const {phone,message} = buildWhatsAppMessage(app,newStatus); let popup = null; if(sendWA && phone){ popup = window.open('about:blank','_blank'); }
- try{
-  const {error} = await supabaseClient.from('applications').update({status:newStatus}).eq('id',id); if(error) throw error;
-  app.status = newStatus;
-  if(sendWA){ if(phone){ const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message); if(popup){ popup.location.href = url; }else{ alert('Status saved. WhatsApp popup was blocked.'); } await saveCandidateNotification(app,newStatus,message); }else{ alert('Status saved, but the candidate has no WhatsApp number.'); } }
-  showMessage('Application status successfully updated.','success'); await loadDashboard();
- }catch(e){ if(popup) popup.close(); console.error('Status update:',e); alert('Could not update application: ' + e.message); }
-}
 async function changeStatusOnly(id,newStatus){
  const app = currentApps.find(a => String(a.id) === String(id)); if(!app) return;
  if(!STATUSES.includes(newStatus)){ alert('Invalid status.'); return; }
@@ -689,7 +674,7 @@ function renderApplicant(app){
  const profileHTML = hasProfile
    ? `<div class="detail-grid"><div><div class="k">Job category</div><div class="v">${esc(jobCat || 'Not specified')}</div></div><div><div class="k">Experience</div><div class="v">${esc(exp || 'Not specified')}</div></div><div class="detail-full"><div class="k">Qualifications</div><div class="v">${esc(quals || 'Not specified')}</div></div><div><div class="k">Area</div><div class="v">${esc(area || 'Not specified')}</div></div><div><div class="k">Skills</div><div class="v">${skills.length ? esc(skills.join(', ')) : 'Not specified'}</div></div></div>`
    : `<div style="font-size:12px;color:#FFB020;margin-top:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.25);border-radius:10px;padding:10px">⚠️ This candidate has not completed their JobWay profile yet. Ask them to complete it on jobway.co.za — their WhatsApp is below.</div>`;
- return `<article class="card applicant-card" data-search="${esc((name+' '+title+' '+company+' '+email+' '+phone+' '+jobCat+' '+quals+' '+exp+' '+area+' '+skills.join(' ')).toLowerCase())}" data-status="${esc(status)}" data-category="${esc(jobCat)}" data-exp="${esc(exp)}" data-area="${esc(area)}"><div class="applicant-top"><div class="avatar">${esc(initialsFor(name))}</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap"><div class="applicant-name">${esc(name)}</div><span class="badge ${badgeClass}">${esc(status)}</span></div><div class="applicant-job">Applied for: <b style="color:white">${esc(title)} — ${esc(company)}</b> • ${esc(fmt(app.created_at))}</div><div style="font-size:12px;color:#A8C8D0;margin-top:6px;line-height:1.7">📱 WhatsApp: <b style="color:white">${esc(phone || 'No number')}</b><br>✉️ Email: ${esc(email)}</div></div></div>${profileHTML}${progressHTML(status)}${interviewHTML}<div class="btn-row"><button class="btn btn-green" data-action="status" data-id="${esc(app.id)}" data-status="Shortlisted">✓ Shortlist</button><button class="btn btn-orange" data-action="interview" data-id="${esc(app.id)}">📅 Interview</button><button class="btn btn-dark" data-action="status" data-id="${esc(app.id)}" data-status="Hired">🎉 Hire</button><button class="btn btn-red" data-action="status" data-id="${esc(app.id)}" data-status="Not Selected">Reject</button></div><div class="btn-row">${cvHTML}<button class="btn btn-whats" data-action="whatsapp" data-id="${esc(app.id)}">💬 WhatsApp</button></div><label class="label">CHANGE APPLICATION STATUS</label><select class="filter" data-action="select-status" data-id="${esc(app.id)}">${STATUSES.map(s=>`<option value="${esc(s)}" ${status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></article>`;
+ return `<article class="card applicant-card" data-search="${esc((name+' '+title+' '+company+' '+email+' '+phone+' '+jobCat+' '+quals+' '+exp+' '+area+' '+skills.join(' ')).toLowerCase())}" data-status="${esc(status)}" data-category="${esc(jobCat)}" data-exp="${esc(exp)}" data-area="${esc(area)}"><div class="applicant-top"><div class="avatar">${esc(initialsFor(name))}</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap"><div class="applicant-name">${esc(name)}</div><span class="badge ${badgeClass}">${esc(status)}</span></div><div class="applicant-job">Applied for: <b style="color:white">${esc(title)} — ${esc(company)}</b> • ${esc(fmt(app.created_at))}</div><div style="font-size:12px;color:#A8C8D0;margin-top:6px;line-height:1.7">📱 WhatsApp: <b style="color:white">${esc(phone || 'No number')}</b><br>✉️ Email: ${esc(email)}</div></div></div>${profileHTML}${progressHTML(status)}${interviewHTML}<div class="btn-row"><button class="action-btn btn-orange" data-action="interview" data-id="${esc(app.id)}">📅 Schedule Interview</button>${cvHTML}<button class="action-btn btn-whats" data-action="whatsapp" data-id="${esc(app.id)}">💬 WhatsApp</button></div><label class="label">CHANGE APPLICATION STATUS</label><select class="filter" data-action="select-status" data-id="${esc(app.id)}">${STATUSES.map(s=>`<option value="${esc(s)}" ${status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></article>`;
 }
 function renderJobs(){
  const el = document.getElementById('jobsList');
@@ -756,7 +741,6 @@ async function loadDashboard(){
 }
 document.getElementById('list').addEventListener('click',function(e){
  const button = e.target.closest('[data-action]'); if(!button) return; const action = button.dataset.action; const id = button.dataset.id;
- if(action === 'status'){ updateStatus(id,button.dataset.status,true); }
  if(action === 'interview'){ openInterview(id); }
  if(action === 'cv'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ openSecureCV(getCvPath(app),id,button); } }
  if(action === 'whatsapp'){ const app = currentApps.find(a => String(a.id) === String(id)); if(app){ const {phone,message} = buildWhatsAppMessage(app,app.status || 'Application Received'); openWhatsApp(phone,message); } }
